@@ -1,0 +1,443 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+#IFNDEF  WINDOWS
+    #DEFINE PSAY SAY
+#ENDIF
+
+User Function Coeldep()        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP6 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("XAREA,XREG,XINDICE,XAREA2,XREG2,XINDICE2")
+SetPrvt("CTIT,CDESC1,CDESC2,CDESC3,CSTRING,CALIAS")
+SetPrvt("AORD,WNREL,CPERG,CFILANTE,LEND,LFIRST")
+SetPrvt("ARETURN,AINFO,NLASTKEY,TITULO,CABEC1,CABEC2")
+SetPrvt("NOMEPROG,TAMANHO,NTIPO,M_PAG,NLI,WMD_ORDM")
+SetPrvt("WMD_ORDA,NORDEM,CFILDE,CFILATE,WMD_FIL1,WMD_FIL2")
+SetPrvt("WCODCUST2,WCODCUSTO,QUEBRAY,LIN,WHORA,PAG")
+SetPrvt("XQUEBFIL,WTOTFUN1,WTOTFUN2,WQCUST1,WQCUST2,WTOTSAL1")
+SetPrvt("WTOTSAL2,WVLIR1,WVLIR2,WVLSF1,WVLSF2,XCODIGOX")
+SetPrvt("WFILIAL,WCODIGO,WFUNCAO,WDEMISSAO,WTURNO,XAREA3")
+SetPrvt("XREG3,XINDICE3,WDESCFUN,WDESCTURN,WPESQCC,WPESQ")
+SetPrvt("WNUMDEP,WIR,WSFAM,AREGS,NSX1ORDER,NSX1RECNO")
+SetPrvt("LRET,NX,NY,")
+
+* -------------
+
+* ...
+* ... Prog.: DP014.PRX  - Relacao de Dependentes         ... *
+* ... Autor: Carlos Miranda                              ... *
+* ... Data : 29/06/2000                                  ... *
+* ...
+
+* ...
+xarea   :=alias()
+xreg    :=recno()
+xindice :=indexord()
+
+* ...
+dBSELECTAREA("SRA")
+xarea2   :=alias()
+xreg2    :=recno()
+xindice2 :=indexord()
+
+* ...
+#IFNDEF  WINDOWS
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 16/09/02 ==>     #DEFINE PSAY SAY
+#ENDIF
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ DP014    ³ Autor ³ CARLOS MIRANDA        ³ Data ³   /  /   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ RELACAO DE DEPENDENTES                                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe   ³ RDMake ( DOS e Windows )                                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Especifico para Clientes MicroSiga                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³         ATUALIZACOES SOFRIDAS DESDE A CONSTRU€AO INICIAL.             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Programador ³ Data   ³ BOPS ³  Motivo da Alteracao                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis Locais (Basicas)                            ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+cTit     := ' RELACAO DE DEPENDENTES                      '
+cDesc1   := 'Relacao de Dependentes                     '
+cDesc2   := 'Ser  impresso de acordo com os parametros solicitados pelo'
+cDesc3   := 'usuario.'
+cString  := 'SRA'
+cAlias   := 'SRA'
+aOrd     := {'Matricula','Centro de Custo','Ordem Alfabetica','','','','',''}
+WnRel    := 'RLDEPE'
+cPerg    := 'RLDEPE'
+cFilAnte := 'úú'
+lEnd     := .F.
+lFirst   := .T.
+aReturn  := { 'Zebrado',1,'Administracao',2,2,1,'',1 }    // 'Zebrado'###'Administra‡„o'
+aInfo    := {}
+nLastKey := 0
+
+titulo   := 'RELACAO DE DEPENDENTES '
+cabec1   := "Codigo  Nome                            Dt.Admissao     Salario  Depte IR    Depte SF   Funcao"
+cabec2   := "------  ------------------------------  -----------  ---------- ----------  ----------  ------------------------------------"
+nomeprog := 'RLDEPE'
+tamanho  := "G"
+ntipo    := 18
+m_pag    := 1
+
+nLI := 09
+wmd_ordm:="N"
+wmd_orda:="S"
+
+
+fSX1DEPE() //-- Inclui a Pergunta no SX1 Ref. a fun‡„o fSomaAcl (vers„o X.06)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte('RLDEPE',.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                         ³
+//³ mv_par01        //  FiLial De                                ³
+//³ mv_par02        //  FiLial Ate                               ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Envia controle para a funcao SETPRINT                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+WnRel :=SetPrint(cString,WnRel,cPerg,cTit,cDesc1,cDesc2,cDesc3,.F.,aOrd)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Carregando variaveis mv_par?? para Variaveis do Sistema.     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+nOrdem  := aReturn[8]
+cFilDe  := If(!Empty(mv_par01), mv_par01 ,'00')
+cFilAte := If(!Empty(mv_par02), mv_par02 ,'99')
+
+wmd_fil1:=cFilDe
+wmd_fil2:=cFilAte
+wmd_ordm:="  "
+wmd_orda:="  "
+
+If nLastKey == 27
+   Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+   Return
+Endif
+
+#IFDEF WINDOWS
+       RptStatus({|| fRLDEPE()})// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==>        RptStatus({|| Execute(fRLDEPE)})
+       Return
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==>        Function fRLDEPE
+Static Function fRLDEPE()
+#ENDIF
+
+dbSelectArea('SRA')
+xarea2   :=alias()
+xreg2    :=recno()
+xindice2 :=indexord()
+dbsetorder(NORDEM)
+DBGOTOP()
+SetRegua(RecCount())
+
+
+* ...
+wcodcust2:=space(2)
+wcodcusto:=RA_CC
+quebray :="ra_filial>=wmd_fil1 .and. ra_filial<=wmd_fil2"
+
+* ...
+set device to print
+setprc(0,0)
+set margin to 0
+@ 0,0 PSAY chr(18)
+
+* ...
+lin      :=70
+whora    :=left(time(),5)
+pag      :=0
+xquebfil :=" "
+wtotfun1 :=wtotfun2 := 0
+wqcust1  := wqcust2:=space(9)
+wtotsal1 :=wtotsal2 := wvlir1:= wvlir2:= wvlsf1:= wvlsf2:= 0.00
+
+* ...
+do while .t.
+
+   * ...
+   dBSELECTAREA("SRA")
+   xcodigox:=RA_MAT
+
+   //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   //³ Incrementa Regua de Processamento.                           ³
+   //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+   IncRegua()
+
+   //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   //³ Cancela ImpresÆo ao se pressionar <ALT> + <A>.               ³
+   //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+   #IFNDEF WINDOWS
+           Inkey()
+           If Lastkey() == 286
+              lEnd := .T.
+           EndIf
+   #ENDIF
+
+   If lEnd
+      @ pRow()+ 1, 00 PSAY ' CANCELADO PELO OPERADOR . . . '
+      Exit
+   EndIF
+
+   * ...
+   wfilial  :=RA_FILIAL
+   wcodigo  :=RA_MAT
+   wfuncao  :=RA_CODFUNC
+   wdemissao:=RA_DEMISSA
+   wturno   :=ra_tnotrab
+
+   * ...
+   Dbselectarea("SRJ")
+   xarea3   :=alias()
+   xreg3    :=recno()
+   xindice3 :=indexord()
+   DBSETORDER(1)
+   wdescfun:=" "
+
+   * ...
+   Dbsetorder(xindice3)
+   GOTO xreg3
+
+   * ... Turno de Trabalho
+   Dbselectarea("SR6")
+   xarea3   :=alias()
+   xreg3    :=recno()
+   xindice3 :=indexord()
+   DBSETORDER(1)
+   wdescturn:=" "
+
+   * ...
+   Dbsetorder(xindice3)
+   GOTO xreg3
+
+   * ...
+   dBSELECTAREA("SRA")
+
+   * ...
+   wpesqcc:=ra_cc+space(20)
+
+
+   * ... Imprime Cabecalho ... *
+   if lin>50 .and. empty(wdemissao) .and. &quebray
+      cabreldep()
+   endif
+
+   * ... Imprime Dados ... *
+   if empty(wdemissao) .and. &quebray
+
+      * ...
+      if lin>50
+         cabreldep()
+      endif
+
+      * ...
+      dBSELECTAREA("SRA")
+
+      * ...
+      wpesq:= RA_FILIAL+RA_MAT
+
+      * ...
+      dBSELECTAREA("SRB")
+      seek trim(wpesq+space(10))
+      if .not. eof()
+      
+         * ...
+         dBSELECTAREA("SRA")
+         
+         * ...
+         @ lin,0 PSAY SRA->ra_mat
+         @ lin,7 PSAY left(SRA->ra_nome,30)+" Dt.Nascto: "+dtoc(ra_nasc)+"  Admissao: "+dtoc(ra_admissa)
+
+         lin:=lin+2
+
+         * ...
+         wnumdep:=1
+         do while .t.
+
+            * ...
+            dBSELECTAREA("SRB")
+
+            * ...
+            do case
+               case val(rb_tipir)==1
+                    wir:="S"
+               case val(rb_tipir)==2
+                    wir:="S"
+               case val(rb_tipir)==3
+                    wir:="S"
+               case val(rb_tipir)==4
+                    wir:="N"
+            endcase
+
+            * ...
+            do case
+               case val(rb_tipsf)==1
+                    wsfam:="S"
+               case val(rb_tipsf)==2
+                    wsfam:="S"
+               case val(rb_tipsf)==3
+                    wsfam:="N"
+            endcase
+
+            * ...
+            @ lin,0 PSAY strzero(wnumdep,2)+"  "+rb_nome+" Nascto.: "+dtoc(rb_dtnasc)+" G.Par.:"+rb_graupar+" DPIR. "+wir+" DSFAM.: "+wsfam
+            lin    :=lin+1
+            wnumdep:=wnumdep+1
+
+            * ...
+            skip
+            if .not. eof()
+               if rb_Filial+rb_mat==wpesq
+                  loop
+               endif
+            endif
+            exit
+         enddo
+         @ lin,0 PSAY "==============================================================================="
+         lin:=lin+1
+      endif
+   endif
+
+   * ...
+   DBSELECTAREA("SRA")
+
+   skip
+   if .not. eof()
+      loop
+   endif
+   exit
+enddo
+
+@ lin,0 PSAY chr(18)
+set margin to 0
+eject
+set printer to
+set device to screen
+
+
+Dbselectarea("SRA")
+Dbsetorder(xindice2)
+GOTO xreg2
+
+Dbselectarea(xarea)
+Dbsetorder(xindice)
+Dbgoto(xreg)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Termino do Relatorio.                                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+dbSelectArea( 'SRA' )
+RetIndex('SRA')
+dbSetOrder(1)
+Set Device To Screen
+
+If aReturn[5] == 1
+   Set Printer To
+   dbCommitAll()
+   OurSpool(WnRel)
+Endif
+
+MS_Flush()
+return
+
+* --------------------------
+Static Function cabreldep
+
+* ... Imprime Cabecalho ... *
+if lin>50 .and. empty(wdemissao)
+
+      pag:=pag+1
+      @ 1,0 PSAY "==============================================================================="
+      @ 2,2 PSAY SM0->M0_NOMECOM
+      @ 2,61 PSAY "Folha  :"
+      @ 2,71 PSAY strzero(pag,6)
+      @ 3,1 PSAY "S.I.G.A. / AVRDEP    Relacao de Dependentes            "
+      @ 3,56 PSAY "     Dt.Ref.:"
+      @ 3,71 PSAY ddatabase
+      @ 4,1 PSAY "Hora ... :"
+      @ 4,13 PSAY whora
+      @ 4,60 PSAY "Emissao :"
+      @ 4,71 PSAY date()
+      @ 5,0 PSAY "==============================================================================="
+      @ 6,0 PSAY "Matr.  Nome                                                                    "
+      @ 7,0 PSAY "------ ------------------------------------------------------------------------"
+      lin:=8
+endif
+
+* ---------------------
+/*
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³fSX1DEPE  ³ Autor ³ CARLOS   MIRANDA      ³ Data ³   /  /   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡„o ³ Inclui perguntas no SX1 ( Para vers„o X.06 )E OUTROS       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe   ³ fSX1FUNC()                                                 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parƒmetros³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ SEGDES                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß*/
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function fSX1DEPE
+Static Function fSX1DEPE()
+
+//-- Inicializa Variaveis
+aRegs     := {}
+nSX1Order := SX1->(IndexOrd())
+nSX1Recno := SX1->(Recno())
+cPerg     := 'RLDEPE'
+lRet      := .F.
+
+SX1->(dbSetOrder(1))
+
+// Grupo/Ordem/Pergunta/Variavel/Tipo/Tamanho/Decimal/Presel/GSC/Valid/Var01/Def01/Cnt01/Var02/Def02/Cnt02/Var03/Def03/Cnt03/Var04/Def04/Cnt04/Var05/Def05/Cnt05/XF3
+aAdd(aRegs,{cPerg,'01', 'Filial De          ?', 'mv_ch1', 'C', 002, 0, 0, 'G', '', 'mv_par01', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''})
+aAdd(aRegs,{cPerg,'02', 'Filial Ate         ?', 'mv_ch2', 'C', 002, 0, 0, 'G', '', 'mv_par02', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''})
+
+For nX := 1 to Len(aRegs)
+    if !SX1->(dbSeek(cPerg + aRegs[nX,2], .F.))
+       lRet := .T.
+       RecLock('SX1',.T.)
+       For nY:=1 to fCount()
+           If nY <= Len(aRegs[nX])
+              SX1->(FieldPut(nY,aRegs[nX,nY]))
+           Endif
+       Next nY
+       MsUnlock()
+    Endif
+Next nX
+
+SX1->(dbSetOrder(nSX1Order))
+SX1->(dbGoto(nSX1Recno))
+
+Return lRet
+
+

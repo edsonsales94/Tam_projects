@@ -1,0 +1,243 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ M185GRV   ³ Autor ³ Cometais             ³ Data ³10/05/2012³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Impressao da Guia de Separacao: Baixa de Requisicao        ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Financeiro: Almoxarifado                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#INCLUDE "RWMAKE.CH"
+
+User Function M185GRV()
+
+Local   _aArea  := GetArea()
+Private xNum    := SCQ->CQ_NUM
+Static  xNumSq  := SCQ->CQ_NUMSQ
+Static  nCtd    := 0
+Static  xCtd    := 0   
+Static  axCols  
+Private oDlg080
+Private nOpcA   := 0
+Private cxMovto := "Número do Movimento:  " + SCQ->CQ_NUM
+
+
+nCtd++
+
+IF ( nCtd == 1 )
+	xCtd   := LEN(M->aCols)
+	axCols := Aclone(M->aCols)
+ELSEIF ( nCtd == xCtd )
+   
+	@ 065,000 To 248,383 Dialog oDlg080 Title OemToAnsi("Impressão da Guia de Separação")
+
+	@ 011,010 Say OemToAnsi("1- Favor ligar a impressora.")               Size 97,7
+	@ 021,010 Say OemToAnsi("2- Quando estiver pronta, pressionar o")     Size 97,7
+	@ 031,010 Say OemToAnsi("    Botão Ok para imprimir a Guia.  ")       Size 97,7
+	@ 056,010 Say cxMovto                                                 Size 265,7
+
+	@ 006,161 BmpButton Type 1 Action (nOpcA := 1 , oDlg080:End())
+	@ 026,161 BmpButton Type 2 Action f_CloseCanc()
+
+	Activate Dialog oDlg080 Centered  Valid f_CloseEnd()   
+
+	IF ( nOpcA == 1 )
+		f_ImpRec(axCols,xNum,xNumSq)
+	ENDIF
+	nCtd := 0
+ENDIF
+
+dbSelectArea("SCP")
+RestArea(_aArea)
+
+Return
+
+////////////////////////////////////////////
+Static Function f_CloseEnd()
+////////////////////////////////////////////
+Local lRsp := .F.
+
+IF ( nOpcA <> 0 )
+	lRsp := .T.
+ENDIF
+
+Return(lRsp)
+
+////////////////////////////////////////////
+Static Function f_CloseCanc()
+////////////////////////////////////////////
+Local lRsp 
+
+lRsp := MsgBox("Deseja mesmo cancelar a impressão da Guia?","Escolha a opção","YESNO")
+
+If ( lRsp )
+	nOpcA := 2
+   oDlg080:End()
+Endif
+
+Return(lRsp)
+
+/////////////////////////////////////////////////////////////////////////
+Static Function f_ImpRec(axCols,xNum,xNumSq)
+/////////////////////////////////////////////////////////////////////////
+Local cTotal,nx
+Local nTotal   := 0
+Local lImp     := .F.
+Local Titulo   := "GUIA DE SEPARACAO"
+Private Lin      := 3300
+Private m_pag    := 0
+Private oPrint
+Private xBitMap  := "\SYSTEM_CARLOS\Logo2_cometais.BMP"
+Private xData    := "Data: "+dtoc(ddatabase)+"  "+TIME()
+Private xUsuario := "Usuário: "+M->cUserName
+Private xFone    := RTRIM(SM0->M0_TEL)
+Private xFax     := RTRIM(SM0->M0_FAX)
+Private xRazSoc  := RTRIM(SM0->M0_NOMECOM)
+Private xEnder   := RTRIM(SM0->M0_ENDCOB) + " - " + RTRIM(SM0->M0_BAIRCOB) + " - " + RTRIM(SM0->M0_CIDCOB) + "/" + SM0->M0_ESTCOB
+Private xCnpj    := "C.N.P.J.: " + TRANSF(SM0->M0_CGC,"@R 99.999.999/9999-99")
+Private xCabec   := " Item   Cód. do Produto                          Descrição do Produto                            UM           QTDE       Local Estoque   " 
+        //////             1                  2                                                                 3      4                   5                  6
+
+xFone := STRTRAN(xFone,"(","")
+xFone := STRTRAN(xFone,")","")
+xFone := STRTRAN(xFone,"-","")
+xFone := STRTRAN(xFone," ","")
+*
+xFax  := STRTRAN(xFax,"(","")
+xFax  := STRTRAN(xFax,")","")
+xFax  := STRTRAN(xFax,"-","")
+xFax  := STRTRAN(xFax," ","")
+xFone := "Fone / Fax: " + TRANSF(xFone,"@R (99)9999-9999") + IIF(!EMPTY(SM0->M0_FAX) , " / " + TRANSF(xFax,"@R (99)9999-9999") , "" )	
+
+// Cria os objetos com as configuracoes das fontes
+//                                              Negrito  Subl  Italico
+oFont08  := TFont():New( "Times New Roman",,08,,.f.,,,,,.f.,.f. )
+oFont08b := TFont():New( "Times New Roman",,08,,.t.,,,,,.f.,.f. )
+oFont09  := TFont():New( "Times New Roman",,09,,.f.,,,,,.f.,.f. )
+oFont10  := TFont():New( "Times New Roman",,10,,.f.,,,,,.f.,.f. )
+oFont10b := TFont():New( "Times New Roman",,10,,.t.,,,,,.f.,.f. )
+oFont10b := TFont():New( "Times New Roman",,10,,.t.,,,,,.f.,.f. )
+oFont11  := TFont():New( "Times New Roman",,11,,.f.,,,,,.f.,.f. )
+oFont11b := TFont():New( "Times New Roman",,11,,.t.,,,,,.f.,.f. )
+oFont12  := TFont():New( "Times New Roman",,12,,.f.,,,,,.f.,.f. )
+oFont12b := TFont():New( "Times New Roman",,12,,.t.,,,,,.f.,.f. )
+oFont13b := TFont():New( "Times New Roman",,13,,.t.,,,,,.f.,.f. )
+oFont14  := TFont():New( "Times New Roman",,14,,.f.,,,,,.f.,.f. )
+oFont14b := TFont():New( "Times New Roman",,14,,.t.,,,,,.f.,.f. )
+oFont16b := TFont():New( "Times New Roman",,16,,.t.,,,,,.f.,.f. )
+oFont20  := TFont():New( "Times New Roman",,20,,.f.,,,,,.f.,.f. )
+oFont20b := TFont():New( "Times New Roman",,20,,.t.,,,,,.t.,.f. )
+oFont22b := TFont():New( "Times New Roman",,22,,.t.,,,,,.t.,.f. )
+oFont24b := TFont():New( "Times New Roman",,24,,.t.,,,,,.t.,.f. )
+
+oFontMM := TFont():New("Courier New",10,10,,.T.,,,,.F.,.F.)
+oFontPN := TFont():New("Courier New",10,10,,.F.,,,,.F.,.F.)
+oFontMN := TFont():New("Courier New",10,10,,.T.,,,,.F.,.F.)
+oFontGN := TFont():New("Courier New",20,20,,.T.,,,,.F.,.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Cria o Objeto o Print do TmsPrinter                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+oPrint := TMSPrinter():New(Titulo)
+//lImp   := oPrint:Setup()
+oPrint:SetPortrait()
+
+//If !lImp
+//   Return
+//Endif
+
+nx := 1
+DO WHILE nx<=LEN(axCols)
+
+	CabReq185()
+
+	Lin    += 70	
+	nTotal += axCols[nx,3] 
+		
+	oPrint:Say(Lin,160,axCols[nx,38],oFont11)
+	oPrint:Say(Lin,250,LEFT(axCols[nx,1],15),oFont11)
+	oPrint:Say(Lin,610,RTRIM(axCols[nx,15]),oFont11)
+	oPrint:Say(Lin,1550,axCols[nx,2],oFont11)
+	oPrint:Say(Lin,1730,TRANSF(axCols[nx,3],"@E 999999.99"),oFont11)
+	oPrint:Say(Lin,1940,axCols[nx,6],oFont11)
+	oPrint:Line(Lin+60,110,Lin+60,2300)
+	oPrint:Line(Lin,110,Lin+60,110)
+	oPrint:Line(Lin,230,Lin+60,230)
+	oPrint:Line(Lin,580,Lin+60,580)
+	oPrint:Line(Lin,1520,Lin+60,1520)
+	oPrint:Line(Lin,1630,Lin+60,1630)
+	oPrint:Line(Lin,1900,Lin+60,1900)
+	oPrint:Line(Lin,2300,Lin+60,2300)
+
+	nx++
+	
+ENDDO
+
+cTotal := "TOTAL   "+LTRIM(TRANSF(nTotal,"@E 9999999.99"))
+Lin += 100
+oPrint:Box(Lin,1520,Lin+80,2300)
+Lin += 20
+oPrint:Say(Lin,1550,cTotal,oFont12b)
+Lin += 120
+
+oPrint:Line(Lin,110,Lin,2300)
+Lin += 140
+oPrint:Say(Lin,1070,"Recebido por:",oFont12b)
+oPrint:Line(Lin+40,1360,Lin+40,2100)
+Lin += 80
+oPrint:Say(Lin,1070,"Manaus/AM:    ______/______/________",oFont12b)
+
+oPrint:EndPage()
+
+oPrint:Preview()
+
+Return
+
+////////////////////////////////////////////////
+Static Function CabReq185()
+////////////////////////////////////////////////
+Local xPagina := "Página: "
+
+If Lin > 2610
+   m_pag ++
+	xPagina += STR(m_pag,2)
+	
+   oPrint:EndPage()
+   oPrint:StartPage()
+
+	oPrint:SetFont(oFont22b)
+	oPrint:SayBitMap(100,110,xBitMap,500,260)
+
+	oPrint:Say(140,680,xRazSoc,oFont12b ,140)
+	oPrint:Say(200,680,xEnder,oFont11 ,140)
+	oPrint:Say(260,680,xFone,oFont11 ,140)
+	oPrint:Say(320,680,xCnpj,oFont11 ,140)
+
+	oPrint:Say(140,1870,xPagina,oFont11 ,140)
+	oPrint:Say(200,1870,xData,oFont11 ,140)
+	oPrint:Say(260,1870,xUsuario,oFont11 ,140)
+
+	oPrint:Line(400,110,400,2300)
+	oPrint:Say(430,900,"GUIA DE SEPARAÇÃO",oFont14b)
+	oPrint:Line(510,110,510,2300)
+	oPrint:Say(540,140,"Número do Movimento:",oFont12b ,240)
+	oPrint:Say(536,600,xNum,oFont14b ,120)
+	oPrint:Line(630,110,630,2300)
+
+	oPrint:Box(710,110,790,2300)
+	oPrint:Say(730,120,xCabec,oFont12b)
+	oPrint:Line(710,230,790,230)   //1
+	oPrint:Line(710,580,790,580)   //2
+	oPrint:Line(710,1520,790,1520)   //3
+	oPrint:Line(710,1630,790,1630)   //4
+	oPrint:Line(710,1900,790,1900)   //5
+
+	Lin := 720
+	
+EndIf
+
+Return      

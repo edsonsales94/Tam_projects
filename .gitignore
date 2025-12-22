@@ -1,0 +1,42 @@
+# === ADVPL/TDS/SMARTCLIENT ===
+vscode/
+*.ptm
+*.ptw
+*.log
+*.tmp
+*.err
+*.bak
+*.zip
+*.dll
+*.tlpp
+*.chp
+*.lrf
+*.map
+*.lfi
+*.lxo
+*.prw.bkp
+*.tmb
+
+# Pastas de smartclient e binários
+smartclient/
+bin/
+dlls/
+release/
+build/
+temp/
+tmp/
+output/
+out/
+
+# Pastas comuns de cache
+.cache/
+temp/
+tmp/
+logs/
+
+# Pastas geradas pelo TDS/TOTVS
+.compile/
+.deploy/
+.debug/
+.settings/
+.metadata/

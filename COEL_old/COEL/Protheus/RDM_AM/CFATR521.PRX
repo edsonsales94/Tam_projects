@@ -1,0 +1,595 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³ CFATR521 ³ Autor ³ Carlos Nina           ³ Data ³ 18/04/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relatorio de Pedidos em Aberto p/Faturamento               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#include "protheus.ch"
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 01/10/01
+#Include "TOPCONN.CH"
+
+User Function CFATR521()        // incluido pelo assistente de conversao do AP5 IDE em 01/10/01
+
+SetPrvt("ODLGP,OWBROWSE")
+
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SC6"
+titulo    := "RELAÇAO DE PEDIDOS P/FATURAMENTO"
+cDesc1    := "Emite uma relaçao de Pedidos em Aberto p/Faturamento."
+cDesc2    := "Somente para as CFOP's: 5101,5102,5911,6101,6102,6911,7101,7102,7911."
+cDesc3    := ""
+cResp     := "N"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+cRodaTxt  := ""
+nCntImpr  := 0
+aReturn   := { "Especial", 1,"Produçao", 1, 2, 1, "",1 }
+nomeprog  := "FATR521 "
+nLastKey  := 0
+cPerg     := "CFATR521  "
+wnrel     := "FATR521 "
+ValidPerg(cPerg)
+///AjustaSx1()
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+	Return
+Endif
+SetDefault(aReturn,cString)
+If LastKey() == 27 .OR. nLastKey == 27
+	Return
+Endif
+RptStatus({|| fRC_Imp()})
+Return Nil
+
+///////////////////////////////////////////////////
+Static Function fRC_Imp()
+///////////////////////////////////////////////////
+Local   cStatus,iq,cProduto,cBloqueio,lCrd
+Private oOk := LoadBitmap( GetResources(), 'br_verde')
+Private oNo := LoadBitmap( GetResources(), 'br_vermelho')
+Private oBrowse,oDlg,oMulti
+
+aCols   := {}   ///{{"  ",SPACE(09),SPACE(46),SPACE(8),0,0,0,0,SPACE(50),SPACE(50)}}
+aHeader := {}   
+AADD(aHeader,{"Cliente"        , "C7_NUMSC  " ,"@!               " ,44,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})
+AADD(aHeader,{"Pedido"         , "C7_NUMSC  " ,"@!               " ,09,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","B"," "," "})
+///AADD(aHeader,{"Item"           , "C7_NUMSC  " ,"@!               " ,02,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","B"," "," "})
+AADD(aHeader,{"Entrega"        , "C7_NUMSC  " ,"                 " ,08,0, "                               ","€€€€€€€€€€€€€€ ","D","SC7","V"," "," "})
+AADD(aHeader,{"Produto"        , "C7_NUMSC  " ,"@!               " ,45,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})
+AADD(aHeader,{"Sd.Est."        , "C7_NUMSC  " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SC7","V"," "," "})
+AADD(aHeader,{"Qty.Ped."       , "C7_NUMSC  " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SC7","V"," "," "})
+AADD(aHeader,{"Qty.Entr."      , "C7_NUMSC  " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SC7","V"," "," "})
+AADD(aHeader,{"Qty.Lib."       , "C7_NUMSC  " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SC7","V"," "," "})
+AADD(aHeader,{"Sd.Ped."        , "C7_NUMSC  " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SC7","V"," "," "})
+AADD(aHeader,{"Qty.a Fat."     , "TB_QTDFAT " ,"@E 9999999       " ,07,0, "ExecBlock('CFATRX0521',.F.,.F.)","€€€€€€€€€€€€€€ ","N","TRB"," "," "," "})
+AADD(aHeader,{"Ok"             , "C7_NUMSC  " ,"                 " ,03,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})             
+AADD(aHeader,{"Bloqueio"       , "C7_NUMSC  " ,"                 " ,08,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})             
+AADD(aHeader,{"Observação"     , "C7_NUMSC  " ,"@!               " ,50,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})
+AADD(aHeader,{"Registro"       , "C7_NUMSC  " ,"@!               " ,07,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})
+
+aStru := {}
+AADD(aStru,{"TB_OK"      , "C" , 02 , 0 } )
+AADD(aStru,{"TB_NUM"     , "C" , 06 , 0 } )
+AADD(aStru,{"TB_ITEM"    , "C" , 02 , 0 } )
+AADD(aStru,{"TB_CLI"     , "C" , 06 , 0 } )
+AADD(aStru,{"TB_LOJA"    , "C" , 02 , 0 } )
+AADD(aStru,{"TB_NOME"    , "C" , 40 , 0 } )
+AADD(aStru,{"TB_RAZSOC"  , "C" , 54 , 0 } )
+AADD(aStru,{"TB_EST"     , "C" , 02 , 0 } )
+AADD(aStru,{"TB_CNPJ"    , "C" , 14 , 0 } )
+AADD(aStru,{"TB_COD"     , "C" , 30 , 0 } )
+AADD(aStru,{"TB_DESCRI"  , "C" , 30 , 0 } )
+AADD(aStru,{"TB_PEDCLI"  , "C" , 20 , 0 } )
+AADD(aStru,{"TB_TES"     , "C" , 03 , 0 } )
+AADD(aStru,{"TB_CF"      , "C" , 04 , 0 } )
+AADD(aStru,{"TB_EMISSAO" , "D" , 08 , 0 } )
+AADD(aStru,{"TB_ENTREGA" , "D" , 08 , 0 } )
+AADD(aStru,{"TB_PRODUTO" , "C" , 40 , 0 } )
+AADD(aStru,{"TB_PESOL"   , "N" , 11 , 3 } )
+AADD(aStru,{"TB_QTDVEN"  , "N" , 11 , 0 } )
+AADD(aStru,{"TB_QTDENT"  , "N" , 11 , 0 } )
+AADD(aStru,{"TB_QTDEMP"  , "N" , 11 , 0 } )
+AADD(aStru,{"TB_QTDSDO"  , "N" , 11 , 0 } )
+AADD(aStru,{"TB_QTDFAT"  , "N" , 11 , 0 } )
+AADD(aStru,{"TB_PRCVEN"  , "N" , 15 , 4 } )
+AADD(aStru,{"TB_VALOR"   , "N" , 15 , 2 } )
+AADD(aStru,{"TB_SDOEST"  , "N" , 11 , 0 } )
+AADD(aStru,{"TB_OBS"     , "C" , 50 , 0 } )
+AADD(aStru,{"TB_EMAIL"   , "C" , 80 , 0 } )
+cArqTrab := CriaTrab(aStru,.T.)
+cArqInd  := cArqTrab+".NTX"
+Use &cArqTrab ALIAS TRB NEW
+INDEX ON TB_NOME+TB_CNPJ+TB_NUM+TB_ITEM TO (cArqInd)
+
+cQry := "SELECT C6_OK,C6_NUM,C6_ITEM,C6_PRODUTO,C6_DESCRI,C6_CF,C6_TES,C6_ENTREG,C6_QTDVEN,C6_QTDENT,C6_QTDEMP,C6_VALOR,C6_CLI,C6_LOJA,C6_PRCVEN,C6_LOCAL,C6_PEDCLI,A1_NOME,A1_EST,A1_CGC,A1_X_MAIL2,F4_CODIGO,F4_ESTOQUE,F4_DUPLIC "
+cQry += "FROM "+RetSqlName("SC6")+" C6,"+RetSqlName("SF4")+" F4,"+RetSqlName("SA1")+" A1 "
+cQry += "WHERE C6_FILIAL  = '" + xFilial("SC6") + "' "
+cQry += "AND C6_QTDVEN  > C6_QTDENT "
+cQry += "AND C6_ENTREG >= '" + dtos(mv_par01) + "' "
+cQry += "AND C6_ENTREG <= '" + dtos(mv_par02) + "' "
+cQry += "AND C6_CLI     >= '" + mv_par03 + "' "
+cQry += "AND C6_CLI     <= '" + mv_par04 + "' "
+cQry += "AND C6_PRODUTO >= '" + mv_par05 + "' "
+cQry += "AND C6_PRODUTO <= '" + mv_par06 + "' "
+cQry += "AND C6_CF IN ('5101','5102','5911','6911','6101','6102','6122','7101','7102','7911') "
+cQry += "AND F4_FILIAL = '"+xFilial("SF4")+"' AND F4_CODIGO = C6_TES AND F4_ESTOQUE = 'S' "
+cQry += "AND A1_FILIAL = '"+xFilial("SA1")+"' AND A1_COD = C6_CLI AND A1_LOJA = C6_LOJA "
+cQry += "AND C6.D_E_L_E_T_  <> '*' AND F4.D_E_L_E_T_ = ' ' AND A1.D_E_L_E_T_ = ' ' "
+cQry += "ORDER BY A1_NOME,A1_CGC,C6_NUM,C6_ITEM "
+///cQry += "ORDER BY C6_PRODUTO,A1_NOME,C6_CLI, C6_LOJA,C6_ENTREG "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB2', .T., .T.)
+TcSetField("TB2","C6_QTDVEN","N",15,3)
+TcSetField("TB2","C6_ENTREG","D",08,0)
+TcSetField("TB2","C6_QTDENT","N",15,3)
+TcSetField("TB2","C6_PRCVEN","N",12,4)
+
+SET(1,"OFF")
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+dbSelectArea("SB2")
+dbSetOrder(1)
+dbSelectArea("SC5")
+dbSetOrder(1)
+dbSelectArea("SC6")
+dbSetOrder(1)
+dbSelectArea("SF4")
+dbSetOrder(1)
+*
+nCtd := 0
+dbSelectArea("TB2")
+dbGoTop()
+/*
+DO WHILE !EOF()
+	TBCOD := TB2->C6_PRODUTO
+   SB1->(dbSeek(xFilial("SB1")+TB2->C6_PRODUTO))
+   SB2->(dbSeek(xFilial("SB2")+TB2->C6_PRODUTO+SB1->B1_LOCPAD))
+	nSdoEst := SB2->B2_QATU
+	DO WHILE !EOF().AND.TB2->C6_PRODUTO == TBCOD
+		SC5->(dbSeek(xFilial("SC5")+TB2->C6_NUM))
+		RecLock("TRB",.T.)
+		TRB->TB_OK      := "  "
+		TRB->TB_NUM     := TB2->C6_NUM
+		TRB->TB_ITEM    := TB2->C6_ITEM
+		TRB->TB_COD     := TB2->C6_PRODUTO
+		TRB->TB_DESCRI  := TB2->C6_DESCRI
+		TRB->TB_PRODUTO := RTRIM(TB2->C6_PRODUTO)+"  "+TB2->C6_DESCRI
+		TRB->TB_PEDCLI  := SC5->C5_CLPEDCL
+		TRB->TB_CLI     := TB2->C6_CLI
+		TRB->TB_LOJA    := TB2->C6_LOJA
+		TRB->TB_NOME    := TB2->A1_NOME
+		TRB->TB_RAZSOC  := "("+TB2->A1_EST+")"+RTRIM(TB2->C6_CLI)+"-"+TB2->C6_LOJA+"/"+TB2->A1_NOME
+		TRB->TB_EST     := TB2->A1_EST
+		TRB->TB_CNPJ    := TB2->A1_CGC
+		TRB->TB_TES     := TB2->C6_TES
+		TRB->TB_CF      := TB2->C6_CF
+		TRB->TB_EMISSAO := SC5->C5_EMISSAO
+		TRB->TB_PESOL   := SB1->B1_PESO
+		TRB->TB_ENTREGA := TB2->C6_ENTREG
+		TRB->TB_QTDVEN  := TB2->C6_QTDVEN
+		TRB->TB_QTDENT  := TB2->C6_QTDENT
+		TRB->TB_QTDSDO  := ( TB2->C6_QTDVEN - TB2->C6_QTDENT )
+		TRB->TB_PRCVEN  := TB2->C6_PRCVEN
+		TRB->TB_VALOR   := TB2->C6_VALOR
+		TRB->TB_SDOEST  := SB2->B2_QATU
+		TRB->TB_OBS     := SC5->C5_CLMSPED
+		TRB->TB_EMAIL   := TB2->A1_X_MAIL2
+		MsUnlock()
+		*
+		nCtd++
+		AADD( aCols , { TRB->TB_PRODUTO           , ;
+							 TRB->(TB_NUM+"/"+TB_ITEM) , ;
+							 TRB->TB_ENTREGA      , ;
+							 SB2->B2_QATU         , ;
+							 TRB->TB_QTDVEN       , ;
+							 TRB->TB_QTDENT       , ;
+							 TRB->TB_QTDSDO       , ;
+							 TRB->TB_QTDFAT       , ;
+							 SPACE(2)             , ;
+							 SPACE(7)             , ;
+							 TRB->TB_RAZSOC       , ;
+							 TRB->TB_OBS          , ;
+							 STRZERO(nCtd,7)  } )
+								 
+		dbSelectArea("TB2")
+		dbSkip()
+	ENDDO	
+ENDDO
+*/
+DO WHILE !EOF()
+	TBNUM := TB2->C6_NUM
+	SC5->(dbSeek(xFilial("SC5")+TB2->C6_NUM))
+	DO WHILE !EOF().AND.TB2->C6_NUM==TBNUM
+		SB1->(dbSeek(xFilial("SB1")+TB2->C6_PRODUTO))
+		SB2->(dbSeek(xFilial("SB2")+TB2->C6_PRODUTO+SB1->B1_LOCPAD))
+		RecLock("TRB",.T.)
+		TRB->TB_OK      := "  "
+		TRB->TB_NUM     := TB2->C6_NUM
+		TRB->TB_ITEM    := TB2->C6_ITEM
+		TRB->TB_COD     := TB2->C6_PRODUTO
+		TRB->TB_DESCRI  := TB2->C6_DESCRI
+		TRB->TB_PRODUTO := RTRIM(TB2->C6_PRODUTO)+"  "+TB2->C6_DESCRI
+		TRB->TB_PEDCLI  := SC5->C5_CLPEDCL
+		TRB->TB_CLI     := TB2->C6_CLI
+		TRB->TB_LOJA    := TB2->C6_LOJA
+		TRB->TB_NOME    := TB2->A1_NOME
+		TRB->TB_RAZSOC  := TB2->A1_EST+"::"+RTRIM(TB2->C6_CLI)+"-"+TB2->C6_LOJA+"/"+TB2->A1_NOME
+		TRB->TB_EST     := TB2->A1_EST
+		TRB->TB_CNPJ    := TB2->A1_CGC
+		TRB->TB_TES     := TB2->C6_TES
+		TRB->TB_CF      := TB2->C6_CF
+		TRB->TB_EMISSAO := SC5->C5_EMISSAO
+		TRB->TB_PESOL   := SB1->B1_PESO
+		TRB->TB_ENTREGA := TB2->C6_ENTREG
+		TRB->TB_QTDVEN  := TB2->C6_QTDVEN
+		TRB->TB_QTDENT  := TB2->C6_QTDENT
+		TRB->TB_QTDEMP  := TB2->C6_QTDEMP
+		TRB->TB_QTDSDO  := ( TB2->C6_QTDVEN - TB2->C6_QTDENT )
+		TRB->TB_QTDFAT  := TB2->C6_QTDEMP
+		TRB->TB_PRCVEN  := TB2->C6_PRCVEN
+		TRB->TB_VALOR   := TB2->C6_VALOR
+		TRB->TB_SDOEST  := SB2->B2_QATU
+		TRB->TB_OBS     := SC5->C5_CLMSPED
+		TRB->TB_EMAIL   := TB2->A1_X_MAIL2
+		MsUnlock()
+		*
+		cStatus1 := IIF(TRB->TB_QTDFAT > 0 , CHAR(215) , "" )
+		cStatus2 := IIF(SC5->C5_BLQ == "1" , "BL.REGRA" , SPACE(8) )
+		nCtd++
+		AADD( aCols , { TRB->TB_RAZSOC       , ;
+		                TRB->(TB_NUM+"/"+TB_ITEM) , ;
+							 TRB->TB_ENTREGA      , ;
+							 TRB->TB_PRODUTO      , ;
+							 SB2->B2_QATU         , ;
+							 TRB->TB_QTDVEN       , ;
+							 TRB->TB_QTDENT       , ;
+							 TRB->TB_QTDEMP       , ;
+							 TRB->TB_QTDSDO       , ;
+							 TRB->TB_QTDFAT       , ;
+							 cStatus1             , ;
+							 cStatus2             , ;
+							 TRB->TB_OBS          , ;
+							 STRZERO(nCtd,7)  } )
+								 
+		dbSelectArea("TB2")
+		dbSkip()
+	ENDDO	
+ENDDO
+TB2->(dbCloseArea())
+////
+//// Atualiza campo de bloqueio para itens com qty. liberada
+////
+IF ( LEN(aCols) > 0 )
+	nLen := LEN(aCols)
+	FOR n:=1 TO nLen
+		 IF ( aCols[n,12] <> "BL.REGRA" )
+			 IF ( aCols[n,10] > 0 )
+				 cProduto    := aCols[n,4]
+				 nSdoEst     := ( aCols[n,5] - aCols[n,9] )
+				 aCols[n,11] := CHAR(215)
+				 nx := 1
+				 DO WHILE nx <= nLen   
+					 IF ( aCols[nx,4] == cProduto )
+						 aCols[nx,5] := nSdoEst 
+					 ENDIF
+					 nx++
+				 ENDDO
+			
+				 lCrd := f_AvalCred(SUBS(aCols[n,1],1,6),SUBS(aCols[n,1],8,2),aCols[n,10],aCols[n,5])
+			
+				 cBloqueio   := IIF(!lCrd , "Crd" , "" )
+				 cBloqueio   := IIF(nSdoEst < 0 , IIF(!EMPTY(cBloqueio) , ( cBloqueio + "/Est" ) , "Est" ) , cBloqueio )
+				 aCols[n,12] := cBloqueio    
+			 ENDIF
+		 ENDIF
+	NEXT
+ENDIF
+*
+If ( TRB->(RECNO()) == 0 )                   ///--> NAO HOUVE SELECAO
+   If aReturn[5] == 1
+           dbcommitAll()
+           ourspool(wnrel)
+   Endif
+   MS_FLUSH()
+   TRB->(dbCloseArea())
+   RETURN
+Endif
+
+nOpcA := 0
+iq    := 0
+n     := 1
+
+dbSelectArea("TRB")
+dbGoTop()
+
+@ 000,000 To 580,1320 Dialog oDlg Title OemToAnsi("Carteira de Pedidos de Venda")    
+
+@ 016,002 TO 280,660 MULTILINE MODIFY FREEZE 3 Object oMulti
+
+////ACTIVATE MSDIALOG oDlg ON INIT;
+////	      EnchoiceBar(oDlg,{|| nOpcA:=1,oDlg:End() },{|| AbR520() }) CENTERED
+
+ACTIVATE MSDIALOG oDlg ON INIT;
+	      EnchoiceBar(oDlg,{|| CloseOK() },{|| CloseCanc() }) CENTERED
+
+IF ( nOpcA == 1 )
+   Processa( {|| Prt_521()} )
+ENDIF			
+TRB->(dbCloseArea())
+
+If aReturn[5] == 1
+   dbcommitAll()
+   ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return
+
+///////////////////////////////////////////////////////
+User Function CFATRX0521()
+///////////////////////////////////////////////////////
+Local lRsp := .F.
+Local nx   := n
+Local nLen := LEN(aCols)
+Local cProduto,cBloqueio
+
+IF ( M->TB_QTDFAT >= 0 )
+	lRsp := .T.
+	IF ( M->TB_QTDFAT > 0 )
+		IF ( M->TB_QTDFAT > aCols[nx,9] )
+			MsgStop("Qty. a faturar maior que o saldo do item do pedido.")
+			Return(.F.)
+		ENDIF
+		IF ( M->TB_QTDFAT > aCols[nx,5] )
+			MsgInfo("Atenção! Qty. a faturar maior que o saldo no estoque. Solicitar Ordem de Produção.")
+		ENDIF
+		cProduto     := aCols[nx,4]
+		nSdoEst      := ( aCols[nx,5] + aCols[nx,10] - M->TB_QTDFAT )
+		aCols[nx,11] := CHAR(215)
+		nx := 1
+		DO WHILE nx <= nLen   ///.AND. aCols[nx,1] == cProduto
+			IF ( aCols[nx,4] == cProduto )
+				aCols[nx,5] := nSdoEst 
+			ENDIF
+			nx++
+		ENDDO
+		IF ( aCols[n,12] <> "BL.REGRA" )
+			lCrd := f_AvalCred(SUBS(aCols[n,1],1,6),SUBS(aCols[n,1],8,2),M->TB_QTDFAT,aCols[n,5])
+			
+			cBloqueio   := IIF(!lCrd , "Crd" , "" )
+			cBloqueio   := IIF(nSdoEst < 0 , IIF(!EMPTY(cBloqueio) , ( cBloqueio + "/Est" ) , "Est" ) , cBloqueio )
+			aCols[n,12] := cBloqueio    ///IIF(!lCrd , "Blq.Crd" , "       "  )
+		ENDIF
+		oMulti:Refresh()
+	ELSEIF ( !EMPTY(aCols[nx,11]) )
+		cProduto     := aCols[nx,4]
+		nSdoEst      := ( aCols[nx,5] + aCols[nx,10] )
+		aCols[nx,11] := "  "
+		aCols[nx,12] := SPACE(8)
+		nx := 1
+		DO WHILE nx <= nLen    ////.AND. aCols[nx,1] == cProduto
+			IF ( aCols[nx,4] == cProduto )
+				aCols[nx,5] := nSdoEst 
+			ENDIF	
+			nx++
+		ENDDO
+		oMulti:Refresh()
+	ENDIF	
+ENDIF
+
+Return(lRsp)
+
+//////////////////////////////////////////////
+Static Function CloseCanc()
+//////////////////////////////////////////////
+Local lRsp
+
+lRsp := MsgBox("Confirma o cancelamento do relatorio?","Escolha a opção","YESNO")
+
+IF ( lRsp )
+	nOpcA := 2
+	Close(oDlg)
+ENDIF
+	
+Return(lRsp)
+
+//////////////////////////////////////////////
+Static Function CloseOk()
+//////////////////////////////////////////////
+Local lRsp
+
+lRsp := MsgBox("Confirma a emissão do relatorio?","Escolha a opção","YESNO")
+
+IF ( lRsp )
+	nOpcA := 1
+	Close(oDlg)
+ENDIF
+	
+Return(lRsp)
+
+/////////////////////////////////////////////////
+Static Function Prt_521()
+/////////////////////////////////////////////////
+Local nx,lBrk,nCtd,aTtls,nTtlItm,nPesoL
+
+cCabec1 := 'C L I E N T E                                    ------- P E D I D O -------                   PRECO     SALDO  ---------- QUANTIDADE ----------     PESO     QUANT.                                                        '                                   
+cCabec2 := '  PRODUTO / DESCRICAO..........................  COELMATIC   CLIENTE           DT.ENTREGA   UNITARIO   ESTOQUE   PEDIDA  ENTREG LIBERADA   SALDO  LIQUIDO  A FATURAR  BLOQUEIO OBSERVACAO...................................'                                    
+    //////    xxxxxxxxxxxxxx x----------------------------x  xxxxxx/xx   x--------------x  99/99/99    99,999.99 999999999  9999999 9999999  9999999 9999999 9999.999 [ 99999999] xxxxxxx  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx                             
+    //////  0---------1---------2---------3---------4---------5---------6---------7---------8---------9---------100-------110-------120-------130-------140-------150-------160-------170-------180-------190-------200-------210-------220
+    //////  01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123
+	                                                                                                                                                                                              
+   li      := 99
+   m_pag   := 1
+	nTipo   := IIF(aReturn[4]==1,15,18)
+	titulo  := "CARTEIRA DE VENDAS - FATURAMENTO P/ "+DTOC(ddatabase)
+	nTtlItm := 0
+	
+   dbSelectArea("TRB")
+   dbGoTop()
+   SetRegua(LASTREC())
+   DO WHILE !EOF().AND.lContinua
+	   aTtls   := {0,0,0,0,0}
+      TBNOME  := TRB->TB_NOME
+		TBCGC   := TRB->TB_CNPJ
+      nCtd    := 0
+		lBrk    := .T.
+      DO WHILE !EOF().AND.TB_NOME+TB_CNPJ==TBNOME+TBCGC.AND.lContinua
+         IF LastKey()==286
+            lContinua := .F.
+				Exit
+         ENDIF
+         IncRegua()
+	
+			nx := TRB->(RECNO())
+				
+			IF ( EMPTY(aCols[nx,11]) )
+				dbSkip()
+				Loop
+			ENDIF
+			
+         nCtd := ( nCtd + 1 )
+				
+			If ( Li > 56 )
+				li := Cabec(titulo,cCabec1,cCabec2,wnrel,Tamanho,nTipo)
+				lBrk := .T.
+			EndIf
+			IF ( lBrk )
+				@ li+1,000 PSay RTRIM(TRB->TB_CLI)+"/"+TRB->TB_LOJA+" - "+RTRIM(TRB->TB_NOME)
+				@ li+1,061 PSay "ESTADO: "+TRB->TB_EST
+				@ li+1,079 PSay "E-MAIL: "+RTRIM(TRB->TB_EMAIL)
+				lBrk := .F.
+				li++
+			ENDIF
+			nPesoL   := ROUND(TRB->TB_PESOL * aCols[nx,10] , 3 )
+			aTtls[1] := ( aTtls[1] + aCols[nx,6] )
+			aTtls[2] := ( aTtls[2] + aCols[nx,7] )
+			aTtls[3] := ( aTtls[3] + aCols[nx,8] )
+			aTtls[4] := ( aTtls[4] + aCols[nx,10] )
+			aTtls[5] := ( aTtls[5] + nPesoL      )
+			li++
+			@ li,002 PSay RTRIM(aCols[nx,4])
+			@ li,049 PSay TRB->TB_NUM+"/"+TRB->TB_ITEM
+			@ li,061 PSay LEFT(TRB->TB_PEDCLI,16)
+			@ li,079 PSay TRB->TB_ENTREGA
+			@ li,091 PSay TRB->TB_PRCVEN                       Picture "@E 99,999.99"
+			@ li,101 PSay aCols[nx,5]                          Picture "@E 999999999"
+			@ li,112 Psay aCols[nx,6]                          Picture "@E 9999999"
+			@ li,120 PSay aCols[nx,7]                          Picture "@E 9999999"
+			@ li,129 PSay aCols[nx,8]                          Picture "@E 9999999"
+			@ li,137 PSay aCols[nx,9]                          Picture "@E 9999999"
+			@ li,145 PSay TRB->TB_PESOL                        Picture "@E 9999.999"
+			@ li,154 PSay "["
+			@ li,156 PSay aCols[nx,10]                         Picture "@E 99999999"
+			@ li,164 PSay "]"
+			@ li,166 PSay aCols[nx,12]
+			@ li,175 PSay LEFT(aCols[nx,13],45)
+         dbSelectArea("TRB")
+         dbSkip()
+      ENDDO
+		nTtlItm := ( nTtlItm + aTtls[4] )
+      IF ( nCtd > 0 )
+			IF ( nCtd > 1 )
+				li++
+				@ li,145 PSay aTtls[5]                             Picture "@E 9999.999"
+				@ li,154 PSay "["
+				@ li,156 PSay aTtls[4]                             Picture "@E 99999999"
+				@ li,164 PSay "]"
+				@ li,167 PSay "**TTL."
+			ENDIF	
+			li++
+      ENDIF
+   ENDDO
+	@ li,154 PSay "["
+	@ li,156 PSay nTtlItm                               Picture "@E 99999999"
+	@ li,164 PSay "]"
+   @ li,167 PSAY "**TTL. A FATURAR"
+
+	Return
+
+///////////////////////////////////////////////////////////////////////
+Static Function f_AvalCred(xNum,xItem,xFat,xEst)
+///////////////////////////////////////////////////////////////////////
+Local cBlCred  := ""
+Local lBlqCrd  := GetMv("MV_BLQCRED")
+Local lEstoque := ( xEst > 0 )
+Local	nValAv	:= 0
+Local lAvCred	:= .T.
+Local lCredito := .F.
+
+SC5->(MsSeek(xFilial("SC5")+xNum))
+SC6->(MsSeek(xFilial("SC6")+xNum+xItem))
+SF4->(MsSeek(xFilial("SF4")+SC6->C6_TES))
+
+If ( At(SC5->C5_TIPO,"DB") == 0 .And. SF4->F4_DUPLIC=='S' )
+	dbSelectArea("SA1")
+	dbSetOrder(1)
+	MsSeek(xFilial("SA1")+SC6->C6_CLI+SC6->C6_LOJA)
+EndIf
+
+	If ( AT(SC5->C5_TIPO,"CIP") > 0 .Or. ( SF4->F4_PODER3 == "D" .And. SF4->F4_ESTOQUE=="N") .Or. MaTesSel(SF4->F4_CODIGO) )
+		lCredito := .T.
+	Else
+		////
+		////Avaliacao de Credito                                                    
+		////
+		If ( lAvCred )
+			If ( !SC5->C5_TIPO $ "DB" )
+				If ( SF4->F4_DUPLIC == "S" .Or. SuperGetMv("MV_LIBNODP")=="S" )
+					If ( lBlqCrd .And. !lEstoque )
+						lCredito := .F.
+					Else
+						nValAv	:=	SC6->C6_PRCVEN * xFat
+						lCredito := MaAvalCred(SA1->A1_COD,SA1->A1_LOJA,nValAV,SC5->C5_MOEDA,.T.,@cBlCred,NIL,NIL)
+					EndIf
+				Else
+					lCredito := .T.
+				EndIf
+			Else
+				lCredito := .T.
+			EndIf
+		EndIf
+	EndIf
+
+dbSelectArea("TRB")
+Return(lCredito)
+	
+***************************
+Static Function ValidPerg()
+***************************
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Da Data Entrega             ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Até a Data Entrega          ?",   ""   ,  ""    , "mv_ch2" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Do Cliente                  ?",   ""   ,  ""    , "mv_ch3" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SA1" , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "Até o Cliente               ?",   ""   ,  ""    , "mv_ch4" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par04", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SA1" , "    " })
+   aAdd(aRegs,{ cPerg,"05" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch5" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par05", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"06" , "Ate o Produto               ?",   ""   ,  ""    , "mv_ch6" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par06", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+ 		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+Return

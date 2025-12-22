@@ -1,0 +1,719 @@
+#INCLUDE "RWMAKE.CH"
+#INCLUDE "TOPCONN.CH"
+
+/*/{protheus.doc}ETQHLS
+Etiquetas Produtos c/ Codigo de Barras
+@author Marcos Martins
+@since 24/06/08
+/*/
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ETQHLS    º Autor ³Marcos Martins      º Data ³   24/06/08  º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Etiquetas Produtos c/ Codigo de Barras                     º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function ETQHLS()
+   //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   //³ Define Variaveis                                         ³
+   //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+   LOCAL aIndexSD2	:= {}
+   LOCAL cQuery	:= ""
+   LOCAL cFilMarkb := ""
+
+   Private cIndSD2 	:= CriaTrab(NIL,.F.)
+   Private _cProduto   :=space(15)
+   Private _cPerg      :="ETQHLSREV2"
+   PRIVATE cMark       := GetMark()
+   PRIVATE bFiltraSD2
+   PRIVATE cCadastro   := OemToAnsi("Etiquetas de Inspeção")
+   PRIVATE aRotina     := {	{ "Classificar" ,'U_tPESQBROW("Classificar Itens","ZD2",4,aIndNome)'  ,0,4},;
+      { "Marcar/Desmarcar",'U_tMARKRES()',0,0},;
+      { "Imprimir",'U_tGERAETQ()',0,0}}
+
+   ValidPerg()
+
+   If ( Pergunte(_cPerg,.T.) )
+
+      cQuery:=" SELECT DISTINCT C6_NUM, C6_PRODUTO, B1_TIPO, C6_ITEM,B1_DESC,B1_UM,B1_CODMATR,B1_DESCNF,B1_CODMODE,B1_REVISAO,B1_QE,C6_QTDVEN,D2_CLIENTE,A1_NREDUZ,C6_NOTA,C6_SERIE,C6_DATFAT,C6_ENTREG,C6_LOTEHAB,C6_ENDLINH,C6_ENDEST,C6_SEPEN, D2_EMISSAO FROM "+RETSQLNAME('SD2')+" SD2 "
+      cQuery+=" INNER JOIN "+RETSQLNAME('SB1')+" SB1 "
+      cQuery+=" ON SD2.D2_FILIAL =SB1.B1_FILIAL AND "
+      cQuery+="    SD2.D2_COD    =SB1.B1_COD    "
+      cQuery+=" INNER JOIN "+RETSQLNAME('SA1')+" SA1 "
+      cQuery+=" ON SD2.D2_CLIENTE=SA1.A1_COD AND "
+      cQuery+="    SD2.D2_LOJA   =SA1.A1_LOJA AND "
+      cQuery+="    SA1.A1_FILIAL ='"+XFILIAL("SA1")+"' "
+      cQuery+=" INNER JOIN "+RETSQLNAME('SC6')+" SC6 "
+      cQuery+=" ON SC6.C6_FILIAL ='"+XFILIAL("SC6")+"' AND "
+      cQuery+="    SD2.D2_PEDIDO =SC6.C6_NUM  AND "
+      cQuery+="    SD2.D2_ITEMPV =SC6.C6_ITEM AND "
+      cQuery+="    SD2.D2_COD    =SC6.C6_PRODUTO "
+      cQuery+=" WHERE D2_FILIAL ='01' AND "
+      cQuery+="       D2_DOC     BETWEEN '"+MV_PAR01+"' AND '"+MV_PAR02+"' AND "
+      cQuery+="       D2_SERIE     BETWEEN '"+MV_PAR03+"' AND '"+MV_PAR04+"' AND "
+      cQuery+="       D2_COD     BETWEEN '"+MV_PAR05+"' AND '"+MV_PAR06+"' AND "
+      cQuery+="       D2_EMISSAO BETWEEN '"+DTOS(MV_PAR07)+"' AND '"+DTOS(MV_PAR08)+"' AND "
+      cQuery+="       ( D2_LOTECTL = '' OR  D2_LOTECTL LIKE 'AUTO%' ) AND "
+      cQuery+="       D2_TP IN ('PA','RV') AND "
+      cQuery+="       SD2.D_E_L_E_T_ = '"+Space(1)+"' AND SB1.D_E_L_E_T_ = '"+Space(1)+"' AND SC6.D_E_L_E_T_ ='"+Space(1)+"' AND SA1.D_E_L_E_T_ = '"+Space(1)+"'  "
+      // cQuery+=" ORDER BY D2_COD "
+
+      If Select("TMP") > 0
+         DbSelectArea("TMP")
+         DbCloseArea()
+      Endif
+      TCQUERY cQuery NEW ALIAS "TMP"
+
+      //cTexto := "ETQHLS - Mensagem de Validação - Lote HLS "	+ CRLF
+	   //cTexto += "===============================================================================================                "	+ CRLF
+
+      DbselectArea("TMP")
+      DbGotop()
+
+      XLOTE:=""
+
+      If !Eof()
+         XLOTE:=U_PesqLote()
+      Endif
+
+      /*
+       While !Eof()
+
+			//cTexto += "Nota    Pedido  Produto            Quantidade    Disponível         Falta   NF.Original   Série Original   Item Original"	+ CRLF
+			//cTexto += "---------------------------------------------------------------------------------------------------------------"	+ CRLF
+			//cTexto += "Nota: " + TMP->D2_DOC + " Emissao: " + TMP->D2_EMISSAO + " Pedido:" + TMP->D2_PEDIDO +  " Produto:" + TMP->D2_COD + " Quantidade:" + TMP->D2_QUANT  + " Lote_Erro:" + TMP->D2_LOTECTL + " " + CRLF
+			//cNomArqLog	:= "\ETQHLS_" + DToS(Date()) + "_" +  StrTran(Time(), ":", "") + ".Log"
+			//MemoWrite(cNomArqLog, cTexto)
+
+			TMP->R_E_C_N_O_
+
+          Dbskip()
+
+       Enddo
+
+       If !Empty(Alltrim(cTexto))
+		  Alert(cTexto)
+       Endif
+
+       DbSelectArea("TMP")
+	   DbcloseArea()
+      */
+
+      If XLOTE <> ""
+
+         cUpdate := " UPDATE "+RetSqlName("SD2") + " "
+         cUpdate += " SET D2_LOTECTL = '" + Alltrim(XLOTE) + "'
+         cUpdate += " WHERE D2_FILIAL ='01' AND "
+         cUpdate += "       D2_DOC     BETWEEN '"+MV_PAR01+"' AND '"+MV_PAR02+"' AND "
+         cUpdate += "       D2_SERIE   BETWEEN '"+MV_PAR03+"' AND '"+MV_PAR04+"' AND "
+         cUpdate += "       D2_COD     BETWEEN '"+MV_PAR05+"' AND '"+MV_PAR06+"' AND "
+         cUpdate += "       D2_EMISSAO BETWEEN '"+DTOS(MV_PAR07)+"' AND '"+DTOS(MV_PAR08)+"' AND "
+         cUpdate += "       D2_TP IN ('PA','RV') AND "
+         cUpdate += "       ( D2_LOTECTL = '' OR  D2_LOTECTL LIKE 'AUTO%' ) AND " + RetSqlName("SD2") +".D_E_L_E_T_ = '' "
+
+         TCSQLEXEC(cUpdate)
+
+      Endif
+
+      //  Arquivo Temporario
+      aCampos:= {}
+
+      AADD(aCampos,{"D2OK"        ,"C",02,0})
+      AADD(aCampos,{"D2CLIENTE"   ,"C",20,0})
+      AADD(aCampos,{"D2DTEMISS"   ,"D",10,0})
+      AADD(aCampos,{"C6ENTREGA"   ,"D",10,0})     //campo adicionado na etiqueta para troca da data de emissão por data de entrega
+      AADD(aCampos,{"D2LOTEHAB"   ,"C",15,0})     //alteração solicitada por Rodrigo Cézar em 10/08/2020 -- aletardo por Luciano Lamberti
+      AADD(aCampos,{"D2NOTA"      ,"C",06,0})
+      AADD(aCampos,{"D2SERIE"     ,"C",03,0})
+      AADD(aCampos,{"D2ITEM"      ,"C",02,0})
+      AADD(aCampos,{"D2DTLTHLS"   ,"D",08,0})
+      AADD(aCampos,{"D2LOTEHLS"   ,"C",10,0})
+      AADD(aCampos,{"D2QUANT"     ,"N",14,2})
+      AADD(aCampos,{"D2UM"        ,"C",02,0})
+      AADD(aCampos,{"D2REVISAO"   ,"C",10,0})
+      AADD(aCampos,{"D2CODHAB"    ,"C",30,0})
+      AADD(aCampos,{"D2DESCNF"    ,"C",40,0})
+      AADD(aCampos,{"D2MODELO"    ,"C",20,0})
+      AADD(aCampos,{"D2ENDLIN"    ,"C",20,0})
+      AADD(aCampos,{"D2ENDEST"    ,"C",20,0})
+      AADD(aCampos,{"B1QE"        ,"N",14,2})
+      AADD(aCampos,{"D2XXX"       ,"C",03,0})
+
+      Private cArqTMP := "" // CriaTrab(aCampos,.t.)
+      //  dbUseArea(.T.,,cArqTMP,"ZD2",.T.)
+      //  DbSelectArea("ZD2")
+
+      // Instancio o objeto
+      oTable  := FwTemporaryTable():New( "ZD2" )
+      // Adiciono os campos na tabela
+      oTable:SetFields( aCampos )
+      // Crio a tabela no banco de dados
+      oTable:Create()
+      //------------------------------------
+      //Pego o alias da tabela temporária
+      //------------------------------------
+      cArqTMP := oTable:GetAlias()
+
+      _lTop:=.F.
+      Private cAlias  := ''
+      #IFDEF TOP
+         _lTop:=.T.
+         cAlias := "XMP"
+      #ENDIF
+      //****************************************************************************************************//
+
+      If _lTop
+         //       cQuery:=" SELECT D2_COD,D2_ITEM,B1_DESC,B1_UM,B1_CODMATR,B1_DESCNF,B1_CODMODE,B1_REVISAO,B1_QE,D2_QUANT,D2_CLIENTE,A1_NREDUZ,D2_DOC,D2_SERIE,D2_EMISSAO,C6_LOTEHAB,C6_ENDLINH,C6_ENDEST,C6_SEPEN,D2_LOTECTL,D2_DTVALID  FROM "+RETSQLNAME('SD2')+" SD2 "
+         cQuery:=" SELECT DISTINCT C6_NUM, C6_PRODUTO, B1_TIPO, C6_ITEM,B1_DESC,B1_UM,B1_CODMATR,B1_DESCNF,B1_CODMODE,B1_REVISAO,B1_QE,C6_QTDVEN,D2_CLIENTE,A1_NREDUZ,C6_NOTA,C6_SERIE,C6_DATFAT,C6_ENTREG,C6_LOTEHAB,C6_ENDLINH,C6_ENDEST,C6_SEPEN,D2_EMISSAO FROM "+RETSQLNAME('SD2')+" SD2 "
+         cQuery+=" INNER JOIN "+RETSQLNAME('SB1')+" SB1 "
+         cQuery+=" ON SD2.D2_FILIAL =SB1.B1_FILIAL AND "
+         cQuery+="    SD2.D2_COD    =SB1.B1_COD    "
+         cQuery+=" INNER JOIN "+RETSQLNAME('SA1')+" SA1 "
+         cQuery+=" ON SD2.D2_CLIENTE=SA1.A1_COD AND "
+         cQuery+="    SD2.D2_LOJA   =SA1.A1_LOJA AND "
+         cQuery+="    SA1.A1_FILIAL ='"+XFILIAL("SA1")+"' "
+         cQuery+=" INNER JOIN "+RETSQLNAME('SC6')+" SC6 "
+         cQuery+=" ON SC6.C6_FILIAL ='"+XFILIAL("SC6")+"' AND "
+         cQuery+="    SD2.D2_PEDIDO =SC6.C6_NUM  AND "
+         cQuery+="    SD2.D2_ITEMPV =SC6.C6_ITEM AND "
+         cQuery+="    SD2.D2_COD    =SC6.C6_PRODUTO "
+         cQuery+=" WHERE D2_FILIAL ='01' AND "
+         cQuery+="       D2_DOC     BETWEEN '"+MV_PAR01+"' AND '"+MV_PAR02+"' AND "
+         cQuery+="       D2_SERIE     BETWEEN '"+MV_PAR03+"' AND '"+MV_PAR04+"' AND "
+         cQuery+="       D2_COD     BETWEEN '"+MV_PAR05+"' AND '"+MV_PAR06+"' AND "
+         cQuery+="       D2_EMISSAO BETWEEN '"+DTOS(MV_PAR07)+"' AND '"+DTOS(MV_PAR08)+"' AND "
+         cQuery+="       SD2.D_E_L_E_T_ = '"+Space(1)+"' AND SB1.D_E_L_E_T_ = '"+Space(1)+"' AND SC6.D_E_L_E_T_ ='"+Space(1)+"' AND SA1.D_E_L_E_T_ = '"+Space(1)+"'  "
+         // cQuery+=" ORDER BY D2_COD "
+         If Select("XMP") > 0
+            DbSelectArea("XMP")
+            DbCloseArea()
+         Endif
+         TCQUERY cQuery NEW ALIAS "XMP"
+         TCSetFIELD("XMP","D2_DTVALID","D")
+         TCSetFIELD("XMP","D2_EMISSAO","D")
+         TCSetFIELD("XMP","C6_ENTREG","D")
+
+         // Grava Arquivo Temporario
+
+         dbSelectArea("XMP")
+         dbGotop()
+         While !EOF()
+
+            dbSelectArea("ZD2")
+            RecLock("ZD2",.T.)
+
+            Field->D2OK        :="  "
+            Field->D2CLIENTE   :=XMP->A1_NREDUZ
+            Field->D2DTEMISS   :=XMP->D2_EMISSAO
+            Field->C6ENTREGA   :=XMP->C6_ENTREG             // Luciano Lamberti 10/08/2020
+            Field->D2LOTEHAB   :=XMP->C6_LOTEHAB
+            Field->D2NOTA      :=SubStr(XMP->C6_NOTA,1,6)
+            Field->D2SERIE     :=XMP->C6_SERIE
+            Field->D2ITEM      :=XMP->C6_ITEM
+            Field->D2DTLTHLS   :=XMP->D2_EMISSAO+365
+            Field->D2LOTEHLS   :=XMP->C6_DATFAT+"01"
+            Field->D2QUANT     :=XMP->C6_QTDVEN
+            Field->D2UM        :=XMP->B1_UM
+            Field->D2REVISAO   :=XMP->C6_SEPEN
+            Field->D2CODHAB    :=XMP->B1_CODMATR
+            Field->D2DESCNF    :=XMP->B1_DESC
+            Field->D2MODELO    :=XMP->B1_CODMODE
+            Field->D2ENDLIN    :=XMP->C6_ENDLINH
+            Field->D2ENDEST    :=XMP->C6_ENDEST
+            Field->B1QE        :=XMP->B1_QE
+            Field->D2XXX       :="..."
+
+            MsUnLock("ZD2")
+
+            dbSelectArea("XMP")
+            dbskip()
+         EndDo
+      EndIf
+      //****************************************************************************************************//
+
+      DbSelectArea("ZD2")
+      DbCloseArea()
+
+      dbUseArea(.T.,,"\SYSTEM\"+cArqTMP,"ZD2",.T.)
+
+      Private cIndZD2 := CriaTrab(Nil,.F.)
+      IndRegua("ZD2",cIndZD2,"D2CODHAB",,,OemToAnsi("Criando Indice...") )
+      Private cIndZD21:= CriaTrab(Nil,.F.)
+      IndRegua("ZD2",cIndZD21,"D2NOTA",,,OemToAnsi("Criando Indice)...") )
+      Private cIndZD22:= CriaTrab(Nil,.F.)
+      IndRegua("ZD2",cIndZD22,"D2CLIENTE",,,OemToAnsi("Criando Indice)...") )
+      Private cIndZD23:= CriaTrab(Nil,.F.)
+      //IndRegua("ZD2",cIndZD23,"D2DTEMISS",,,OemToAnsi("Criando Indice)...") )
+      IndRegua("ZD2",cIndZD23,"C6ENTREGA",,,OemToAnsi("Criando Indice)...") )  // Luciano Lamberti 10/08/2020
+
+      aIndNome:={}
+      AADD(aIndNome,{1,"Cod. HAB"})
+      AADD(aIndNome,{2,"Nota"})
+      AADD(aIndNome,{3,"Cliente"})
+      AADD(aIndNome,{4,"Dt.Emissao"})
+
+      dbClearIndex()
+      dbSetIndex(cIndZD2+OrdBagExt())
+      dbSetIndex(cIndZD21+OrdBagExt())
+      dbSetIndex(cIndZD22+OrdBagExt())
+      dbSetIndex(cIndZD23+OrdBagExt())
+
+      DbSetOrder(1)
+      dbGoTop()
+
+      aTela:={}
+
+      AADD(aTela,{"D2OK        ","","OK"})
+      AADD(aTela,{"D2CODHAB    ","","Cod. HAB"})
+      AADD(aTela,{"D2DESCNF    ","","Descr. NF"})
+      AADD(aTela,{"D2DTEMISS   ","","Emissão"})
+      AADD(aTela,{"D2LOTEHAB   ","","Lote HAB"})
+      AADD(aTela,{"D2NOTA      ","","Nota Fiscal"})
+      AADD(aTela,{"D2SERIE     ","","Serie"})
+      AADD(aTela,{"D2ITEM      ","","Item"})
+      AADD(aTela,{"D2DTLTHLS   ","","Data Lote HLS"})
+      AADD(aTela,{"D2LOTEHLS   ","","Lote HLS"})
+      AADD(aTela,{"D2QUANT     ","","Quantidade"})
+      AADD(aTela,{"D2UM        ","","UM"})
+      AADD(aTela,{"D2REVISAO   ","","Revisão"})
+      AADD(aTela,{"D2MODELO    ","","Modelo"})
+      AADD(aTela,{"D2ENDLIN    ","","End. Linha"})
+      AADD(aTela,{"D2ENDEST    ","","End. Estoque"})
+      AADD(aTela,{"D2CLIENTE   ","","Cliente"})
+      AADD(aTela,{"B1QE        ","","Embalagem"})
+      AADD(aTela,{"D2XXX       ","","OK"})
+
+      // Monta o Browse do Arquivo temporario somente para os campos informados na Matriz
+      dbSelectArea("ZD2")
+      dbGotop()
+      MarkBrowse("ZD2","D2OK",,aTela,,@cMark)
+
+      dbSelectArea("ZD2")
+      dbCloseArea()
+      Ferase(cIndZD2+OrdBagExt())
+      Ferase(cIndZD21+OrdBagExt())
+      Ferase(cIndZD22+OrdBagExt())
+      Ferase(cIndZD23+OrdBagExt())
+   EndIf
+
+Return(.T.)
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ValidPerg ºAutor  ³Marcos Martins      º Data ³  24/06/08   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Cria o dicionario de perguntas                             º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function ValidPerg()
+
+   Local _sAlias := Alias()
+   Local aRegs := {}
+   Local i,j
+   dbSelectArea("SX1")
+   dbSetorder(1)
+   aAdd(aRegs,{_cPerg,"01","Nota Fiscal  De  ?","","","mv_ch1" ,"C",09,0,0,"G","","MV_PAR01",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","",""})
+   aAdd(aRegs,{_cPerg,"02","Nota Fiscal Ate  ?","","","mv_ch2" ,"C",09,0,0,"G","","MV_PAR02",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","",""})
+
+   aAdd(aRegs,{_cPerg,"03","Serie  De  ?","","","mv_ch3" ,"C",03,0,0,"G","","MV_PAR03",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","",""})
+   aAdd(aRegs,{_cPerg,"04","Serie Ate  ?","","","mv_ch4" ,"C",03,0,0,"G","","MV_PAR04",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","",""})
+
+   aAdd(aRegs,{_cPerg,"05","Produto      De  ?","","","mv_ch5" ,"C",15,0,0,"G","","MV_PAR05",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","SB1",""})
+   aAdd(aRegs,{_cPerg,"06","Produto     Ate  ?","","","mv_ch6" ,"C",15,0,0,"G","","MV_PAR06",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","SB1",""})
+   aAdd(aRegs,{_cPerg,"07","DT. Emissão  De  ?","","","mv_ch7" ,"D",08,0,0,"G","","MV_PAR07",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","",""})
+   aAdd(aRegs,{_cPerg,"08","DT. Emissão Ate  ?","","","mv_ch8" ,"D",08,0,0,"G","","MV_PAR08",""   ,"","","" ,"","","","","" ,"","","","","" ,"","","","","" ,"","","","","","",""})
+
+   For i:=1 to Len(aRegs)
+      If !dbSeek(_cPerg+aRegs[i,2])
+         RecLock("SX1",.T.)
+         For j:=1 to FCount()
+            If j <= Len(aRegs[i])
+               FieldPut(j,aRegs[i,j])
+            EndIf
+         Next
+         SX1->( MsUnlock() )
+      EndIf
+   Next
+   dbSelectArea(_sAlias)
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³MarkRES   ºAutor  ³Marcos Martins      º Data ³  24/06/08   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Utilizado no markbrow do programa ETQHLS                   º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function tMarkRES()
+
+   DbSelectArea("ZD2")
+   DbGoTop()
+   _cTexto := ALLTRIM(cMark)
+   IF ALLTRIM(ZD2->D2OK) == ALLTRIM(cMark)
+      _ctexto := "  "
+   Endif
+
+   While ZD2->( !Eof() )
+      Reclock("ZD2")
+      Field->D2OK := _cTexto
+      MsUnlock()
+      ZD2->( DbSkip() )
+   Enddo
+   ZD2->( DbGoTop() )
+Return Nil
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ PesqBrow ³ Autor ³ Marcos Martins        ³ Data ³ 26.02.07 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Executa a pesquisa dentro de um arquivo temporario          ±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Especifico HONDA LOCK                                      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function tPesqBrow(Titulo,ArqTmp,nOrdem,aIndNome)
+
+   cCombo := Titulo
+   aItems:={}
+   For n := 1 To nOrdem
+      dbSelectArea(ArqTmp)
+      dbSetOrder(n)
+      nPos:=Ascan(aIndNome,{|x|x[1]==n})
+      AADD(aItems,Alltrim(Str(n))+" "+aIndNome[n,2])
+   Next
+   cPesPed := Space(75)
+   @ 225,247 To 330,420 Dialog oDlgPesq Title OemToAnsi("Pesquisar")
+   @ 02,07 Say "Opcao de pesquisa:" SIZE	 100,100
+   @ 10,07 COMBOBOX cCombo ITEMS aItems SIZE 075,050
+   @ 21,07 Say "Digite                 " size 100,100
+   @ 29,07 Get cPesPed Size 075,050
+   @ 40,30 BmpButton Type 1 Action Close(oDlgPesq)
+   Activate Dialog oDlgPesq Centered
+   dbSelectArea(ArqTmp)     // utilizando indice temporario
+   For nIndex:=1 To nOrdem
+      If Substr(cCombo,1,1) == Alltrim(Str(nIndex))
+         DbSetOrder(nIndex)
+         Exit
+      Endif
+   Next
+   DbSeek(	alltrim(cPesPed ),.T.)
+   SysRefresh()
+Return//()
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ GeraEtq  ³ Autor ³ Marcos Martins        ³ Data ³ 24.06.08 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Executa Impressao de Etiquetas                              ±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Especifico HONDA LOCK                                      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function tGeraETQ()
+
+   //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   //³Define Variaveis                                                        ³
+   //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+   Local nSeqEtq    := 1								// incluido por Deivid Lima - 27/01/09
+   Local cProdNF    := ""								// incluido por Deivid Lima - 27/01/09
+   Local cNumNF    := ""								// incluido por Deivid Lima - 27/01/09
+
+   Private cStartPath := GetSrvProfString("Startpath","")
+
+   Private aBitmap	 := cStartPath+"/LGHONDA.BMP"
+   Private nPag     := 0		// Contador de Paginas
+   Private nLin     := 0		// Contador de Linhas
+   Private lImp     := .F.		// Indica se algo foi impresso
+   Private oPrint
+   Private nAltura  := 0
+   Private nTotal   := 0
+   Private nPerRet  := 0
+
+   //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   //³Seta impressora para BMPs                                               ³
+   //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+   oPrint:= TAVPrinter():New( "ETIQUETAS HONDA AUTOMOVEIS" )
+   oPrint:SetPortrait()      // fixa impressao em Retrato
+   oPrint:Setup()
+
+   dbSelectArea("ZD2")
+   dbGotop()
+   While !EOF()
+
+      If (ZD2->(IsMark("D2OK",ThisMark(),ThisInv())))
+         // Imprime Etiquetas dos Itens Marcados
+         If cProdNF <> ZD2->D2CODHAB .or. cNumNF <> ZD2->D2NOTA		// incluido por Deivid Lima - 27/01/09
+            cProdNF := ZD2->D2CODHAB								// incluido por Deivid Lima - 27/01/09
+            cNumNF  := ZD2->D2NOTA									// incluido por Deivid Lima - 27/01/09
+            nSeqEtq := 1											// incluido por Deivid Lima - 27/01/09
+         Endif
+
+         _cQuant  :=PadL(AllTrim(Str(Round(ZD2->D2QUANT/ZD2->B1QE,2))),13,'0')
+         If SubStr(_cQuant,11,1)#"." .And. SubStr(_cQuant,12,1)#"."
+            _cQuant  :=PadL(AllTrim(Str(Round(ZD2->D2QUANT/ZD2->B1QE,2))),10,'0')+".00"
+         ElseIf SubStr(_cQuant,12,1)=="."
+            _cQuant  :=PadL(AllTrim(Str(Round(ZD2->D2QUANT/ZD2->B1QE,2))),12,'0')+"0"
+         EndIf
+         _nInteiro:=Val(SubStr(_cQuant,1,10))
+         _nResto  :=ZD2->D2QUANT-(_nInteiro*ZD2->B1QE)
+         If _nResto>0
+            _nInt:=_nInteiro+1
+         Else
+            _nInt:=_nInteiro
+         EndIf
+
+         For I=1 to _nInteiro
+            ImpEtq(ZD2->B1QE,nSeqEtq)								// alterado por Deivid Lima - 27/01/09
+            nSeqEtq++												// incluido por Deivid Lima - 27/01/09
+         Next
+         If _nResto>0
+            ImpEtq(_nResto,nSeqEtq)									// alterado por Deivid Lima - 27/01/09
+            nSeqEtq++												// incluido por Deivid Lima - 27/01/09
+         EndIf
+
+      EndIf
+
+      dbSelectArea("ZD2")
+      dbSkip()
+   enddo
+
+   oPrint:EndPage()
+
+   oPrint:Preview()  // Visualiza antes de imprimir
+
+   //Atualiza o Browse Excluindo as Etiquetas Impressas
+   dbSelectArea("ZD2")
+   dbGotop()
+   While !Eof()
+      If (ZD2->(IsMark("D2OK",ThisMark(),ThisInv())))
+         RecLock("ZD2")
+         DbDelete()
+         MsUnlock()
+      EndIf
+      dbSelectArea("ZD2")
+      dbSkip()
+   Enddo
+
+Return()
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ ImpEtq   ³ Autor ³ Marcos Martins        ³ Data ³ 24.06.08 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Impressao de Etiquetas                                      ±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Especifico HONDA LOCK                                      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function ImpEtq(_nQtdEtq,_nSeq)
+
+   Local oFont8
+   Local oFont10
+   Local oFont10n
+   Local oFont16
+   Local oFont16n
+   Local oFont14
+   Local aCoords := {2000,1900,1340,3280}
+   Local oBrush
+   Local cCGCPict, cCepPict
+   Local _nItm
+   Local _ContaETQ:=0
+
+   oFont8   := TFont():New("Arial",9,08,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont9   := TFont():New("Arial",9,09,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont9n  := TFont():New("Arial",9,09,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont10  := TFont():New("Arial",9,10,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont10n := TFont():New("Arial",9,10,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont11  := TFont():New("Arial",9,11,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont11n := TFont():New("Arial",9,11,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont12  := TFont():New("Arial",9,12,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont12n := TFont():New("Arial",9,12,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont13  := TFont():New("Arial",9,13,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont13n := TFont():New("Arial",9,13,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont14  := TFont():New("Arial",9,14,.T.,.F.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont14n := TFont():New("Arial",9,14,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont16n := TFont():New("Arial",9,16,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont17n := TFont():New("Arial",9,17,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont18n := TFont():New("Arial",9,18,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+   oFont24n := TFont():New("Arial",9,24,.T.,.T.,5,,,.T.,.F.,,,,,,oPrint)
+
+   oBrush := TBrush():New("",4)
+
+   oPrint:StartPage()
+
+   _LI   :=20
+   //_CO   :=25
+   _CO   :=30 // ALTERADO LUCIANO LAMBERTI - 10-03-2020
+
+
+   //Primeiro quadro - CLIENTE ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+   //Ricardo - Alterado em: 17/02/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   //oPrint:Say(_LI+3,_CO,OemToAnsi("Cliente"+space(30)+"Data Exp"+space(25)+"Lote Produção Honda"),oFont8)
+   oPrint:Say(_LI+3,_CO+1,OemToAnsi("Cliente"+space(27)+"Data Exp"+space(24)+"Lote Produção Honda"),oFont9n)
+
+   _LI+=40
+
+   //Ricardo - Alterado em: 17/02/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   //oPrint:Say(_LI,_CO,space(50)+OemToAnsi(Substr(ZD2->D2LOTEHAB,1,15)),oFont13n)
+   oPrint:Say(_LI,_CO+1,space(50)+OemToAnsi(Substr(ZD2->D2LOTEHAB,1,15)),oFont13n)
+
+   _LI+=25
+   oPrint:Say(_LI+10,_CO,space(2)+OemToAnsi("HONDA"),oFont14n)
+   //oPrint:Say(_LI+20,_CO,space(22)+StrZero(Day(ZD2->D2DTEMISS),2) +"/"+ StrZero(Month(ZD2->D2DTEMISS),2) +"/"+ Right(Str(Year(ZD2->D2DTEMISS)),4),oFont13n)
+   oPrint:Say(_LI+20,_CO,space(22)+StrZero(Day(ZD2->C6ENTREGA),2) +"/"+ StrZero(Month(ZD2->C6ENTREGA),2) +"/"+ Right(Str(Year(ZD2->C6ENTREGA)),4),oFont13n) //Luciano 10/08/2020
+   _LI+=60
+
+
+   //Ricardo - Alterado em: 05/03/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   //oPrint:Say(_LI,_CO,space(1)+OemToAnsi("Automóveis"),oFont12n)
+   oPrint:Say(_LI,_CO+2,OemToAnsi("Automóveis"),oFont12n)
+
+   cTexto:=Alltrim("L"+AllTrim(ZD2->D2LOTEHAB))
+
+   //Ricardo - Alterado em: 24/02/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   MSBAR("CODE128",1.0,5.1,cTexto,oPrint,.F.,NIL,NIL,0.027,1.2,NIL,NIL,"A",.F.)
+   //3-MSBAR("CODE128",1.0,5.5,cTexto,oPrint,.F.,NIL,NIL,0.022,1.1,NIL,NIL,"A",.F.)
+   //2-MSBAR("CODE128",1.7,8.1,cTexto,oPrint,.F.,NIL,NIL,0.034,1.6,NIL,NIL,"A",.F.)
+   //1-MSBAR("CODE128",1.0,5.6,cTexto,oPrint,.F.,NIL,NIL,0.027,1.2,NIL,NIL,"A",.F.)
+
+
+   _LI+=120
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+   oPrint:Line(30,310,295,310)  //Primeira Linha Vertical
+   //oPrint:Line(30,640,295,640)  //Segunda Linha Vertical
+
+   //Segundo quadro - NOTA FISCAL ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   _LI+=20
+   oPrint:Say(_LI,_CO,OemToAnsi("No.Doc. Fiscal (No. + Série + Seqüência)"),oFont8)
+   _LI+=40
+
+   //Ricardo - Alterado em: 05/03/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   //oPrint:Say(_LI,_CO,OemToAnsi(ZD2->D2NOTA+space(01)+SubStr(ZD2->D2SERIE,1,2)+space(01)+STRZERO((_nSeq),3)),oFont14n)
+   oPrint:Say(_LI,_CO+3,OemToAnsi(ZD2->D2NOTA+space(01)+SubStr(ZD2->D2SERIE,1,2)+space(01)+STRZERO((_nSeq),3)),oFont14n)
+
+   cTexto:=Alltrim("N"+ZD2->D2NOTA+SubStr(ZD2->D2SERIE,1,2)+STRZERO((_nSeq),3))
+   //MSBAR("CODE128",3.9,8.3,cTexto,oPrint,.F.,NIL,NIL,0.043,1.6,NIL,NIL,"A",.F.)
+   MSBAR("CODE128",2.5,5.5,cTexto,oPrint,.F.,NIL,NIL,0.027,1.2,NIL,NIL,"A",.F.)
+   _LI+=120
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+
+   //Terceiro quadro - FORNECEDOR / LOTE ////////////////////////////////////////////////////////////////////////////////////////////////////////
+   oPrint:Say(_LI,_CO,OemToAnsi("Fornecedor"+space(20)+"Lote Fabricação"+space(10)+"Quantidade"+space(20)+"Unid."),oFont8)
+   _LI+=40
+
+   //Ricardo - Alterado em: 05/03/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   If !Empty(ZD2->D2LOTEHLS)
+      //oPrint:Say(_LI,_CO,OemToAnsi("HONDA LOCK"+space(06)+ZD2->D2LOTEHLS+space(6)+AllTrim(Str(_nQtdEtq))+space(14)+ZD2->D2UM),oFont12n)
+      oPrint:Say(_LI,_CO+2,OemToAnsi("HONDA LOCK"+space(06)+ZD2->D2LOTEHLS+space(6)+AllTrim(Str(_nQtdEtq))+space(14)+ZD2->D2UM),oFont12n)
+   Else
+      //oPrint:Say(_LI,_CO,OemToAnsi("HONDA LOCK"+space(06)+space(10)+space(6)+AllTrim(Str(_nQtdEtq))+space(14)+ZD2->D2UM),oFont12n)
+      oPrint:Say(_LI,_CO+2,OemToAnsi("HONDA LOCK"+space(06)+space(10)+space(6)+AllTrim(Str(_nQtdEtq))+space(14)+ZD2->D2UM),oFont12n)
+   EndIf
+
+   cTexto:=Alltrim("X"+"6380987"+ZD2->D2LOTEHLS+PadL(AllTrim(Str(_nQtdEtq)),5,'0')+ZD2->D2UM)
+   MSBAR("CODE128",4.6,0.9,cTexto,oPrint,.F.,NIL,NIL,0.027,1.2,NIL,NIL,"A",.F.)
+
+   _LI+=200
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+
+   //Quarto quadro - SEPPEN /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   _LI+=20
+   oPrint:Say(_LI,_CO,OemToAnsi("Código SEPPEN"),oFont8)
+   _LI+=40
+
+
+   //Ricardo - Alterado em: 05/03/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   //oPrint:Say(_LI,_CO,OemToAnsi(ZD2->D2REVISAO),oFont12n)
+   oPrint:Say(_LI,_CO+2,OemToAnsi(ZD2->D2REVISAO),oFont12n)
+
+   cTexto:=Alltrim("S"+AllTrim(ZD2->D2REVISAO))
+   MSBAR("CODE128",6.1,3.0,cTexto,oPrint,.F.,NIL,NIL,0.027,1.2,NIL,NIL,"A",.F.)
+   _LI+=120
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+   oPrint:Line(712,930,898,930)  //Primeira Linha Vertical
+
+   //Quinto quadro - PECA HAB ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   _LI+=20
+   oPrint:Say(_LI,_CO,OemToAnsi("Código da Peça (Honda)"),oFont8)
+   _LI+=40
+   _cCodHAB:=""
+
+   //Ricardo - Alterado em: 05/03/14 - Conforme Solicitação do Sr. Rodrigo/PCP-New Model
+   //oPrint:Say(_LI,_CO,OemToAnsi(ZD2->D2CODHAB),oFont12n)
+   oPrint:Say(_LI,_CO+2,OemToAnsi(ZD2->D2CODHAB),oFont12n)
+
+   cTexto:=Alltrim("P"+AllTrim(ZD2->D2CODHAB))
+   MSBAR( "CODE128",8.3,0.9,cTexto,oPrint,.F.,NIL,NIL,0.027,1.2,NIL,NIL,"A",.F.)
+   _LI+=200
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+
+   //Sexto quadro - DESCRIÇÃO PECA //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   _LI+=50
+   oPrint:Say(_LI,_CO,OemToAnsi("Peça Descrição"),oFont8)
+   _LI+=40
+   oPrint:Say(_LI,_CO,OemToAnsi(ZD2->D2DESCNF),oFont12n)
+   _LI+=120
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+
+   //Setimo quadro - MODELO /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   _LI+=20
+   oPrint:Say(_LI,_CO,OemToAnsi("Modelo Tipo Aplicação"),oFont8)
+   _LI+=40
+   oPrint:Say(_LI,_CO,OemToAnsi(ZD2->D2MODELO),oFont12n)
+   _LI+=120
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+
+   //Oitavo quadro///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   _LI+=20
+   oPrint:Say(_LI,_CO,OemToAnsi("Endereço na Linha"+space(50)+"Endereço de Estoque"),oFont8)
+   _LI+=40
+   oPrint:Say(_LI,_CO,OemToAnsi(ZD2->D2ENDLIN+space(30)+ZD2->D2ENDEST),oFont12n)
+   _LI+=120
+   oPrint:Line(_LI,_CO,_LI,1350)//Linha Horizontal
+   oPrint:Line(1340,650,1700,650)  //Primeira Linha Vertical
+
+   //Final da Impressão da Etiqueta//////////////////////////////////////////////////////////////////////////////////////////////////
+   oPrint:EndPage()
+
+Return(.T.)
+

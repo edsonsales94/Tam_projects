@@ -1,0 +1,122 @@
+
+/*/{Protheus.doc} MT250TOK
+
+Valida apontamento de producao
+
+@type function
+@author Honda Lock
+@since 01/10/2017
+
+@return Logico, Se continua ou nao.
+
+@history 01/10/2017, Valida o poder de terceiros.
+/*/
+
+User Function MT250TOK
+
+	Local lRet := ParamIXB //-- Validação do Sistema
+	Local	aAliasATU	:= GetArea()
+	Local	aAliasSX1	:= SX1->(GetArea())
+	Local	aAliasSC5	:= SC5->(GetArea())
+	Local	aAliasSC6	:= SC6->(GetArea())
+	Local	aAliasSC9	:= SC9->(GetArea())
+	Local	aAliasSF2	:= SF2->(GetArea())
+	Local	aAliasSD2	:= SD2->(GetArea())
+	Local	aAliasSB1	:= SB1->(GetArea())
+	Local	aAliasSB6	:= SB6->(GetArea())
+	Local	aAliasSG1	:= SG1->(GetArea())
+
+
+//-- Customizações do Usuário
+/*SELECT B1_TIPO,* FROM SD4010
+INNER JOIN SB1010
+ON D4_COD = B1_COD
+WHERE D4_OP = '00072601001  '
+AND SD4010.D_E_L_E_T_=''
+AND SB1010.D_E_L_E_T_=''   */
+
+	cQuery	:=	"SELECT "																+ CRLF
+	cQuery	+=	"	B6_TPCF, B6_TIPO, B6_PODER3, B6_EMISSAO, B6_PRODUTO, B6_LOCAL, "	+ CRLF
+	cQuery	+=	"	B6_SALDO, B6_QULIB, B6_DOC, B6_SERIE, B6_PRUNIT, B6_IDENT, "		+ CRLF
+	cQuery	+=	"	D2_DOC, D2_SERIE, D2_CLIENTE, D2_LOJA, D2_ITEM, D2_COD, D2_QUANT, "	+ CRLF
+	cQuery	+=	"	D1_ITEM, "															+ CRLF
+	cQuery	+=	"	SB1_PA.B1_REVATU, "													+ CRLF
+	cQuery	+=	"	SB1.B1_DESC, SB1.B1_TS "											+ CRLF
+	cQuery	+=	"FROM "																	+ CRLF
+	cQuery	+=	"	"							+ RetSQLName("SD2")	+ " SD2 "			+ CRLF
+	cQuery	+=	"	INNER JOIN "				+ RetSQLName("SB6")	+ " SB6 ON "		+ CRLF
+	cQuery	+=	"		B6_FILIAL   = '"		+ xFilial("SB6")	+ "' AND "			+ CRLF
+	cQuery	+=	"		B6_PRODUTO  = '"		+ cComp				+ "' AND "			+ CRLF
+	cQuery	+=	"		B6_EMISSAO >= '"		+ dP3DtCor			+ "' AND "			+ CRLF
+	cQuery	+=	"		B6_LOCAL IN "			+ cP3Local			+ " AND "			+ CRLF
+	cQuery	+=	"		B6_SERIE IN "			+ cP3Serie			+ " AND "			+ CRLF
+	cQuery	+=	"		B6_CLIFOR = D2_CLIENTE AND B6_LOJA = D2_LOJA AND "				+ CRLF
+	cQuery	+=	"		B6_PODER3 = 'R' AND B6_TIPO = 'D' AND B6_SALDO > 0 AND "		+ CRLF
+	cQuery	+=	"		B6_ESTOQUE = 'S' AND SB6.D_E_L_E_T_ = ' ' "						+ CRLF
+	cQuery	+=	"	INNER JOIN "				+ RetSQLName("SB1")	+ " SB1 ON "		+ CRLF
+	cQuery	+=	"		B1_FILIAL = '"			+ xFilial("SB1")	+ "' AND "			+ CRLF
+	cQuery	+=	"		B1_COD = B6_PRODUTO AND SB1.D_E_L_E_T_ = ' ' "					+ CRLF
+	cQuery	+=	"	INNER JOIN "				+ RetSQLName("SB1")	+ " SB1_PA ON "		+ CRLF
+	cQuery	+=	"		SB1_PA.B1_FILIAL = '"	+ xFilial("SB1")	+"' AND "			+ CRLF
+	cQuery	+=	"		SB1_PA.B1_COD = D2_COD AND SB1_PA.D_E_L_E_T_  = ' ' "			+ CRLF
+	cQuery	+=	"	INNER JOIN "				+ RetSQLName("SD1")	+ " SD1 ON "		+ CRLF
+	cQuery	+=	"		D1_FILIAL = '"			+ xFilial("SD1")	+ "' AND "			+ CRLF
+	cQuery	+=	"		D1_IDENTB6 = B6_IDENT AND SD1.D_E_L_E_T_  = ' ' "				+ CRLF
+	cQuery	+=	"WHERE "																+ CRLF
+	cQuery	+=	"	D2_FILIAL = '"				+ xFilial("SD2")	+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_DOC = '"					+ cDoc				+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_SERIE = '"				+ cSerie			+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_CLIENTE = '"				+ cCliFor			+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_LOJA = '"				+ cLoja				+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_COD = '"					+ cProduto			+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_ITEM = '"				+ cItem				+ "' AND "			+ CRLF
+	cQuery	+=	"	D2_TES IN "					+ cP3Tes			+ "  AND "			+ CRLF
+	cQuery	+=	"	SD2.D_E_L_E_T_ = ' ' "												+ CRLF
+	cQuery	+=	"ORDER BY "																+ CRLF
+	cQuery	+=	"	B6_FILIAL, B6_EMISSAO, B6_DOC, B6_SERIE, D1_ITEM "					+ CRLF
+
+	MemoWrite("\HLAFAT01_P3.sql", cQuery)
+	
+	TcQuery cQuery Alias (cTabelaSQL) New ;
+	
+	TcSetField(cTabelaSQL, "B6_EMISSAO",	"D"														)
+	TcSetField(cTabelaSQL, "B6_SALDO",		"N", TamSx3("B6_SALDO")[1],		TamSx3("B6_SALDO")[2]	)
+	TcSetField(cTabelaSQL, "B6_QULIB",		"N", TamSx3("B6_QULIB")[1],		TamSx3("B6_QULIB")[2]	)
+	TcSetField(cTabelaSQL, "B6_PRUNIT",		"N", TamSx3("B6_PRUNIT")[1],	TamSx3("B6_PRUNIT")[2]	)
+	TcSetField(cTabelaSQL, "D2_QUANT",		"N", TamSx3("D2_QUANT")[1],		TamSx3("D2_QUANT")[2]	)
+
+	(cTabelaSQL)->(DbGoTop())
+	Do While !(cTabelaSQL)->(Eof())		
+		&& Verifica a qtde disponível para devolução
+		nSaldoDoc	:=	(cTabelaSQL)->B6_SALDO - (cTabelaSQL)->B6_QULIB - DescUsado((cTabelaSQL)->B6_DOC, (cTabelaSQL)->B6_SERIE, (cTabelaSQL)->D1_ITEM, (cTabelaSQL)->B6_IDENT, aItens)
+		If nSaldoDoc > 0										&&	HA Saldo no Doc.?
+			nQuantidad	-=	nSaldoDoc							&& Abate a qtde desejada do saldo disponível	
+			nResto		:=	nSaldoDoc - (nQuantidad * -1)		&& Carrega o resto caso a qtde a devolver seja maior que a disponível ou a própria qtde se for suficiente
+
+			aAdd(aRetorno, {	(cTabelaSQL)->B6_DOC					,;
+								(cTabelaSQL)->B6_SERIE					,;
+								(cTabelaSQL)->B6_IDENT					,;
+								(cTabelaSQL)->D1_ITEM					,;
+								IIf(nQuantidad > 0, nSaldoDoc, nResto)	,;
+								(cTabelaSQL)->B6_PRUNIT					,;
+								(cTabelaSQL)->B6_PRODUTO				,;
+								0										})
+			If nQuantidad <= 0
+				Exit											&& Caso conseguiu atender, abandona o laço
+			EndIf
+		EndIf
+		(cTabelaSQL)->(DbSkip())
+	EndDo
+
+	If nQuantidad > 0	&&	Saldo de Terceiro em Nosso Poder INSUFICIENTE.
+		If Len(aRetorno) > 0
+			aRetorno[Len(aRetorno), 5] += nQuantidad
+			aRetorno[Len(aRetorno), 8] := nQuantidad
+		EndIf
+	EndIf
+
+	(cTabelaSQL)->(DbCloseArea())
+
+	RestArea(aAliasATU)
+
+Return lRet //-- (.T.) Valida apontamento de produção

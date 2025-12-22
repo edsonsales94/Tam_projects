@@ -1,0 +1,27 @@
+250227_151709 2024 WDL0561 N current working directory is C:\COEL\COEL\smartclient (3)
+250227_151709 2024 CFC0567 N version information: Broker 20.3.1.4 doce win64 rel [rev-38614] { Apr 20 2023 17:32:28 } [[3189]]
+250227_151709 2024 CFC0549 N HOST_NAME=AnnyeEric(192.168.20.29)
+250227_151709 2024 CFC0549 N REMOTE_SERVER_NAME=coelmaticsa157071.protheus.cloudtotvs.com.br
+250227_151709 2024 CFC0557 N REMOTE_SERVER_PORT=2261
+250227_151709 2024 CFC0557 N RETRY_INTERVAL=10
+250227_151709 2024 CFC0557 N MAX_RETRY_TIME=180
+250227_151709 2024 WDL0256 N parameters received: host=[coelmaticsa157071.protheus.cloudtotvs.com.br] port=[2261]
+250227_151709 2024 WDL0805 W broker client started operation using local port 51967
+250227_151711 4678 CTC1335 N x 01 ctx:008 \o/
+250227_151711 4678 CTC1336 N x 01 ctx:008 starting connection from client 127.0.0.1:64023
+250227_151711 4678 CTC1302 N x 01 ctx:008 received client connection from 127.0.0.1:64023
+250227_151711 4678 CTC3223 N x 01 ctx:008 initial connection attempt with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2261
+250227_151711 4678 CTC3242 N O 01 ctx:008 waiting establishment of connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2261
+250227_151714 4678 CTC1365 N x 26 ctx:008 received result 1225 from connect operation
+250227_151714 4678 CTC1493 E x 26 ctx:008 error 1225 on initial connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2261 (aplicacao remota nao esta' no ar)
+250227_151714 4678 CTC0212 W x 26 ctx:008 closed client connection (c:127.0.0.1:64023 p:?.?.?.?:? s:?.?.?.?:?)
+250227_151714 4678 CTC0213 E x 26 ctx:008 error, giving up initial connection with broker (c:127.0.0.1:64023 p:?.?.?.?:? s:?.?.?.?:?)
+250227_151716 4678 CTC1335 N x 01 ctx:009 \o/
+250227_151716 4678 CTC1336 N x 01 ctx:009 starting connection from client 127.0.0.1:64028
+250227_151716 4678 CTC1302 N x 01 ctx:009 received client connection from 127.0.0.1:64028
+250227_151716 4678 CTC3223 N x 01 ctx:009 initial connection attempt with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2261
+250227_151716 4678 CTC3242 N O 01 ctx:009 waiting establishment of connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2261
+250227_151719 4678 CTC1365 N x 26 ctx:009 received result 1225 from connect operation
+250227_151719 4678 CTC1493 E x 26 ctx:009 error 1225 on initial connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2261 (aplicacao remota nao esta' no ar)
+250227_151719 4678 CTC0212 W x 26 ctx:009 closed client connection (c:127.0.0.1:64028 p:?.?.?.?:? s:?.?.?.?:?)
+250227_151719 4678 CTC0213 E x 26 ctx:009 error, giving up initial connection with broker (c:127.0.0.1:64028 p:?.?.?.?:? s:?.?.?.?:?)

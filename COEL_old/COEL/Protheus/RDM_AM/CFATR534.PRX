@@ -1,0 +1,1031 @@
+/*/
+‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±⁄ƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒø±±
+±±≥Funáao    ≥ CFATR534 ≥ Autor ≥ Carlos Nina           ≥ Data ≥ 11/10/11 ≥±±
+±±√ƒƒƒƒƒƒƒƒƒƒ≈ƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒ¥±±
+±±≥Descriáao ≥ CARTEIRA DE VENDAS X FATURAMENTO POR PRODUTO               ≥±±
+±±√ƒƒƒƒƒƒƒƒƒƒ≈ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¥±±
+±±≥ Uso      ≥ Generico  - MATERIAIS                                      ≥±±
+±±¿ƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+#include "rwmake.ch"
+#Include "report.ch"
+#INCLUDE "TOPCONN.CH"
+
+User Function CFATR534()
+
+    Private lPrint
+    Private oReport
+	 Private nDiaRest
+    Private lPersonal := .F.
+	 Private Tabmes    := 'JANFEVMARABRMAIJUNJULAGOSETOUTNOVDEZ'
+	 Private nTotGer   := 0
+
+	 If FindFunction("TRepInUse") .And. TRepInUse()
+       lPersonal := .T.
+	    oReport   := ReportDef()
+		 If !Empty(oReport:uParam)
+			 Pergunte(oReport:uParam,.F.)
+		 EndIf
+	    oReport:PrintDialog()
+       /*
+       IF ( lPrint )
+		    cFile := RTRIM(oReport:cFile)
+          IF ( RIGHT(cFile,3)="xml" )
+	   		 cxFile := STRTRAN(cFile,"xml","xls")
+   	       IF ( File(cxFile) )
+      	       fErase(cxFile)
+                inkey(5)
+         	 ENDIF
+		   	 fRename( cFile , cxFile)
+          ELSE
+             cxFile := cFile
+      	 ENDIF
+          MsgAlert("** Arquivo gerado com sucesso em: "+cxFile)
+       ENDIF
+       */
+	 Else
+	    R534R3()
+	 EndIf
+
+Return
+
+Static Function ReportDef()
+		//⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+		//≥Criacao do componente de impressao                                      ≥
+		//≥                                                                        ≥
+		//≥TReport():New                                                           ≥
+		//≥ExpC1 : Nome do relatorio                                               ≥
+		//≥ExpC2 : Titulo                                                          ≥
+		//≥ExpC3 : Pergunte                                                        ≥
+		//≥ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao  ≥
+		//≥ExpC5 : Descricao                                                       ≥
+		//≥                                                                        ≥
+		//¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
+      Local   oReport
+		Local   oTipo
+      Local   oParam
+	   Local   oSection
+      Local   oTotais
+      Local   cPict1
+      Local   cPict2
+	   Private cPerg := "CFATR534  "
+	   //Local cPicQuant := PesqPictQt("G1_QUANT",13)
+	   //Local cPicUnit	 := PesqPict("SB1","B1_CUSTD",18)
+	   //Local cPicTot	 := PesqPict("SB1","B1_CUSTD",19)
+	   //TRCell():New(oSection,"CEL"		,"",/*Titulo*/,/*Picture*/,/*Tamanho*/,/*lPixel*/,/*{|| Code block }*/)
+
+	   ValidPerg()
+
+      cCabec  := "RESUMO CARTEIRA DE VENDAS"
+	   oReport := TReport():New("FATR534",cCabec,cPerg, {|oReport| ReportPrint(oReport)},"Resumo da Carteira de Vendas - Por Produto.")
+		oReport:SetTotalInLine(.F.)
+		oReport:SetLandScape()
+
+      cPict2 := "@E 9999999,999.99"
+		cPict1 := "@E 9999999999"
+
+	   oTipo := TRSection():New(oReport,"Familia")
+	   TRCell():New(oTipo,"TIPO"    ,"","TIPO",,40)
+	   TRCell():New(oTipo,"NREDUZ"  ,"","",,37)
+	   TRCell():New(oTipo,"VETOR1"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR2"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR3"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR4"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR5"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR6"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR7"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR8"  ,"","",cPict1,29)
+	   TRCell():New(oTipo,"VETOR9"  ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR10" ,"","",cPict1,22)
+	   TRCell():New(oTipo,"VETOR11" ,"","",cPict1,22)
+      *
+	   oParam := TRSection():New(oReport,"Parametros")
+	   TRCell():New(oParam,"PARAM1"    ,"","PARAM1",,40)
+	   TRCell():New(oParam,"PARAM2"    ,"","PARAM2",,37)
+	   TRCell():New(oParam,"PARAM3"    ,"","PARAM3",,22)
+	   TRCell():New(oParam,"PARAM4"    ,"","")
+	   TRCell():New(oParam,"PARAM5"    ,"","")
+	   TRCell():New(oParam,"PARAM6"    ,"","")
+	   TRCell():New(oParam,"PARAM7"    ,"","")
+	   TRCell():New(oParam,"PARAM8"    ,"","")
+	   TRCell():New(oParam,"PARAM9"    ,"","")
+	   TRCell():New(oParam,"PARAMA"    ,"","")
+	   TRCell():New(oParam,"PARAMB"    ,"","")
+	   TRCell():New(oParam,"PARAMC"    ,"","")
+	   TRCell():New(oParam,"PARAMD"    ,"","")
+      *
+	   oSection := TRSection():New(oTipo,"Resumo Cart.Vendas")
+	   TRCell():New(oSection,"CODPRO"  ,"","PRODUTO")
+	   TRCell():New(oSection,"DESPRO"  ,"","DESCRICAO")
+	   TRCell():New(oSection,"QTYATZ"  ,"","CARTEIRA ATRASO",cPict1)
+	   TRCell():New(oSection,"QTYMES"  ,"","CARTEIRA MES",cPict1)
+	   TRCell():New(oSection,"QTYDEV"  ,"","DEVOLUCAO",cPict1)
+	   TRCell():New(oSection,"FATATZ"  ,"","FATUR. ATRASO",cPict1)
+	   TRCell():New(oSection,"FATMES"  ,"","FATUR. MES",cPict1)
+	   TRCell():New(oSection,"FATPER"  ,"","FATUR. PERIODO",cPict1)
+	   TRCell():New(oSection,"FATSDO"  ,"","TTL.A FATURAR",cPict1)
+	   TRCell():New(oSection,"SDOOP"   ,"","SALDO DE O.P.",cPict1)
+	   TRCell():New(oSection,"SDOEST"  ,"","SALDO ESTOQUE",cPict1)
+	   TRCell():New(oSection,"LTEMIN"  ,"","LOTE MINIMO",cPict1)
+	   TRCell():New(oSection,"GERAOP"  ,"","O.P. A GERAR",cPict1)
+
+		oSection:Cell("QTYATZ"):SetHeaderAlign("RIGHT")
+		oSection:Cell("QTYMES"):SetHeaderAlign("RIGHT")
+		oSection:Cell("QTYDEV"):SetHeaderAlign("RIGHT")
+		oSection:Cell("FATATZ"):SetHeaderAlign("RIGHT")
+		oSection:Cell("FATMES"):SetHeaderAlign("RIGHT")
+		oSection:Cell("FATPER"):SetHeaderAlign("RIGHT")
+		oSection:Cell("FATSDO"):SetHeaderAlign("RIGHT")
+		oSection:Cell("SDOOP"):SetHeaderAlign("RIGHT")
+		oSection:Cell("SDOEST"):SetHeaderAlign("RIGHT")
+		oSection:Cell("LTEMIN"):SetHeaderAlign("RIGHT")
+		oSection:Cell("GERAOP"):SetHeaderAlign("RIGHT")
+
+		oSection:Cell("QTYATZ"):SetAlign("RIGHT")
+		oSection:Cell("QTYMES"):SetAlign("RIGHT")
+		oSection:Cell("QTYDEV"):SetAlign("RIGHT")
+		oSection:Cell("FATATZ"):SetAlign("RIGHT")
+		oSection:Cell("FATMES"):SetAlign("RIGHT")
+		oSection:Cell("FATPER"):SetAlign("RIGHT")
+		oSection:Cell("FATSDO"):SetAlign("RIGHT")
+		oSection:Cell("SDOOP"):SetAlign("RIGHT")
+		oSection:Cell("SDOEST"):SetAlign("RIGHT")
+		oSection:Cell("LTEMIN"):SetAlign("RIGHT")
+		oSection:Cell("GERAOP"):SetAlign("RIGHT")
+
+		oTotais := TRSection():New(oSection,"Total Geral")
+		TRCell():New(oTotais,"TXTTOTAL" ,"","** TOTAL GERAL............")
+		TRCell():New(oTotais,"VETOR0"   ,"","")
+	   TRCell():New(oTotais,"VETOR1"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR2"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR3"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR4"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR5"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR6"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR7"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR8"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR9"   ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR10"  ,"","",cPict1)
+	   TRCell():New(oTotais,"VETOR11"  ,"","",cPict1)
+		oTotais:SetHeaderSection(.F.)	//Nao imprime o cabeÁalho da secao
+
+		//If TCSrvType() <> "AS/400"
+		//	#IFNDEF TOP
+		//		TRPosition():New ( oTitsForn, "SA2" , 1 ,{|| xfilial("SA2")+SE2->(E2_FORNECE+E2_LOJA) } , .T. )
+		//		TRPosition():New ( oTitsForn, "SED" , 1 ,{|| xfilial("SED")+SE2->(E2_NATUREZ) } , .T. )
+		//	#ENDIF
+		//Endif
+
+		oTipo:SetColSpace(0)
+      oParam:SetColSpace(0)
+		oSection:SetColSpace(0)
+		oTotais:SetColSpace(0)
+
+Return(oReport)
+
+Static Function ReportPrint(oReport)
+	Local oTipo    := oReport:Section(1)
+   Local oParam   := oReport:Section(2)
+   Local oSection := oReport:Section(1):Section(1)
+	Local oTotais	:= oReport:Section(1):Section(1):Section(1)
+
+   Private nDecs2 := 2
+	Private nDesc3 := 3
+
+	///
+	MsAguarde({|| Proc_R534()} )
+   ///
+   MsAguarde({|| Proc_Carteira()} , "Extraindo Carteira do PerÌodo Informado.")
+   ///
+
+	IF ( !lPrint )
+      TRB->(dbCloseArea())
+      Return
+	ENDIF
+
+   aTotGer    := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+   lPrnTipo   := .T.
+   lFirstTime := .T.
+	cParam1    := "FR534-RESUMO CARTEIRA VENDAS (QTY)"
+	cParam2    := "Periodo: " + DTOC(mv_par07) + " A " + DTOC(mv_par08)
+   cParam3    := "Filial " + Trim(mv_par01) + " A " + Trim(mv_par02)
+	//⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
+	//≥Inicio da impressao do fluxo do relatorio                               ≥
+	//¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
+	oReport:NoUserFilter()  // Desabilita a aplicacao do filtro do usuario no filtro/query das secoes
+	oTipo:Init()
+   oParam:Init()
+	oSection:Init()
+	oTipo:SetTotalText("")
+	oParam:SetTotalText("")
+	oTipo:SetHeaderSection(.F.)
+	oTipo:SetTotalInLine(.T.)
+   oParam:SetHeaderPage()
+	oParam:SetTotalInLine(.T.)
+   oSection:SetHeaderPage()
+	oSection:SetTotalInLine(.T.)
+   oSection:SetHeaderBreak()
+	oReport:SetMeter(TRB->(LastRec()))
+	oParam:Cell("PARAM1"):SetTitle(cParam1)
+	oParam:Cell("PARAM2"):SetTitle(cParam2)
+	oParam:Cell("PARAM3"):SetTitle(cParam3)
+      *
+      NGQTLM   := 0
+   	NGQTPED  := 0
+      NGQTPEDA := 0
+      NGQFATZ  := 0
+      NGQTFAT  := 0
+      NGQTDIF  := 0
+      NGQTDEV  := 0
+      NGQTPER  := 0
+      NGSDOOP  := 0
+      NGSDOEST := 0
+      NGGERAOP := 0
+      dbSelectArea("TRB")
+      dbGoTop()
+	   Do While !oReport:Cancel() .And. !TRB->(Eof())
+         TBTIPO   := TRB->TB_TIPO
+         TBNREDUZ := TRB->TB_NREDUZ
+         NTQTLM   := 0
+	      NTQTPED  := 0
+	      NTQTPEDA := 0
+	      NTQFATZ  := 0
+	      NTQTFAT  := 0
+	      NTQTDIF  := 0
+         NTQTDEV  := 0
+         NTQTPER  := 0
+         NTSDOOP  := 0
+         NTSDOEST := 0
+         NTGERAOP := 0
+         nCount   := 0
+         aFats    := {}
+         lBrk     := .T.
+         DO WHILE !oReport:Cancel().AND.!EOF().AND.TB_TIPO==TBTIPO
+			   If oReport:Cancel()
+				   Exit
+ 			   EndIf
+     			oReport:IncMeter()
+            NQTLM   := TB_LM
+		      NQTPED  := TB_QTMES
+	   	   NQTPEDA := TB_QTATZ
+		      NQFATZ  := TB_QFATZ
+	   	   NQTDIF  := TB_QTDIF
+            NQTPER  := 0
+            ///
+            ///Saldo de OP
+            ///
+			   cCond  := " WHERE D_E_L_E_T_ <> '*' AND"
+	   		cCond  := cCond + " C2_FILIAL >= '"+mv_par01+"' AND C2_FILIAL <= '"+mv_par02+"' AND"
+			   cCond  := cCond + " C2_TPOP    = 'F'               AND"
+	   		cCond  := cCond + " C2_DATRF   = ' '               AND"
+			   cCond  := cCond + " C2_PRODUTO = '"+TRB->TB_COD+"'"
+      		cCond  := cCond + " GROUP BY C2_PRODUTO "
+
+			   cQuery := "SELECT C2_PRODUTO,SUM(C2_QUANT) C2_QUANT,SUM(C2_QUJE) C2_QUJE"
+	   		cQuery := cQuery + " FROM "+RetSqlName("SC2") + cCond
+
+				cQuery := ChangeQuery(cQuery)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQuery), 'OPF', .T., .T.)
+
+ 	     	   NSDOOP := ( OPF->C2_QUANT - OPF->C2_QUJE )
+
+            OPF->(dbCloseArea())
+            ///
+            ///Faturamento
+            ///
+			   cCond  := " WHERE A.D_E_L_E_T_ <> '*' AND B.D_E_L_E_T_ <> '*' AND"
+	   		cCond  := cCond + " D2_FILIAL >= '"+mv_par01+"' AND D2_FILIAL <= '"+mv_par02+"' AND"
+			   cCond  := cCond + " D2_CF IN ('5101','5102','5107','5911','6101','6102','6107','6911','6915','7101','7102','7107','7911') AND"
+	   		cCond  := cCond + " F4_CODIGO = D2_TES AND F4_ESTOQUE = 'S' AND"
+			   cCond  := cCond + " D2_COD = '"+TRB->TB_COD+"' AND"
+			   cCond  := cCond + " D2_EMISSAO >= '"+Dtos(mv_par07)+"' AND D2_EMISSAO <= '"+Dtos(mv_par08)+"'"
+      		cCond  := cCond + " GROUP BY D2_COD "
+
+			   cQuery := "SELECT D2_COD,SUM(D2_QUANT) D2_QUANT"
+	   		cQuery := cQuery + " FROM "+RetSqlName("SD2")+" A,"+RetSqlName("SF4")+" B" + cCond
+
+				cQuery := ChangeQuery(cQuery)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQuery), 'FAT', .T., .T.)
+
+ 	     	   nQtFat := FAT->D2_QUANT
+
+            FAT->(dbCloseArea())
+            ///
+            ///Devolucao
+            ///
+	   		cCond  := " WHERE A.D_E_L_E_T_ = ' ' AND B.D_E_L_E_T_ = ' ' AND C.D_E_L_E_T_ = ' ' AND"
+            cCond  := cCond + " D1_FILIAL >= '"+mv_par01+"' AND D1_FILIAL <= '"+mv_par02+"' AND"
+	   		cCond  := cCond + " D1_TIPO    = 'D'         AND"
+      		cCond  := cCond + " D1_CF IN ('1201','2201','3201') AND"
+	   		cCond  := cCond + " D1_DTDIGIT >= '"+Dtos(mv_par07)+"' AND D1_DTDIGIT <= '"+Dtos(mv_par08)+"' AND"
+            cCond  := cCond + " D1_COD     = '"+TRB->TB_COD+"' AND"
+			   cCond  := cCond + " D2_FILIAL  = D1_FILIAL   AND"
+	   		cCond  := cCond + " D2_DOC     = D1_NFORI    AND"
+			   cCond  := cCond + " D2_COD     = D1_COD      AND"
+	   		cCond  := cCond + " D2_ITEM    = D1_ITEMORI  AND"
+			   cCond  := cCond + " D2_CLIENTE = D1_FORNECE  AND"
+		      cCond  := cCond + " D2_LOJA    = D1_LOJA     AND"
+			   cCond  := cCond + " D2_TES     = F4_CODIGO   AND"
+	   		cCond  := cCond + " F4_DUPLIC  = 'S'         AND"
+			   cCond  := cCond + " D2_CF IN ('5101','5102','5107','5911','6101','6102','6107','6911','6915','7101','7102','7107','7911')"
+            cCond  := cCond + " GROUP BY D1_COD "  /// AND"
+				////	   cCond  := cCond + " LEFT(D2_EMISSAO,6) = LEFT(D1_DTDIGIT,6)"
+
+			   cQuery := "SELECT D1_COD,SUM(D1_QUANT) D1_QUANT"
+	   		cQuery := cQuery + " FROM "+RetSqlName("SD1")+" A,"+RetSqlName("SD2")+" B,"+RetSqlName("SF4")+" C" + cCond
+
+				cQuery := ChangeQuery(cQuery)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQuery), 'DEV', .T., .T.)
+
+            nQtDev := DEV->D1_QUANT
+
+            DEV->(dbCloseArea())
+            *
+			   aSaldo   := CalcEst(TRB->TB_COD,TRB->TB_LOCPAD,(mv_par08+1))     ///Saldo em Estoque
+			   nSdoEst  := aSaldo[1]
+            nQtPer   := ( nQtFat - nQfAtz )             ///Faturamento da Carteira do Mes
+            nQtDif   := ( nQtPed + nQtPedA - nQtPer )
+            nQtDif   := IIF(nQtDif < 0 , 0 , nQtDif )
+            IF ( nDiaRest > 0 )
+	            nQtDia := INT( nQtDif / nDiaRest )
+            ELSE
+               nQtDia := nQtDif
+            ENDIF
+			   IF ( ( nQfAtz + nQtFat + nQtPed + nQtPedA + nQtDev + nQtLm ) <> 0 )
+	            nGeraOp  := IIF( ( nSdoOP + nSdoEst ) < ( nQtDif + nQtLm ) , ( ( nQtDif + nQtLm ) - nSdoOp - nSdoEst ) , 0 )
+   	         nTQtLm   := ( nTQtLm   + nQtLm   )
+      	      nTQtPed  := ( nTQtPed  + nQtPed  )
+         	   nTQtPedA := ( nTQtPedA + nQtPedA )
+            	nTQfAtz  := ( nTQfAtz  + nQfAtz  )
+	            nTQtFat  := ( nTQtFat  + nQtFat  )
+   	         nTQtDif  := ( nTQtDif  + nQtDif  )
+      	      nTQtPer  := ( nTQtPer  + nQtPer  )
+         	   nTQtDev  := ( nTQtDev  + nQtDev  )
+            	nTSdoOp  := ( nTSdoOp  + nSdoOp  )
+	            nTSdoEst := ( nTSdoEst + nSdoEst )
+   	         nTGeraOp := ( nTGeraOp + nGeraOp )
+               AADD( aFats , { TRB->TB_COD  , ;
+                               TRB->TB_DESC , ;
+                               nQtPedA      , ;
+                               nQtPed       , ;
+                               nQtDev       , ;
+                               nQfAtz       , ;
+                               nQtPer       , ;
+                               nQtFat       , ;
+                               nQtDif       , ;
+                               nQtDia       , ;
+										 nSdoOp       , ;
+										 nSdoEst      , ;
+										 nGeraOp      , ;
+										 nQtLm  } )
+            ENDIF
+            dbSelectArea("TRB")
+            dbSkip()
+         ENDDO   //<-- TIPO
+         //aSort(aFats,,,{|x,y| x[14] > y[14] } )
+         cTipo := RTRIM(TBTIPO)+" - "+TBNREDUZ
+			oTipo:Cell("TIPO"):SetValue(cTipo)
+			oTipo:Cell("VETOR1"):SetValue(NTQTPEDA)
+			oTipo:Cell("VETOR2"):SetValue(NTQTPED)
+			oTipo:Cell("VETOR3"):SetValue(NTQTDEV)
+			oTipo:Cell("VETOR4"):SetValue(NTQFATZ)
+			oTipo:Cell("VETOR5"):SetValue(NTQTPER)
+			oTipo:Cell("VETOR6"):SetValue(NTQTFAT)
+			oTipo:Cell("VETOR7"):SetValue(NTQTDIF)     //A faturar
+			oTipo:Cell("VETOR8"):SetValue(NTSDOOP)
+			oTipo:Cell("VETOR9"):SetValue(NTSDOEST)
+			oTipo:Cell("VETOR11"):SetValue(NTGERAOP)
+			oTipo:PrintLine()
+         FOR iw:=1 TO LEN(aFats)
+             nCount := ( nCount + 1 )
+				 oSection:Cell("CODPRO"):SetValue(aFats[iw,1])
+				 oSection:Cell("DESPRO"):SetValue(aFats[iw,2])
+				 oSection:Cell("QTYATZ"):SetValue(aFats[iw,3])
+				 oSection:Cell("QTYMES"):SetValue(aFats[iw,4])
+				 oSection:Cell("QTYDEV"):SetValue(aFats[iw,5])
+				 oSection:Cell("FATATZ"):SetValue(aFats[iw,6])
+				 oSection:Cell("FATMES"):SetValue(aFats[iw,7])
+				 oSection:Cell("FATPER"):SetValue(aFats[iw,8])
+				 oSection:Cell("FATSDO"):SetValue(aFats[iw,9])
+				 oSection:Cell("SDOOP"):SetValue(aFats[iw,11])
+				 oSection:Cell("SDOEST"):SetValue(aFats[iw,12])
+				 oSection:Cell("LTEMIN"):SetValue(aFats[iw,14])
+				 oSection:Cell("GERAOP"):SetValue(aFats[iw,13])
+				 oSection:PrintLine()
+         NEXT
+         NGQTLM   := ( NGQTLM   + NTQTLM   )
+         NGQTPED  := ( NGQTPED  + NTQTPED  )
+         NGQTPEDA := ( NGQTPEDA + NTQTPEDA )
+         NGQTFAT  := ( NGQTFAT  + NTQTFAT  )
+         NGQTPER  := ( NGQTPER  + NTQTPER  )
+         NGQFATZ  := ( NGQFATZ  + NTQFATZ  )
+         NGQTDIF  := ( NGQTDIF  + NTQTDIF  )
+         NGQTDEV  := ( NGQTDEV  + NTQTDEV  )
+         NGSDOOP  := ( NGSDOOP  + NTSDOOP  )
+         NGSDOEST := ( NGSDOEST + NTSDOEST )
+         NGGERAOP := ( NGGERAOP + NTGERAOP )
+      ENDDO
+		oTotais:Cell("TXTTOTAL"):SetBlock({||"**   TOTAL GERAL.........: " })
+		oTotais:Cell("VETOR1"):SetValue(NGQTPEDA)
+		oTotais:Cell("VETOR2"):SetValue(NGQTPED)
+		oTotais:Cell("VETOR3"):SetValue(NGQTDEV)
+		oTotais:Cell("VETOR4"):SetValue(NGQFATZ)
+		oTotais:Cell("VETOR5"):SetValue(NGQTPER)
+		oTotais:Cell("VETOR6"):SetValue(NGQTFAT)
+		oTotais:Cell("VETOR7"):SetValue(NGQTDIF)
+		oTotais:Cell("VETOR8"):SetValue(NGSDOOP)
+		oTotais:Cell("VETOR9"):SetValue(NGSDOEST)
+		oTotais:Cell("VETOR11"):SetValue(NGGERAOP)
+		oTotais:Init()
+		oTotais:PrintLine()
+		oReport:ThinLine()
+		oTotais:Finish()
+		oSection:Finish()
+
+   	TRB->(dbCloseArea())
+
+RETURN NIL
+
+************************
+Static Function R534R3()
+************************
+Private nRegis
+
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SB1"
+titulo    := OemToAnsi("FATURAMENTO x CARTEIRA DE VENDAS")
+cDesc1    := OemToAnsi("Emite um relatorio gerencial do Faturamento X Carteira de vendas")
+cDesc2    := OemToAnsi("no periodo informado.")
+cDesc3    := OemToAnsi("")
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aOrd      := {}
+aReturn   := { "Especial", 1,"Materiais", 1, 2, 1, "",1 }
+nomeprog  := "FATR534"
+nLastKey  := 0
+cPerg     := "CFATR534  "
+wnrel     := "FATR534"
+ValidPerg()
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,,.T.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+   Return
+Endif
+SetDefault(aReturn,cString)
+
+RptStatus({||Proc_R534()})
+
+MsAguarde({|| Proc_Carteira()} , "Extraindo Carteira do PerÌodo.")
+
+IF ( lPrint )
+	aPeds    := {}
+	nTipo    := IIF(aReturn[4]==1,15,18)
+	m_pag    := 1
+	Li       := 99
+	cabec2   := ""
+   Cabec1   := ""
+	//titulo := "FATURAMENTO " + cValor + " -  PERIODO DE " + DTOC(mv_par05) + " A " + DTOC(mv_par06) + ;
+	titulo := "RESUMO DO FATURAMENTO - DE " + DTOC(mv_par07) + " A " + DTOC(mv_par08) + ;
+	          " FILIAL " + Trim(mv_par01) + " A " + Trim(mv_par02)
+	RptStatus({|| Corpo3() })
+
+ENDIF
+
+Return
+
+************************
+Static Function Corpo3()
+************************
+
+	  	 titulo := "RESUMO CARTEIRA DE VENDA P/PRODUTO (EM QTY) - DE " + DTOC(mv_par07) + " A " + DTOC(mv_par08) + ;
+		           " FILIAL " + Trim(mv_par01) + " A " + Trim(mv_par02)
+       Cabec1 := ""
+
+		 lin04  := "TIPO                                       +--- CARTEIRA ----+          +------ FATURAMENTO -------+                                                                                                                        "
+		 lin05  := "  PRODUTO    DESCRICAO                     |  ATRASO|  DO MES| DEVOLUCAO|  ATRASO|  DO MES| PERIODO|TTL.A FATURAR| SALDO O.P| SALDO EST.|LOTE MINIMO|O.P. A GERAR|O B S E R V A C A O                                      |"
+  		 lin06  := "-------------------------------------------+--------+--------+----------+--------+--------+--------+-------------+----------+-----------+-----------+------------+---------------------------------------------------------|"
+		 *****        xxxxxxxxxx x----------------------------x 99999999 99999999   99999999 99999999 99999999 99999999      99999999   99999999    99999999    99999999     99999999
+     	 *****                1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220
+  		 *****      01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123
+    *
+    NGQTLM   := 0
+    NGQTPED  := 0
+    NGQTPEDA := 0
+    NGQFATZ  := 0
+    NGQTFAT  := 0
+    NGQTDIF  := 0
+    NGQTDEV  := 0
+    NGQTPER  := 0
+    NGSDOOP  := 0
+    NGSDOEST := 0
+    NGGERAOP := 0
+    li       := 99
+    m_pag    := 1
+    dbSelectArea("TRB")
+    dbGoTop()
+    DO WHILE !EOF()
+       TBTIPO   := TRB->TB_TIPO
+       TBNREDUZ := TRB->TB_NREDUZ
+       NTQTLM   := 0
+	    NTQTPED  := 0
+	    NTQTPEDA := 0
+	    NTQFATZ  := 0
+	    NTQTFAT  := 0
+	    NTQTDIF  := 0
+       NTQTDEV  := 0
+       NTQTPER  := 0
+       NTSDOOP  := 0
+       NTSDOEST := 0
+       NTGERAOP := 0
+       nCount   := 0
+       aFats    := {}
+       lBrk     := .T.
+       DO WHILE !EOF().AND.TB_TIPO==TBTIPO
+            NQTLM     := TB_LM
+		      NQTPED    := TB_QTMES
+	   	   NQTPEDA   := TB_QTATZ
+		      NQFATZ    := TB_QFATZ
+	   	   NQTDIF    := TB_QTDIF
+            NQTPER    := 0
+            ///
+            ///Saldo de OP
+            ///
+			   cCond  := " WHERE D_E_L_E_T_ <> '*' AND"
+	   		cCond  := cCond + " C2_FILIAL >= '"+mv_par01+"' AND C2_FILIAL <= '"+mv_par02+"' AND"
+			   cCond  := cCond + " C2_TPOP    = 'F'               AND"
+	   		cCond  := cCond + " C2_DATRF   = ' '               AND"
+			   cCond  := cCond + " C2_PRODUTO = '"+TRB->TB_COD+"'"
+      		cCond  := cCond + " GROUP BY C2_PRODUTO "
+
+			   cQuery := "SELECT C2_PRODUTO,SUM(C2_QUANT) C2_QUANT,SUM(C2_QUJE) C2_QUJE"
+	   		cQuery := cQuery + " FROM "+RetSqlName("SC2") + cCond
+
+				cQuery := ChangeQuery(cQuery)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQuery), 'OPF', .T., .T.)
+
+ 	     	   NSDOOP := ( OPF->C2_QUANT - OPF->C2_QUJE )
+
+            OPF->(dbCloseArea())
+            ///
+            ///Faturamento
+            ///
+			   cCond  := " WHERE A.D_E_L_E_T_ <> '*' AND B.D_E_L_E_T_ <> '*' AND"
+	   		cCond  := cCond + " D2_FILIAL >= '"+mv_par01+"' AND D2_FILIAL <= '"+mv_par02+"' AND"
+			   cCond  := cCond + " D2_CF IN ('5101','5102','5107','5911','6101','6102','6107','6911','6915','7101','7102','7107','7911','7949') AND"
+	   		cCond  := cCond + " F4_CODIGO = D2_TES AND F4_ESTOQUE = 'S' AND"
+			   cCond  := cCond + " D2_COD = '"+TRB->TB_COD+"' AND"
+			   cCond  := cCond + " D2_EMISSAO >= '"+Dtos(mv_par07)+"' AND D2_EMISSAO <= '"+Dtos(mv_par08)+"'"
+      		cCond  := cCond + " GROUP BY D2_COD "
+
+			   cQuery := "SELECT D2_COD,SUM(D2_QUANT) D2_QUANT"
+	   		cQuery := cQuery + " FROM "+RetSqlName("SD2")+" A,"+RetSqlName("SF4")+" B" + cCond
+
+				cQuery := ChangeQuery(cQuery)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQuery), 'FAT', .T., .T.)
+
+ 	     	   NQTFAT := FAT->D2_QUANT
+
+            FAT->(dbCloseArea())
+            ///
+            ///Devolucao
+            ///
+	   		cCond  := " WHERE A.D_E_L_E_T_ = ' ' AND B.D_E_L_E_T_ = ' ' AND C.D_E_L_E_T_ = ' ' AND"
+            cCond  := cCond + " D1_FILIAL >= '"+mv_par01+"' AND D1_FILIAL <= '"+mv_par02+"' AND"
+	   		cCond  := cCond + " D1_TIPO    = 'D'         AND"
+      		cCond  := cCond + " D1_CF IN ('1201','2201','3201') AND"
+	   		cCond  := cCond + " D1_DTDIGIT >= '"+Dtos(mv_par07)+"' AND D1_DTDIGIT <= '"+Dtos(mv_par08)+"' AND"
+            cCond  := cCond + " D1_COD     = '"+TRB->TB_COD+"' AND"
+			   cCond  := cCond + " D2_FILIAL  = D1_FILIAL   AND"
+	   		cCond  := cCond + " D2_DOC     = D1_NFORI    AND"
+			   cCond  := cCond + " D2_COD     = D1_COD      AND"
+	   		cCond  := cCond + " D2_ITEM    = D1_ITEMORI  AND"
+			   cCond  := cCond + " D2_CLIENTE = D1_FORNECE  AND"
+		      cCond  := cCond + " D2_LOJA    = D1_LOJA     AND"
+			   cCond  := cCond + " D2_TES     = F4_CODIGO   AND"
+	   		cCond  := cCond + " F4_DUPLIC  = 'S'         AND"
+			   cCond  := cCond + " D2_CF IN ('5101','5102','5107','5911','6101','6102','6107','6911','7101','7102','7107','7911','7949')"
+            cCond  := cCond + " GROUP BY D1_COD "  /// AND"
+				////	   cCond  := cCond + " LEFT(D2_EMISSAO,6) = LEFT(D1_DTDIGIT,6)"
+
+			   cQuery := "SELECT D1_COD,SUM(D1_QUANT) D1_QUANT"
+	   		cQuery := cQuery + " FROM "+RetSqlName("SD1")+" A,"+RetSqlName("SD2")+" B,"+RetSqlName("SF4")+" C" + cCond
+
+				cQuery := ChangeQuery(cQuery)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQuery), 'DEV', .T., .T.)
+
+            NQTDEV := DEV->D1_QUANT
+
+            DEV->(dbCloseArea())
+            *
+			   aSaldo   := CalcEst(TRB->TB_COD,TRB->TB_LOCPAD,(mv_par08+1))     ///Saldo em Estoque
+			   nSdoEst  := aSaldo[1]
+            nQtPer   := ( nQtFat - nQfAtz )             ///Faturamento da Carteira do Mes
+            nQtDif   := ( nQtPed + nQtPedA - nQtPer )
+            nQtDif   := IIF(nQtDif < 0 , 0 , nQtDif )
+            IF ( nDiaRest > 0 )
+	            nQtDia := INT( nQtDif / nDiaRest )
+            ELSE
+               nQtDia := nQtDif
+            ENDIF
+			   IF ( ( nQfAtz + nQtFat + nQtPed + nQtPedA + nQtDev + nQtLm ) <> 0 )
+	            nGeraOp  := IIF( ( nSdoOP + nSdoEst ) < ( nQtDif + nQtLm ) , ( ( nQtDif + nQtLm ) - nSdoOp - nSdoEst ) , 0 )
+   	         nTQtPed  := ( nTQtPed  + nQtPed  )
+      	      nTQtPedA := ( nTQtPedA + nQtPedA )
+         	   nTQfAtz  := ( nTQfAtz  + nQfAtz  )
+            	nTQtFat  := ( nTQtFat  + nQtFat  )
+	            nTQtDif  := ( nTQtDif  + nQtDif  )
+   	         nTQtPer  := ( nTQtPer  + nQtPer  )
+      	      nTQtDev  := ( nTQtDev  + nQtDev  )
+         	   nTSdoOp  := ( nTSdoOp  + nSdoOp  )
+            	nTSdoEst := ( nTSdoEst + nSdoEst )
+	            nTGeraOp := ( nTGeraOp + nGeraOp )
+               AADD( aFats , { TRB->TB_COD  , ;
+                               TRB->TB_DESC , ;
+                               nQtPedA      , ;
+                               nQtPed       , ;
+                               nQtDev       , ;
+                               nQfAtz       , ;
+                               nQtPer       , ;
+                               nQtFat       , ;
+                               nQtDif       , ;
+                               nQtDia       , ;
+										 nSdoOp       , ;
+										 nSdoEst      , ;
+										 nGeraOp      , ;
+										 nQtLM  } )
+            ENDIF
+            dbSelectArea("TRB")
+            dbSkip()
+       ENDDO
+       //aSort(aFats,,,{|x,y| x[14] > y[14] } ) //Ordena por Produto + Data
+       FOR iw:=1 TO LEN(aFats)
+             IF ( li > 56 )
+			       li := Cabec(titulo,cabec1,cabec2,wnrel,Tamanho,nTipo)
+                @ li+1,000 PSAY lin04
+                @ li+2,000 PSAY lin05
+                @ li+3,000 PSAY lin06
+                li   := ( li + 3 )
+                lBrk := .T.
+             ENDIF
+             nCount := ( nCount + 1 )
+		       li     := ( li + 1 )
+             IF ( lBrk )
+                @ li,000 PSAY RTRIM(TBTIPO)+" - "+TBNREDUZ
+                @ li,043 PSAY "|"
+			   	 @ li,044 PSAY NTQTPEDA                   Picture "@E 99999999"
+                @ li,052 PSAY "|"
+					 @ li,053 PSAY NTQTPED                    Picture "@E 99999999"
+                @ li,061 PSAY "|"
+				    @ li,064 PSAY NTQTDEV                    Picture "@E 99999999"
+                @ li,072 PSAY "|"
+			  		 @ li,073 PSAY NTQFATZ                    Picture "@E 99999999"
+                @ li,081 PSAY "|"
+				    @ li,082 PSAY NTQTPER                    Picture "@E 99999999"
+                @ li,090 PSAY "|"
+				    @ li,091 PSAY NTQTFAT                    Picture "@E 99999999"
+                @ li,099 PSAY "|"
+				    @ li,105 PSAY NTQTDIF                    Picture "@E 99999999"
+                @ li,113 PSAY "|"
+					 @ li,116 PSAY NTSDOOP                    Picture "@E 99999999"
+                @ li,124 PSAY "|"
+					 @ li,128 PSAY NTSDOEST                   Picture "@E 99999999"
+                @ li,136 PSAY "|"
+					 @ li,140 PSAY NTQTLM                     Picture "@E 99999999"
+                @ li,148 PSAY "|"
+					 @ li,153 PSAY NTGERAOP                   Picture "@E 99999999"
+                @ li,161 PSAY "|"
+                @ li,162 PSAY REPL("_",57)
+                @ li,219 PSAY "|"
+                li   := ( li + 1 )
+                lBrk := .F.
+             ENDIF
+  	   		 @ li,002 PSAY LEFT(aFats[iw,1],11)+aFats[iw,2]
+             @ li,043 PSAY "|"
+			    @ li,044 PSAY aFats[iw,3]                   Picture "@E 99999999"
+             @ li,052 PSAY "|"
+   	   	 @ li,053 PSAY aFats[iw,4]                   Picture "@E 99999999"
+             @ li,061 PSAY "|"
+		       @ li,064 PSAY aFats[iw,5]                   Picture "@E 99999999"
+             @ li,072 PSAY "|"
+		       @ li,073 PSAY aFats[iw,6]                   Picture "@E 99999999"
+             @ li,081 PSAY "|"
+		   	 @ li,082 PSAY aFats[iw,7]                   Picture "@E 99999999"
+             @ li,090 PSAY "|"
+		   	 @ li,091 PSAY aFats[iw,8]                   Picture "@E 99999999"
+             @ li,099 PSAY "|"
+			    @ li,105 PSAY aFats[iw,9]                   Picture "@E 99999999"
+             @ li,113 PSAY "|"
+			    @ li,116 PSAY aFats[iw,11]                  Picture "@E 99999999"
+             @ li,124 PSAY "|"
+			    @ li,128 PSAY aFats[iw,12]                  Picture "@E 99999999"
+             @ li,136 PSAY "|"
+			    @ li,140 PSAY aFats[iw,14]                  Picture "@E 99999999"
+             @ li,148 PSAY "|"
+			    @ li,153 PSAY aFats[iw,13]                  Picture "@E 99999999"
+             @ li,161 PSAY "|"
+             @ li,162 PSAY REPL("_",57)
+             @ li,219 PSAY "|"
+       NEXT
+       NGQTPED  := ( NGQTPED  + NTQTPED  )
+       NGQTPEDA := ( NGQTPEDA + NTQTPEDA )
+       NGQTFAT  := ( NGQTFAT  + NTQTFAT  )
+       NGQTPER  := ( NGQTPER  + NTQTPER  )
+       NGQFATZ  := ( NGQFATZ  + NTQFATZ  )
+       NGQTDIF  := ( NGQTDIF  + NTQTDIF  )
+       NGQTDEV  := ( NGQTDEV  + NTQTDEV  )
+       NGSDOOP  := ( NGSDOOP  + NTSDOOP  )
+       NGSDOEST := ( NGSDOEST + NTSDOEST )
+       NGGERAOP := ( NGGERAOP + NTGERAOP )
+   	 @ li+1,000 PSAY lin06
+	    li := li + 1
+    ENDDO
+    li := li + 1
+    @ li,000 PSAY "** TOTAL GERAL............."
+    @ li,043 PSAY "|"
+  	 @ li,044 PSAY NGQTPEDA                               Picture "@E 99999999"
+    @ li,052 PSAY "|"
+  	 @ li,053 PSAY NGQTPED                                Picture "@E 99999999"
+    @ li,061 PSAY "|"
+    @ li,064 PSAY NGQTDEV                                Picture "@E 99999999"
+    @ li,072 PSAY "|"
+	 @ li,073 PSAY NGQFATZ                                Picture "@E 99999999"
+    @ li,081 PSAY "|"
+    @ li,082 PSAY NGQTPER                                Picture "@E 99999999"
+    @ li,090 PSAY "|"
+	 @ li,091 PSAY NGQTFAT                                Picture "@E 99999999"
+    @ li,099 PSAY "|"
+    @ li,105 PSAY NGQTDIF                                Picture "@E 99999999"
+    @ li,113 PSAY "|"
+    @ li,116 PSAY NGSDOOP                                Picture "@E 99999999"
+    @ li,124 PSAY "|"
+    @ li,128 PSAY NGSDOEST                               Picture "@E 99999999"
+    @ li,136 PSAY "|"
+    @ li,140 PSAY NGQTLM                                 Picture "@E 99999999"
+    @ li,148 PSAY "|"
+    @ li,153 PSAY NGGERAOP                               Picture "@E 99999999"
+    @ li,161 PSAY "|"
+    @ li,219 PSAY "|"
+  	 li := li + 1
+    @ li,000 PSAY REPLICATE("-",220)
+    *
+    TRB->(DbCloseArea())
+    If aReturn[5] == 1
+       Set Printer TO
+       DbCommitAll()
+       OursPool(wnrel)
+    EndIf
+    MS_FLUSH()
+
+Return
+
+***************************
+Static Function Proc_R534()
+***************************
+aStru := {}
+AADD(aStru,{"TB_FILIAL"  , "C" , 02 , 0 } )
+AADD(aStru,{"TB_COD"     , "C" , 30 , 0 } )
+AADD(aStru,{"TB_DESC"    , "C" , 30 , 0 } )
+AADD(aStru,{"TB_TIPO"    , "C" , 04 , 0 } )
+AADD(aStru,{"TB_LOCPAD"  , "C" , 02 , 0 } )
+AADD(aStru,{"TB_NREDUZ"  , "C" , 20 , 0 } )
+AADD(aStru,{"TB_LM"      , "N" , 12 , 0 } )
+AADD(aStru,{"TB_LE"      , "N" , 12 , 0 } )
+AADD(aStru,{"TB_QTMES"   , "N" , 15 , 2 } )
+AADD(aStru,{"TB_QTATZ"   , "N" , 15 , 2 } )
+AADD(aStru,{"TB_QTDIF"   , "N" , 15 , 2 } )
+AADD(aStru,{"TB_QFATZ"   , "N" , 15 , 2 } )
+cArqTrab := CriaTrab(aStru,.T.)
+dbUseArea(.T.,,cArqTrab,"TRB",.F.,.F.)
+cIndex := CriaTrab(NIL,.F.)
+cKey   := 'TB_TIPO+TB_COD'
+IndRegua("TRB",cIndex,cKey,,," Criando Indice ...   ")
+
+Return
+
+///
+///Desmembra Cliente: Sim ou Nao
+///
+*******************************
+Static Function Proc_Carteira()
+*******************************
+       dDatFin  := LastDay(mv_par08)
+       dDatIni  := FirstDay(mv_par07)
+       dDatAtz  := FirstDay((dDatIni-1))
+		 dDatAtr  := dDatIni
+		 FOR nx:=1 TO 4
+		     dDatAtr := ( dDatAtr - 1 )
+		     dDatAtr := FirstDay(dDatAtr)
+		 NEXT
+       nDiaUtil := 0
+       ix       := 1
+       dDataI   := FirstDay(mv_par08)
+       nDiaRest := 0
+       aFeriado := { "20110905" , ;
+		               "20111024" , ;
+							"20111102" , ;
+                     "20111115" , ;
+							"20111225" , ;
+                     "20120101" , ;
+							"20120501" }
+
+       DO WHILE ix <= day(dDatFin)
+          dDataV := datavalida(dDataI)
+          iw     := ASCAN(aFeriado , DTOS(dDataI) )
+          IF ( dDataI == dDataV .AND. iw = 0 )
+             nDiaUtil := ( nDiaUtil + 1 )
+	          IF ( dDataI <= mv_par08 )
+   	          nDiaRest := ( nDiaRest + 1 )
+      	    ENDIF
+          ENDIF
+          dDataI := ( dDataI + 1 )
+          ix     := ( ix + 1 )
+       ENDDO
+       nDiaRest := ( nDiaUtil - nDiaRest )
+       *
+       cOrde  := " ORDER BY C6_PRODUTO,C6_FILIAL,C6_NUM,C6_ITEM "
+	    cCond  := " WHERE A.D_E_L_E_T_ <> '*' AND B.D_E_L_E_T_ <> '*' AND C.D_E_L_E_T_ = ' ' AND"
+	    cCond  := cCond + " C6_FILIAL >= '"+mv_par01+"' AND C6_FILIAL <= '"+mv_par02+"' AND"
+		 cCond  := cCond + " B1_FILIAL = C6_FILIAL AND"
+       cCond  := cCond + " B1_COD = C6_PRODUTO AND"
+       cCond  := cCond + " B1_CLCFAM >= '"+mv_par05+"' AND B1_CLCFAM <= '"+mv_par06+"' AND"
+       cCond  := cCond + " B1_TIPO IN ('PA','PI','PP') AND"
+	    cCond  := cCond + " C6_CF IN ('5101','5102','5107','5911','6101','6102','6107','6911','7101','7102','7107','7911','7949') AND"
+	    cCond  := cCond + " C6_TES = F4_CODIGO AND F4_ESTOQUE = 'S' AND"
+	    cCond  := cCond + " C6_PRODUTO >= '"+mv_par03+"' AND C6_PRODUTO <= '"+mv_par04+"' AND"
+	    //cCond  := cCond + " C6_ENTREG >= '"+DTOS(dDatAtr)+"' AND C6_ENTREG <= '"+Dtos(dDatFin)+"'"
+	    cCond  := cCond + " C6_ENTREG <= '"+Dtos(dDatFin)+"'"
+
+	    cQuery := "SELECT C6_FILIAL,C6_PRODUTO,C6_NUM,C6_ITEM,C6_ENTREG,C6_TES,C6_CF,C6_QTDVEN,C6_QTDENT,B1_DESC,B1_TIPO,B1_UM,B1_CLCFAM,B1_LOCPAD,B1_LM,B1_LE"
+		 cQuery := cQuery + " FROM "+RetSqlName("SB1")+" A,"+RetSqlName("SC6")+" B,"+RetSqlName("SF4")+" C" + cCond + cOrde
+       *
+		 MsAguarde({|| dbUseArea(.T.,"TOPCONN",TCGenQry(,,cQuery),"FAT",.F.,.T.)},"Base Carteira de Vendas do PerÌodo")
+	    //TCQUERY cQuery NEW ALIAS "FAT"
+
+		 TcSetField("FAT","C6_QTDVEN","N",12,2)
+		 TcSetField("FAT","C6_QTDENT","N",12,2)
+		 TcSetField("FAT","C6_ENTREG","D",08,0)
+
+       *
+	    DbSelectArea("SC6")
+	    DbSetOrder(1)
+       *
+	    DbSelectArea("SZE")
+	    DbSetOrder(1)
+       *
+		 IF ( !lPersonal )
+			 ProcRegua(SC6->(LastRec()))
+		 ELSE
+   		 oReport:SetMeter(SC6->(LastRec()))
+		 ENDIF
+       dbSelectArea("FAT")
+       dbGoTop()
+       lPrint := !EMPTY(FAT->C6_PRODUTO)
+	    Do While !Eof()
+          C6PRODUTO := FAT->C6_PRODUTO
+          B1DESC    := LEFT(FAT->B1_DESC,30)
+          B1CLCFAM  := FAT->B1_CLCFAM
+          B1LOCPAD  := FAT->B1_LOCPAD
+          B1LM      := FAT->B1_LM
+          B1LE      := FAT->B1_LE
+          NQTTOT    := 0
+     	    NQTATZ    := 0
+          NQTDIF    := 0
+          NQTMES    := 0
+          DO WHILE !EOF().AND.C6_PRODUTO==C6PRODUTO
+			    IF ( !lPersonal )
+		  			 IncProc()
+			    ELSE
+      			 oReport:IncMeter()
+			    ENDIF
+	          nQtyMes  := 0
+		       nQtyCart := FAT->C6_QTDVEN
+			    dbSelectArea("SD2")
+		   	 dbSetOrder(8)
+			    dbSeek(FAT->C6_FILIAL+FAT->C6_NUM+FAT->C6_ITEM,.T.)
+		   	 DO WHILE !EOF().AND.D2_FILIAL==FAT->C6_FILIAL.AND.D2_PEDIDO==FAT->C6_NUM.AND.D2_ITEMPV==FAT->C6_ITEM
+				    IF ( FAT->C6_ENTREG < dDatIni )
+   	           	 IF ( SD2->D2_EMISSAO <= mv_par08 )
+					       nQtyCart := ( nQtyCart - SD2->D2_QUANT )
+         	       ENDIF
+  	         	    IF ( SD2->D2_EMISSAO >= mv_par07 .AND. SD2->D2_EMISSAO <= mv_par08 )
+  	            		 nQtyMes  := ( nQtyMes + SD2->D2_QUANT )
+                   ENDIF
+                ELSEIF ( SD2->D2_EMISSAO < dDatIni )
+				       nQtyCart := ( nQtyCart - SD2->D2_QUANT )
+                ENDIF
+		   	    dbSkip()
+			    ENDDO
+			    IF ( FAT->C6_ENTREG < dDatIni )
+  	   	       NQTATZ += nQtyCart
+			    ELSE
+				    ///nQtyCart := FAT->C6_QTDVEN
+                NQTTOT   += nQtyCart
+			    ENDIF
+             NQTMES := ( NQTMES + nQtyMes )
+             NQTDIF := ( NQTDIF + nQtyCart + nQtyMes )
+		       dbSelectArea("FAT")
+             dbSkip()
+          ENDDO
+          SZE->(dbSeek(xFilial("SZE")+B1CLCFAM))
+          *
+	       dbSelectArea("TRB")
+	       RecLock( "TRB" , .T. )
+          TRB->TB_FILIAL  := "00"
+   	    TRB->TB_TIPO    := B1CLCFAM
+      	 TRB->TB_NREDUZ  := SZE->ZE_DESCRIC
+          TRB->TB_COD     := C6PRODUTO
+          TRB->TB_LOCPAD  := B1LOCPAD
+          TRB->TB_DESC    := B1DESC
+          TRB->TB_LM      := B1LM
+          TRB->TB_LE      := B1LE
+	       TRB->TB_QTMES   := NQTTOT
+	       TRB->TB_QTDIF	  := NQTDIF
+	       TRB->TB_QTATZ   := NQTATZ
+          TRB->TB_QFATZ   := NQTMES
+          MsUnlock()
+          *
+          dbSelectArea("FAT")
+       ENDDO
+       FAT->(dbCloseArea())
+       *
+       ////
+       ////Filtra PA com lote minimo e inserir na tabela temporaria (TRB) caso nao exista.
+       ////
+		 cQry := "SELECT B1_COD,B1_DESC,B1_LOCPAD,B1_CLCFAM,B1_LE,B1_LM FROM "+RetSqlName("SB1")
+	    cQry += " WHERE D_E_L_E_T_  <> '*'"
+		 cQry += " AND B1_FILIAL = '"+xFilial("SB1")+"'"
+	    cQry += " AND B1_TIPO IN ('PA','PP')"
+       cQry += " AND B1_LE > 0 "
+		 cQry += " ORDER BY B1_CLCFAM,B1_COD "
+
+		 cQry := ChangeQuery(cQry)
+
+		 dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB3', .T., .T.)
+
+       dbSelectArea("TB3")
+       dbGoTop()
+       DO WHILE !EOF()
+          dbSelectArea("TRB")
+          dbSeek(TB3->B1_CLCFAM+TB3->B1_COD)
+          IF ( EOF() )
+	          SZE->(dbSeek(xFilial("SZE")+TB3->B1_CLCFAM))
+		       RecLock( "TRB" , .T. )
+      	    TRB->TB_FILIAL  := "00"
+   	   	 TRB->TB_TIPO    := TB3->B1_CLCFAM
+   	   	 TRB->TB_NREDUZ  := SZE->ZE_DESCRIC
+	          TRB->TB_COD     := TB3->B1_COD
+      	    TRB->TB_LOCPAD  := TB3->B1_LOCPAD
+         	 TRB->TB_DESC    := LEFT(TB3->B1_DESC,30)
+	          TRB->TB_LM      := TB3->B1_LM
+             TRB->TB_LE      := TB3->B1_LE
+   	       MsUnlock()
+          ENDIF
+          dbSelectArea("TB3")
+          dbSkip()
+       ENDDO
+       TB3->(dbCloseArea())
+       *
+Return
+
+////////////////////////////////////////////////////////
+Static Function ValidPerg()
+////////////////////////////////////////////////////////
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Da Filial                   ?",   ""   ,  ""    , "mv_ch1" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "AtÈ a Filial                ?",   ""   ,  ""    , "mv_ch2" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch3" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "AtÈ o Produto               ?",   ""   ,  ""    , "mv_ch4" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par04", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"05" , "Da Familia                  ?",   ""   ,  ""    , "mv_ch5" , "C" ,   04   ,   0   ,   0   , "G" , "          "  , "mv_par05", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SZE" , "    " })
+   aAdd(aRegs,{ cPerg,"06" , "AtÈ a Familia               ?",   ""   ,  ""    , "mv_ch6" , "C" ,   04   ,   0   ,   0   , "G" , "          "  , "mv_par06", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SZE" , "    " })
+   aAdd(aRegs,{ cPerg,"07" , "Do PerÌodo                  ?",   ""   ,  ""    , "mv_ch7" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par07", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"08" , "AtÈ o PerÌodo               ?",   ""   ,  ""    , "mv_ch8" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par08", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

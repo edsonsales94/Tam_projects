@@ -1,0 +1,25 @@
+
+/*/{Protheus.doc} SE2CODBAR
+
+Retorna o valor do codigo de barras.
+
+@type function
+@author Honda Lock
+@since 01/11/2017
+
+@return Caracter, Valor.
+
+/*/
+
+USER FUNCTION SE2CODBAR()
+
+local nret
+
+If  INT(VAL(SUBSTR(SE2->E2_CODBAR,10,10))) == 0
+
+	 nRet:= STRZERO(INT(((SE2->E2_SALDO + SE2->E2_ACRESC + SE2->E2_JUROS + SE2->E2_MULTA)-SE2->E2_DESCONT)*100),10)
+	else
+	 nRet := SUBSTR(SE2->E2_CODBAR,10,10)                                                                       
+Endif	 
+
+return nret

@@ -1,0 +1,154 @@
+0001#STR0001#ALL#Doctos. del Cliente para Transporte
+0002#STR0002#ALL#Buscar
+0003#STR0003#ALL#Visualizar
+0004#STR0004#ALL#Incluir
+0005#STR0005#ALL#Modificar
+0006#STR0006#ALL#Revertir
+0007#STR0007#ALL#&Servicios
+0008#STR0008#ALL#&Documentos
+0009#STR0009#ALL#ATENCION
+0010#STR0010#ALL#La suma de los valores de volumen, peso o valor del documento estan diferentes de los valores informados en la cotizacion de Flete
+0011#STR0011#ALL#Recalcular
+0012#STR0012#ALL#Anular
+0013#STR0013#ALL#Seleccione la Cotizacion de Flete
+0014#STR0014#ALL#Producto
+0015#STR0015#ALL#Peso Cubicado
+0016#STR0016#ALL#Factura
+0017#STR0017#ALL#Observacion
+0018#STR0018#ALL#Peso Cubicado - <F4> 
+0019#STR0019#ALL#Ubicacion - <F5> 
+0020#STR0020#ALL#Linea : 
+0021#STR0021#ALL#Cant. Volumenes
+0022#STR0022#ALL#Ubicacion
+0023#STR0023#ALL#El Cliente Remitente y Destinario son Iguales ... ¿Confirma ? 
+0024#STR0024#ALL#Si
+0025#STR0025#ALL#No
+0026#STR0026#ALL#Observacion del Cliente
+0027#STR0027#ALL#Seleccione la Inscripcion
+0028#STR0028#ALL#Secuencia
+0029#STR0029#ALL#Inscripcion
+0030#STR0030#ALL#Documentos del EDI de Cliente: 
+0031#STR0031#ALL#Copiar
+0032#STR0032#ALL#Confirmar
+0033#STR0033#ALL#Solicitud de Recoleccion
+0034#STR0034#ALL#Peso Cub.
+0035#STR0035#ALL#Documento
+0036#STR0036#ALL#Docum.
+0037#STR0037#ALL#Direc.
+0038#STR0038#ALL#Valor Informado - <F6>
+0039#STR0039#ALL#Val. Inf.
+0040#STR0040#ALL#Tipos de Vehiculos - <F7>
+0041#STR0041#ALL#Tip. Veh.
+0042#STR0042#ALL#Cotizaciones Realizadas - <F9>
+0043#STR0043#ALL#Cot. Real.
+0044#STR0044#ALL#El Producto
+0045#STR0045#ALL#de la Cotacion de Flete
+0046#STR0046#ALL#, no se informo en este documento. ¿Continua ?
+0047#STR0047#ALL#La sumatoria de los valores de volumen, peso, quilometraje o valor del documento estan diferentes de los valores informados en la cotizacion de flete
+0048#STR0048#ALL#Confirma
+0049#STR0049#ALL#Redigita
+0050#STR0050#ALL#El total de volumenes del peso cubicado esta diferente de la ctd. de volumenes informada en el documento. ¿Confirma ?
+0051#STR0051#ALL#Servicios: 
+0052#STR0052#ALL#Existe valor informado para el documento, ¿desea limpiar el valor informado al cambiar el servicio ?
+0053#STR0053#ALL#El Lugar/Direccion informado no esta registrado. ¿ Desea registrar ?
+0054#STR0054#ALL#Visual.
+0055#STR0055#ALL#Busc.
+0056#STR0056#ALL#Buscar
+0057#STR0057#ALL#Productos de Cotizacion de Flete Nº: 
+0058#STR0058#ALL#Productos vs. Cliente Remitente: 
+0059#STR0059#ALL#Codigo
+0060#STR0060#ALL#Descripcion
+0061#STR0061#ALL#Cotizaciones de Flete Aprobadas
+0062#STR0062#ALL#Lista de Asociados
+0063#STR0063#ALL#Alianza
+0064#STR0064#ALL#¿La entrada del documento del cliente se refiere a una devolucion parcial ?
+0065#STR0065#ALL#Tipos de vehiculo del documento
+0066#STR0066#ALL#Mantenimiento de Documentos - Visualizar
+0067#STR0067#ALL#Tabla de Flete no ubicada, ¿desea presentar todos los componentes del tipo de valor informado?
+0068#STR0068#ALL#Marca todos los destinatarios iguales
+0069#STR0069#ALL#Seleccione la Ocurrencia
+0070#STR0070#ALL#Cod. Ocurrencia
+0071#STR0071#ALL#Sucursal Origen: 
+0072#STR0072#ALL#Lote: 
+0073#STR0073#ALL#Hay vehiculos asociados a la solicitud de recoleccion que no se confirmaron en la digitacion del documento del cliente para transporte. ¿Continua?
+0074#STR0074#ALL#Informe el Incoterm...
+0075#STR0075#ALL#Informe la Ruta...
+0076#STR0076#ALL#Ruta invalida para el servicio y o tipo de transporte informado
+0077#STR0077#ALL#¡En el transporte internacional no es posible informar documentos con remitentes, destinatarios, deudores y monedas diferentes!
+0078#STR0078#ALL#No se permite utilizar el deudor otros para este tipo de transporte
+0079#STR0079#ALL#Contribuyente
+0080#STR0080#ALL#No Contribuyente
+0081#STR0081#ALL#La seleccion de origen es diferente de la cotizacion de flete. Confirma?
+0082#STR0082#ALL#Podran ocurrir divergencias de valores entre cotizacion y calculo de flete !
+0083#STR0083#ALL#TMSA050 y TMSXFUNA son incompatibles. Actualice el fuente TMSXFUNA!
+0084#STR0084#ALL#Vehiculo / Conductor diferente del Viaje Planeado de Colecta
+0085#STR0085#ALL#¿Desea anular el viaje?
+0086#STR0086#ALL#¡Ejecutar nuevamente el Update TMS10R140!
+0087#STR0087#ALL#El viaje 
+0088#STR0088#ALL#, en el cual la solicitud de recoleccion informada en la entrada de la Factura de Cliente esta vinvulada, se anulara, pues el viaje se encuentra pendiente. 
+0089#STR0089#ALL#Este lote tiene valor de Flete Informado. La modificacion de este lote implicará en la anulacion de la cotizacion de flete. ¿Desea continuar?
+0090#STR0090#ALL#NF vs. Clas. ONU - <F10>
+0091#STR0091#ALL#NF vs. Clas. ONU.
+0092#STR0092#ALL#ONU vs. NF
+0093#STR0093#ALL#Cerrar Lote
+0094#STR0094#ALL#Calcular
+0095#STR0095#ALL#Revertir
+0096#STR0096#ALL#Recalculo
+0097#STR0097#ALL#Cons.Doc
+0098#STR0098#ALL#Refacturar
+0099#STR0099#ALL#Impresion
+0100#STR0100#ALL#Leyenda
+0101#STR0101#ALL#e-Ct
+0102#STR0102#ALL#CTR
+0103#STR0103#ALL#DACTE
+0104#STR0104#ALL#LOG RECH
+0105#STR0105#ALL#Seleccione el Lote
+0106#STR0106#ALL#Confirma el cierre del lote 
+0107#STR0107#ALL#Calculo Flete
+0108#STR0108#ALL#Flete informado
+0109#STR0109#ALL#Visualiza flete
+0110#STR0110#ALL#Vis.Flete
+0111#STR0111#ALL#Flete Inf.
+0112#STR0112#ALL#Valor del flete en cero
+0113#STR0113#ALL#Falla en la linea totalizadora de la composicion del flete
+0114#STR0114#ALL#Seleccionar Lotes
+0115#STR0115#ALL#Lectura del codigo de barras
+0116#STR0116#ALL#Informe el codigo de barras
+0117#STR0117#ALL#Suc.Docto: 
+0118#STR0118#ALL#Serie: 
+0119#STR0119#ALL#Los siguientes datos son incompatibles con el documento anterior: 
+0120#STR0120#ALL#Numero de Documento não encontrado ou já digitado
+0121#STR0121#ALL#Mnt.Etiquetas
+0122#STR0122#ALL#Id do formulário de origem:
+0123#STR0123#ALL#Id do campo de origem: 
+0124#STR0124#ALL#Id do formulário de erro: 
+0125#STR0125#ALL#Id do campo de erro: 
+0126#STR0126#ALL#Id do erro: 
+0127#STR0127#ALL#Mensagem do erro: 
+0128#STR0128#ALL#Mensagem da solução: 
+0129#STR0129#ALL#Valor atribuído: 
+0130#STR0130#ALL#Valor anterior: 
+0131#STR0131#ALL#Impressão de Etiquetas
+0132#STR0132#ALL#Etiquetas
+0133#STR0133#ALL#es diferente 
+0134#STR0134#ALL#El cliente deudor 
+0135#STR0135#ALL#del cliente 
+0136#STR0136#ALL#El cliente destinatario 
+0137#STR0137#ALL#El cliente remitente 
+0138#STR0138#ALL#El cliente consignatario 
+0139#STR0139#ALL#El cliente despachante 
+0140#STR0140#ALL#El cliente deudor no se informó. ¿Confirma el deudor igual al del documento anterior?
+0141#STR0141#ALL#El cliente deudor del documento anterior no se informó. ¿Confirma que el deudor permanezca en blanco así como en el documento anterior?
+0142#STR0142#ALL#El cliente despachante del documento anterior no se informó. ¿Confirma que el despachante permanezca en blanco así como en el documento anterior?
+0143#STR0143#ALL#El cliente consignatario del documento anterior no se informó. ¿Confirma que el consignatario permanezca en blanco así como en el documento anterior?
+0144#STR0144#ALL#El cliente consignatario no se informó. ¿Confirma el consignatario igual al del documento anterior?
+0145#STR0145#ALL#El cliente despachante no se informó. ¿Confirma el despachante igual al del documento anterior?
+0146#STR0150#ALL#Lectura por Cód.Barras
+0147#STR0151#ALL#El lote de digitación de facturas se cerró  automáticamente. ¡Desea calcular ahora?
+0148#STR0152#ALL#El Serv. Transp(SerTms) está en blanco. ¿Confirma el Serv. Transp(SerTms) igual al del documento anterior?
+0149#STR0153#ALL#El Serv. Transp(Sertms) del documento anterior está en blanco. ¿Confirma el Serv. Transp  importado?
+0150#STR0154#ALL#El Serv. Transp (Sertms) del Doc. Importado está diferente del Doc. Anterior. ¿Desea que el servicio del documento a importarse se modifique?
+0151#STR0155#ALL#¡Concluido con éxito!
+0152#STR0156#ALL#RECOLECCIÓN ANULADA
+0153#STR0157#ALL#Anulación automática, de acuerdo con programación virtual.
+0154#STR0158#ALL#Cotización generada a partir de flete informado. Anulada automáticamente durante la reversión del documento.

@@ -1,0 +1,139 @@
+<% #INCLUDE "TOTVS.CH" %>    
+
+<!doctype html>
+<html lang='pt-BR'  >
+  <head>
+  
+    <meta charset="iso-8859-1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<title>Funcionário</title>
+
+
+    <style>
+      body {
+        font-family: 'Roboto', serif;
+        font-size: 14px;
+      }
+    </style>
+	
+</head>
+
+
+<body style=" 
+	background: #D6E7EE; /* old browsers */ 
+	background-image: linear-gradient(rgb(104, 145, 162), #D6E7EE);
+	background: -moz-linear-gradient(rgb(104, 145, 162), #D6E7EE); /* firefox */ 
+	background: -webkit-gradient(rgb(104, 145, 162), #D6E7EE); /* webkit */ 
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=#68e7ee, endColorstr=#D6E7EE,GradientType=0 ); /* ie */ 
+	width: 100%; 
+	margin: 0px; 
+	padding: 0px;
+	background-attachment:fixed; " > 
+ 
+<div id="principal" style="	 
+	width: 85%; 
+	padding: 15px; 
+	margin-right: auto; 
+	margin-left: auto; 
+	margin-top: 20px; 
+	margin-bottom: 20px; 
+	background-color: #FFF; 
+	border: 3px solid #623684; " > 
+   
+	<table width="95%" border="0" align="center" cellpadding="0" cellspacing="0" bordercolor="#FFFFFF" bordercolorlight="#006600" bordercolordark="#006600"> 
+		<tr> 
+			<td width="95%" align="center" > 
+				<img align="left" style="background-color:blue" src="https://www.minebea-accesssolutions-rda.co.th/images/locklogonew06-1.png" width="178" height="120" > 
+				<br><br> 
+				<span style="font-family: Verdana, Geneva, sans-serif; 
+					font-size: 20px; 
+					color: #333; 
+					text-align: left; 
+					font-weight: bold; 
+					padding-right: 178px; " > 
+						DEMISSÃO 
+				</span> 
+			</td> 
+		</tr> 
+	</table> 
+   
+	<hr /> 
+	 
+	<p>
+		O RH vem por meio desta informar a <b>DEMISSÃO</b> do funcionário abaixo:
+	</p>
+
+
+
+	<table width='95%' border='0' align='center' bgcolor='#FFFFFF' cellspacing='2' cellpadding='0'>
+	<tr>
+		<td width='' style='font-size:11px; color:#FFFFFF; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; font-weight:bold;
+						border-width:1px; background-color:#8d9cff; border-style:outset'>Matrícula: </td>
+		<td width='' style='font-size:11px; color:#FFFFFF; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; font-weight:bold;
+						border-width:1px; background-color:#8d9cff; border-style:outset'>Nome: </td>
+		<td width='' style='font-size:11px; color:#FFFFFF; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; font-weight:bold;
+						border-width:1px; background-color:#8d9cff; border-style:outset'>Data de Demissão: </td>
+		<td width='' style='font-size:11px; color:#FFFFFF; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; font-weight:bold;
+						border-width:1px; background-color:#8d9cff; border-style:outset'>Centro de Custo: </td>
+	</tr>
+	<% Do While QrySRA->( !EOF() ) %>
+		<tr>
+			<td width='20%' style='font-size:11px; color:#000000; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; border-width:1px;
+							background-color:#e5eeff; border-style:outset'> <%= QrySRA->RA_MAT %> </td>
+			<td width='20%' style='font-size:11px; color:#000000; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; border-width:1px;
+						background-color:#e5eeff; border-style:outset'> <%= QrySRA->RA_NOME %> </td>
+			<td width='20%' style='font-size:11px; color:#000000; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; border-width:1px;
+						background-color:#e5eeff; border-style:outset'> <%= Dtoc(Stod(QrySRA->RA_DEMISSA)) %> </td>
+			<td width='20%' style='font-size:11px; color:#000000; font-family:Verdana,Arial,Helvetica,sans-serif; text-decoration:none; border-width:1px;
+						background-color:#e5eeff; border-style:outset'> <%= fDesc("CTT",QrySRA->RA_CC,"CTT_DESC01",TamSX3('RA_DESCCC') ) %> </td>
+		</tr>
+
+	<% 
+		cQuery := cCRLF + "UPDATE "
+		cQuery += cCRLF + RetSqlName('SRA')
+		cQuery += cCRLF + "   Set RA_XWKF = 'SS' "
+		cQuery += cCRLF + "WHERE "
+		cQuery += cCRLF + "   RA_MAT = '" + QrySRA->RA_MAT + "' "
+		If (nRet := TCSQLExec( cQuery )) != 0
+			oUDLOGFONTE:Write('Erro atualização. <TCSQLError()> ' + TCSQLError())
+		Endif
+	
+
+			QrySRA->( dbSkip() )
+	EndDo 
+	%>
+
+	<tr> 
+		<td width='03%'>&nbsp;</td> 
+	</tr> 
+	</table> 
+		
+	<p>
+		Solicitamos que sejam tomadas as devidas providências pelos setores envolvidos no processo de demissão.
+		<br><br>
+		<b>AMBULATÓRIO:</b> Providência Exames Demissionais;
+		<br>
+		<b>SESMT:</b> Solicitar devolução do uniforme, calçados, EPIs e chave de armário;
+		<br>
+		<b>RH:</b> Recolher crachás, carteirinhas de convênio de saúde e odontológico, celular corporativo e notebook caso tenha sido disponibilizado.
+		<br>
+		<b>TI:</b> Realizar a exclusão dos acessos e e-mail com prazo de até 15 dias a contar da data do desligamento.
+		<br>
+		<b>Portaria:</b> Não liberar a entrada na empresa sem autorização após o dia de desligamento.
+	</p>
+	
+	<table width="100%" border="0" > 
+		<tr>
+			<td height="30" align="center" style=" font-family: Verdana, Geneva, sans-serif; font-size: 11px; color: #000; ">  
+				WORKFLOW 
+			</td> 
+		</tr> 
+	</table> 
+ 
+</div> 
+ 
+</body> 
+</html> 
+
+

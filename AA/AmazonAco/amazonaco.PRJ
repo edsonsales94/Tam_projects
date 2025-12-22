@@ -1,0 +1,109 @@
+Group AMAZONACO
+   Version=7.0
+   VSSDB=
+   HasProperties=1
+   Properties
+      BeforeApply=
+      AfterApply=
+      Icon=
+      ID=
+      Version=
+      PalmName=
+      OutPut=
+   End
+   ProjectsCount=4
+   Project AFILL
+      FoldersCount=2
+      Folder Notas
+         VSSPath=Fontes
+         FilesCount=3
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\Nota\M103BROW.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\Nota\A140EXC.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\Nota\A100DEL.PRW
+             Type=T
+         End
+      End
+      Folder PEDIDO
+         VSSPath=Definições
+         FilesCount=13
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MTA120E.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120VLD.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120TEL.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120SCR.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120OK.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120LEG.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120GRV.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120GOK.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120FOL.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120FIL.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120COR.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MT120BRW.prw
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\pedido\MA120BUT.prw
+             Type=T
+         End
+      End
+   End
+   Project Estoque
+      FoldersCount=1
+      Folder Processo
+         VSSPath=Nova Pasta1
+         FilesCount=5
+         File \TOTVS\Protheus12\Workspace\AmazonAco\producao\telas\AAESTT01.prw
+             Type=T
+         End
+         File \TOTVS\PROTHEUS12\WORKSPACE\AMAZONACO\PRODUCAO\PROCESSOS\AAPCPP02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\producao\cadastro\AAPCPC04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus12\Workspace\AmazonAco\afill\Pedido\UZPEDIDO.PRW
+             Type=T
+         End
+         File \TOTVS\PROTHEUS12\WORKSPACE\AMAZONACO\PRODUCAO\PONTOS DE ENTRADA\MT250TOK.PRW
+             Type=T
+         End
+      End
+   End
+   Project Contabilidade
+      FoldersCount=1
+      Folder Relatorios
+         VSSPath=Nova Pasta1
+         FilesCount=1
+         File \TOTVS\Protheus12\Workspace\AmazonAco\contabilidade\relatorios\AACTBR06.prw
+             Type=T
+         End
+      End
+   End
+   Project Producao
+      FoldersCount=0
+   End
+End

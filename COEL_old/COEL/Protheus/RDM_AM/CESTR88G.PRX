@@ -1,0 +1,416 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR88G ³ Autor ³ Carlos Nina           ³ Data ³ 17/11/15 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Ficha de Inventario - Modo Gráfico                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Materiais                                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+#include "protheus.ch"
+#include "rwmake.ch"
+#include "totvs.ch"
+#Include "FONT.CH"
+#include "colors.ch"
+#INCLUDE "TBICONN.ch"
+#INCLUDE "RPTDEF.ch"
+#INCLUDE "FWPrintSetup.ch"
+
+User Function CESTR88G()
+
+Local oFont31 := TFont():New("Arial",,-14,.T.,.T.)
+Local oFont32 := TFont():New("Arial",,-30,.T.,.T.)
+
+Private oTela
+Private cString  := ""
+Private cPerg   := PADR('CESTR088',10)
+
+pergunte(cPerg,.F.)
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+dbSelectArea("SBE")
+dbSetOrder(1)
+*
+@ 200,1 TO 380,380 DIALOG oTela TITLE OemToAnsi("Ficha e Inventário")
+@ 02,05 TO 085,188
+@ 06,010 Say " Objetivo: Emissão das Fichas de Inventário em Modo Gráfico"
+
+@ 25,010 SAY "Rotina específica para:"  OBJECT oItem1 SIZE 150,40  
+oItem1:oFont    := oFont31                       
+oItem1:nClrText := CLR_BLUE
+@ 33,010 SAY "Coelmatic Ltda."  OBJECT oItem2 SIZE 150,30  
+oItem2:oFont    := oFont32                        
+oItem2:nClrText := CLR_BLUE
+
+@ 70,070 BUTTON "Parametros" Size 34,11  ACTION pergunte(cPerg,.T.)
+@ 70,110 BUTTON "Imprimir"   Size 34,11  ACTION f_printficha()
+@ 70,148 BUTTON "Sair"       Size 34,11  ACTION Close(oTela)
+
+Activate Dialog oTela Centered
+
+Return
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function f_printficha()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Local cQry
+Local cFc,cCd,cCl,cDs1,cDs2,cDs3,cTp,cLc,cUn,cEnd
+Local nRecNo
+Local lEof := .F.
+
+Private oPrint,oBrush
+Private nCtd
+Private xBitMap    := "\ARQUIVOS\FOTOS\LGRL0301I.BMP"      ///SYSTEM\LGMID03.PNG"    ///LGRL0301.BMP"                   ///LOGO_METALCOM.JPG"
+Private aItens     := {}
+Private aCoords    := {662,110,720,3350} 
+Private nCor       := RGB(128,128,0)
+
+SetPrvt("CCOD1,CCOD2,CCOD3,CFIC1,CFIC2,CFIC3,CDESC1,CDESC2,CDESC3")
+SetPrvt("CUM1,CUM2,CUM3,CTIP1,CTIP2,CTIP3,CLOC1,CLOC2,CLOC3,CCLI1,CCLI2,CCLI3")
+SetPrvt("CEND1,CEND2,CEND3")
+
+// Cria os objetos com as configuracoes das fontes
+//                                              Negrito  Subl  Italico
+oFont08  := TFont():New( "Times New Roman",,08,,.f.,,,,,.f.,.f. )
+oFont08b := TFont():New( "Times New Roman",,08,,.t.,,,,,.f.,.f. )
+oFont09  := TFont():New( "Times New Roman",,09,,.f.,,,,,.f.,.f. )
+oFont09b := TFont():New( "Times New Roman",,09,,.t.,,,,,.f.,.f. )
+oFont10  := TFont():New( "Times New Roman",,10,,.f.,,,,,.f.,.f. )
+oFont10b := TFont():New( "Times New Roman",,10,,.t.,,,,,.f.,.f. )
+oFont11  := TFont():New( "Times New Roman",,11,,.f.,,,,,.f.,.f. )
+oFont11b := TFont():New( "Times New Roman",,11,,.t.,,,,,.f.,.f. )
+oFont12  := TFont():New( "Times New Roman",,12,,.f.,,,,,.f.,.f. )
+oFont12b := TFont():New( "Times New Roman",,12,,.t.,,,,,.f.,.f. )
+oFont12c := TFont():New( "Times New Roman",,12,,.t.,,,,,.f.,.t. )
+oFont13b := TFont():New( "Times New Roman",,13,,.t.,,,,,.f.,.f. )
+oFont14b := TFont():New( "Times New Roman",,14,,.t.,,,,,.f.,.f. )
+oFont16b := TFont():New( "Times New Roman",,16,,.t.,,,,,.f.,.f. )
+oFont24b := TFont():New( "Times New Roman",,24,,.t.,,,,,.f.,.f. )
+
+cQry := "SELECT COUNT(*) ZP_RECNO FROM "+RetSqlName("SZP")
+cQry += "WHERE ZP_FILIAL  = '" + xFilial("SZP") + "' "
+cQry += "AND ZP_DATA = '"+DTOS(mv_par01)+"' "
+cQry += "AND ZP_COD >= '"+mv_par02+"' "
+cQry += "AND ZP_COD <= '"+mv_par03+"' "
+cQry += "AND ZP_LOCAL BETWEEN '"+ mv_par04 + "' AND '" + mv_par05 + "' "
+cQry += "AND ZP_FICHA BETWEEN '"+ mv_par08 + "' AND '" + mv_par09 + "' "
+cQry += "AND D_E_L_E_T_  <> '*' "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+nRecNo := TMP->ZP_RECNO
+
+TMP->(dbCloseArea())
+
+Inkey(2)
+
+cQry := "SELECT * FROM "+RetSqlName("SZP")
+cQry += "WHERE ZP_FILIAL  = '" + xFilial("SZP") + "' "
+cQry += "AND ZP_DATA = '"+DTOS(mv_par01)+"' "
+
+//cQry += "AND ZP_FICHA IN ('035811','009920','005988','005595','035795','035802')"
+
+
+cQry += "AND ZP_COD >= '"+mv_par02+"' "
+cQry += "AND ZP_COD <= '"+mv_par03+"' "
+cQry += "AND ZP_LOCAL BETWEEN '"+ mv_par04 + "' AND '" + mv_par05 + "' "
+cQry += "AND ZP_FICHA BETWEEN '"+ mv_par08 + "' AND '" + mv_par09 + "' "
+cQry += "AND D_E_L_E_T_  <> '*' "
+cQry += "ORDER BY ZP_FICHA "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+
+fLimpa()
+
+// Cria um novo objeto para impressao
+oPrint := TMsPrinter():New("FichaInvetario")
+
+// Formato do papel
+oPrint:SetLandScape()
+oPrint:setPaperSize(9)
+ 
+// Mostra a tela de Setup
+oPrint:Setup()
+// Inicia uma nova pagina
+oPrint:StartPage()
+
+//oBrush := TBrush():New("",nCor)
+//oPrint:FillRect(aCoords,oBrush)
+
+dbSelectArea("TRB")
+dbGoTop()
+ProcRegua(nRecNo)
+DO WHILE !EOF()
+   IncProc()
+   SB1->(dbSeek(xFilial("SB1")+TRB->ZP_COD))
+   SBE->(dbSeek(xFilial("SBE")+TRB->ZP_LOCALIZ))
+	
+	nCtd  := ( nCtd + 1 )
+	cFc   := ( "cFic"  + STR(nCtd,1) )
+	cCd   := ( "cCod"  + STR(nCtd,1) )
+	cCl   := ( "cCli"  + STR(nCtd,1) )
+	cDs1  := ( "cDesc" + STR(nCtd,1) )
+	cTp   := ( "cTip"  + STR(nCtd,1) )
+   cLc   := ( "cLoc"  + STR(nCtd,1) )
+	cUn   := ( "cUm"   + STR(nCtd,1) )
+   cEnd  := ( "cEnd"  + STR(nCtd,1) )
+	
+   &cFc  := TRANSF(TRB->ZP_FICHA,"@R 99999-9")
+   &cCl  := SPACE(36)
+	&cCd  := RTRIM(TRB->ZP_COD)
+   &cDs1 := LEFT(TRB->ZP_DESC,100)
+	&cLc  := TRB->ZP_LOCAL
+	&cTp  := SB1->B1_TIPO 
+	&cUn  := SB1->B1_UM
+   &cEnd := IIF(EMPTY(TRB->ZP_LOCALIZ) , "____________________" , TRB->ZP_LOCALIZ )
+	
+	TRB->(dbSkip())
+		
+   IF ( nCtd == 3 )
+		lEof := TRB->(EOF())
+	   Prt_Ficha(lEof)
+   	fLimpa()
+   ENDIF
+	
+ENDDO
+
+TRB->(dbCloseArea())
+
+IF ( nCtd > 0 )
+   Prt_Ficha(.T.)
+ENDIF
+
+oPrint:End()
+
+oPrint:Preview()  // Mostra a tela de preview
+
+Return
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function Prt_Ficha(lEof)
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+Local nLinha,nCtd
+Local ix,iw
+Local cCtd,cCtg
+
+oPrint:Box(0060,0080,2300,3350)      
+oPrint:Line(0060,1165,2300,1165)         ///1a.Linha Vertical
+oPrint:Line(0060,2250,2300,2250)         ///2a.Linha Vertical
+oPrint:Line(0390,0080,0390,3350)         ///1a.Linha Horizontal
+oPrint:Line(1030,0080,1030,3350)         ///2a.Linha Horizontal
+oPrint:Line(1670,0080,1670,3350)         ///3a.Linha Horizontal
+
+//oPrint:SetFont(oFont24b)
+oPrint:SayBitMap(080,0094,xBitMap,149,73)
+oPrint:SayBitMap(080,1179,xBitMap,149,73)
+oPrint:SayBitMap(080,2264,xBitMap,149,73)
+
+oPrint:Say(0080,0390,OEMTOANSI("FICHA DE INVENTÁRIO - ")+cFic1,oFont11b ,240)
+oPrint:Line(0120,390,0120,1020)
+oPrint:Line(0124,390,0124,1020)
+oPrint:Say(0080,1475,OEMTOANSI("FICHA DE INVENTÁRIO - ")+cFic2,oFont11b ,240)
+oPrint:Line(0120,1475,0120,2105)
+oPrint:Line(0124,1475,0124,2105)
+oPrint:Say(0080,2560,OEMTOANSI("FICHA DE INVENTÁRIO - ")+cFic3,oFont11b ,240)
+oPrint:Line(0120,2560,0120,3190)
+oPrint:Line(0124,2560,0124,3190)
+
+oPrint:Say(0170,0096,OEMTOANSI("CÓDIGO.....: ")+cCod1,oFont10b ,240)
+oPrint:Say(0170,0830,OEMTOANSI("TIPO: ")+cTip1,oFont09b ,100)
+oPrint:Say(0170,1020,OEMTOANSI("UM: ")+cUM1,oFont09b ,60)
+oPrint:Say(0170,1181,OEMTOANSI("CÓDIGO.....: ")+cCod2,oFont10b ,240)
+oPrint:Say(0170,1915,OEMTOANSI("TIPO: ")+cTip2,oFont09b ,100)
+oPrint:Say(0170,2110,OEMTOANSI("UM: ")+cUM2,oFont09b ,60)
+oPrint:Say(0170,2266,OEMTOANSI("CÓDIGO.....: ")+cCod3,oFont10b ,240)
+oPrint:Say(0170,3005,OEMTOANSI("TIPO: ")+cTip3,oFont09b ,100)
+oPrint:Say(0170,3200,OEMTOANSI("UM: ")+cUM3,oFont09b ,60)
+oPrint:Say(0240,0096,OEMTOANSI("DESCRIÇÃO: ")+LEFT(cDesc1,41),oFont09b ,400)
+oPrint:Say(0280,0320,SUBS(cDesc1,42,41),oFont09b ,400)
+oPrint:Say(0240,1181,OEMTOANSI("DESCRIÇÃO: ")+LEFT(cDesc2,41),oFont09b ,400)
+oPrint:Say(0280,1400,SUBS(cDesc2,42,41),oFont09b ,400)
+oPrint:Say(0240,2266,OEMTOANSI("DESCRIÇÃO: ")+LEFT(cDesc3,41),oFont09b ,400)
+oPrint:Say(0280,2495,SUBS(cDesc3,42,41),oFont09b ,400)
+oPrint:Say(0330,0096,OEMTOANSI("ALMOXARIFADO: ")+cLoc1,oFont09b ,400)
+oPrint:Say(0330,0610,OEMTOANSI("LOCALIZAÇÃO: ")+cEnd1,oFont09b ,100)
+oPrint:Say(0330,1181,OEMTOANSI("ALMOXARIFADO: ")+cLoc2,oFont09b ,400)
+oPrint:Say(0330,1695,OEMTOANSI("LOCALIZAÇÃO: ")+cEnd2,oFont09b ,100)
+oPrint:Say(0330,2266,OEMTOANSI("ALMOXARIFADO: ")+cLoc3,oFont09b ,400)
+oPrint:Say(0330,2785,OEMTOANSI("LOCALIZAÇÃO: ")+cEnd3,oFont09b ,100)
+
+nLinha  := 390
+nLinBar := 0.9
+FOR nCtd:=3 TO 1 STEP -1
+    cCtd    := ( STR(nCtd,1) + "a." )
+	 cCtg    := "DATA DA  "+cCtd+" CONTAGEM: _____ / _____ / _______"
+	 nLinha  += 20
+	 nLinBar += 5.4
+
+	 oPrint:SayBitMap(nLinha,0094,xBitMap,149,73)
+	 oPrint:SayBitMap(nLinha,1179,xBitMap,149,73)
+	 oPrint:SayBitMap(nLinha,2264,xBitMap,149,73)
+
+	 oPrint:Say(nLinha,0390,OEMTOANSI("FICHA DE INVENTÁRIO - ")+cFic1,oFont11b ,240)
+	 oPrint:Line(nLinha+40,390,nLinha+40,1020)
+	 oPrint:Line(nLinha+44,390,nLinha+44,1020)
+	 oPrint:Say(nLinha,1475,OEMTOANSI("FICHA DE INVENTÁRIO - ")+cFic2,oFont11b ,240)
+	 oPrint:Line(nLinha+40,1475,nLinha+40,2105)
+	 oPrint:Line(nLinha+44,1475,nLinha+44,2105)
+	 oPrint:Say(nLinha,2560,OEMTOANSI("FICHA DE INVENTÁRIO - ")+cFic3,oFont11b ,240)
+	 oPrint:Line(nLinha+40,2560,nLinha+40,3190)
+	 oPrint:Line(nLinha+44,2560,nLinha+44,3190)
+
+	 nLinha += 110
+	 oPrint:Say(nLinha,0096,OEMTOANSI("CÓDIGO: ")+cCod1,oFont10b ,240)
+	 oPrint:Say(nLinha,0830,OEMTOANSI("TIPO: ")+cTip1,oFont09b ,100)
+	 oPrint:Say(nLinha,1020,OEMTOANSI("UM: ")+cUM1,oFont09b ,60)
+	 oPrint:Say(nLinha,1181,OEMTOANSI("CÓDIGO: ")+cCod2,oFont10b ,240)
+	 oPrint:Say(nLinha,1915,OEMTOANSI("TIPO: ")+cTip2,oFont09b ,100)
+	 oPrint:Say(nLinha,2110,OEMTOANSI("UM: ")+cUM2,oFont09b ,60)
+	 oPrint:Say(nLinha,2266,OEMTOANSI("CÓDIGO: ")+cCod3,oFont10b ,240)
+	 oPrint:Say(nLinha,3005,OEMTOANSI("TIPO: ")+cTip3,oFont09b ,100)
+	 oPrint:Say(nLinha,3200,OEMTOANSI("UM: ")+cUM3,oFont09b ,60)
+	 
+	 nLinha += 80
+	 oPrint:Say(nLinha,0096,OEMTOANSI("DESCRIÇÃO: ")+LEFT(cDesc1,51),oFont08b ,400)
+	 oPrint:Say(nLinha,1181,OEMTOANSI("DESCRIÇÃO: ")+LEFT(cDesc2,51),oFont08b ,400)
+	 oPrint:Say(nLinha,2266,OEMTOANSI("DESCRIÇÃO: ")+LEFT(cDesc3,51),oFont08b ,400)
+	 
+	 nLinha += 90
+	 oPrint:Say(nLinha,0096,cCtg,oFont08b ,400)
+	 oPrint:Say(nLinha,0830,OEMTOANSI("LOCALIZ.: ")+cEnd1,oFont08b ,100)
+	 oPrint:Say(nLinha,1181,cCtg,oFont08b ,400)
+	 oPrint:Say(nLinha,1915,OEMTOANSI("LOCALIZ.: ")+cEnd2,oFont08b ,100)
+	 oPrint:Say(nLinha,2266,cCtg,oFont08b ,400)
+	 oPrint:Say(nLinha,3005,OEMTOANSI("LOCALIZ.: ")+cEnd3,oFont08b ,100)
+
+	 nLinha += 110
+	 oPrint:Say(nLinha,0096,OEMTOANSI("QUANTIDADE APURADA: ___________________"),oFont08b ,400)
+	 oPrint:Say(nLinha,1181,OEMTOANSI("QUANTIDADE APURADA: ___________________"),oFont08b ,400)
+	 oPrint:Say(nLinha,2266,OEMTOANSI("QUANTIDADE APURADA: ___________________"),oFont08b ,400)
+	 
+	 MsBar3( 'CODE128', nLinBar , 007.0, STRTRAN(cFic1,"-","") ,oPrint , .F., , .T., 0.025, 0.6, .F., 'TAHOMA', 'C', .F. )
+	 MsBar3( 'CODE128', nLinBar , 016.2, STRTRAN(cFic2,"-","") ,oPrint , .F., , .T., 0.025, 0.6, .F., 'TAHOMA', 'C', .F. )
+	 MsBar3( 'CODE128', nLinBar , 025.4, STRTRAN(cFic3,"-","") ,oPrint , .F., , .T., 0.025, 0.6, .F., 'TAHOMA', 'C', .F. )
+
+	 nLinha += 160
+	 oPrint:Line(nLinha,0096,nLinha,0540)
+	 oPrint:Line(nLinha,0730,nLinha,1140)
+	 oPrint:Line(nLinha,1181,nLinha,1625)
+	 oPrint:Line(nLinha,1825,nLinha,2226)
+	 oPrint:Line(nLinha,2266,nLinha,2710)
+	 oPrint:Line(nLinha,2915,nLinha,3310)
+	 oPrint:Say(nLinha+06,0216,OEMTOANSI("CONTADO POR"),oFont08b ,400)
+	 oPrint:Say(nLinha+06,0800,OEMTOANSI("VISTO CONFERENTE"),oFont08b ,400)
+	 oPrint:Say(nLinha+06,1301,OEMTOANSI("CONTADO POR"),oFont08b ,400)
+	 oPrint:Say(nLinha+06,1885,OEMTOANSI("VISTO CONFERENTE"),oFont08b ,400)
+	 oPrint:Say(nLinha+06,2386,OEMTOANSI("CONTADO POR"),oFont08b ,400)
+	 oPrint:Say(nLinha+06,2975,OEMTOANSI("VISTO CONFERENTE"),oFont08b ,400)
+	 
+	 nLinha := IIF(nCtd==3 , 1030 , 1670 )
+	 
+NEXT
+
+oPrint:ResetPrinter() 
+oPrint:EndPage()
+IF ( !lEof )
+	oPrint:StartPage()
+ENDIF
+
+Return
+
+*****************************
+Static Function Monta_Linha()
+*****************************
+LIN01 := '+------------------------------------------------------------------------+------------------------------------------------------------------------+------------------------------------------------------------------------+'
+LIN02 := '|                    FICHA DE INVENTARIO Nro.                            |                    FICHA DE INVENTARIO Nro.                            |                    FICHA DE INVENTARIO Nro.                            |'
+LIN03 := '|                    ================================                    |                    ================================                    |                    ================================                    |'
+LIN04 := '| CODIGO......: ______________________________     TIPO: __     U.M: __  | CODIGO......: ______________________________     TIPO: __     U.M: __  | CODIGO......: ______________________________     TIPO: __     U.M: __  |'
+LIN05 := '| DESCRICAO...: _______________________________________________________  | DESCRICAO...: _______________________________________________________  | DESCRICAO...: _______________________________________________________  |'
+LIN06 := '| ALMOXARIFADO: __   LOCALIZACAO: _____________________________________  | ALMOXARIFADO: __   LOCALIZACAO: _____________________________________  | ALMOXARIFADO: __   LOCALIZACAO: _____________________________________  |'
+LIN07 := '| DATA DA ___ CONTAGEM: ____ / ____ / ______                             | DATA DA ___ CONTAGEM: ____ / ____ / ______                             | DATA DA ___ CONTAGEM: ____ / ____ / ______                             |'
+LIN08 := '| QUANTIDADE APURADA..: __________________                               | QUANTIDADE APURADA..: __________________                               | QUANTIDADE APURADA..: __________________                               |'
+LIN09 := '| ____________________________               __________________________  | ____________________________               __________________________  | ____________________________               __________________________  |'
+LIN10 := '|         CONTADO POR                              VISTO CONFERENTE      |         CONTADO POR                              VISTO CONFERENTE      |         CONTADO POR                              VISTO CONFERENTE      |'
+LIN11 := '|                                                                        |                                                                        |                                                                        |'
+LIN12 := '|                                                                        |                                                                        |                                                                        |'
+********           1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220       23
+******** 012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+LIN02 := STUFF(LIN02,47,07,cFic1)
+LIN02 := STUFF(LIN02,120,07,cFic2)
+LIN02 := STUFF(LIN02,193,07,cFic3)
+LIN04 := STUFF(LIN04,17,30,cCod1)
+LIN04 := STUFF(LIN04,90,30,cCod2)
+LIN04 := STUFF(LIN04,163,30,cCod3)
+LIN05 := STUFF(LIN05,17,55,cDesc1)
+LIN05 := STUFF(LIN05,90,55,cDesc2)
+LIN05 := STUFF(LIN05,163,55,cDesc3)
+LIN04 := STUFF(LIN04,58,02,cTip1)
+LIN04 := STUFF(LIN04,131,02,cTip2)
+LIN04 := STUFF(LIN04,204,02,cTip3)
+LIN04 := STUFF(LIN04,70,02,cUm1)
+LIN04 := STUFF(LIN04,143,02,cUm2)
+LIN04 := STUFF(LIN04,216,02,cUm3)
+LIN06 := STUFF(LIN06,17,02,cLoc1)
+LIN06 := STUFF(LIN06,90,02,cLoc2)
+LIN06 := STUFF(LIN06,163,02,cLoc3)
+LIN06 := STUFF(LIN06,35,37,cEnd1)
+LIN06 := STUFF(LIN06,108,37,cEnd2)
+LIN06 := STUFF(LIN06,181,37,cEnd3)
+
+Return
+
+
+************************
+Static Function fLimpa()
+************************
+nCtd   := 0
+cCod1  := cCod2  := cCod3  := space(30)
+cFic1  := cFic2  := cFic3  := space(7)
+cDesc1 := cDesc2 := cDesc3 := space(55)
+xDesc1 := xDesc2 := xDesc3 := space(55)
+_Desc1 := _Desc2 := _Desc3 := space(55)
+cLoc1  := cLoc2  := cLoc3  := space(2)
+cUm1   := cUm2   := cUm3   := space(2)
+cTip1  := cTip2  := cTip3  := space(2)
+cCli1  := cCli2  := cCli3  := space(36)
+cEnd1  := cEnd2  := cEnd3  := space(37)
+
+Return
+
+/////////////////////////////
+Static Function ValidPerg(cPerg)
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                          | perspa                          | pereng                           | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01     | DefSPA1 | DefEng1 | CNT01 | var02 | Def02   | DefSPA2 | DefEng2 | CNT02 | var03 | Def03 | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3     | PYME | GRPSX5 | HELP | PICTURE
+   aAdd(aRegs,{ cPerg,"01" , "Data do Inventario           ?","Data do Inventario           ?" , "Data do Inventario           ?" , "mv_ch1" , "D" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par01", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"02" , "Produto Inicial              ?","Produto Inicial              ?" , "Produto Inicial              ?" , "mv_ch2" , "C" ,   15   ,   0   ,   0   , "G" , "          "  , "mv_par02", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1 " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"03" , "Produto Final                ?","Produto Final                ?" , "Produto Final                ?" , "mv_ch3" , "C" ,   15   ,   0   ,   0   , "G" , "          "  , "mv_par03", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1 " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"04" , "Local Inicial                ?","Local Inicial                ?" , "Local Inicial                ?" , "mv_ch4" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par04", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"05" , "Local Final                  ?","Local Final                  ?" , "Local Final                  ?" , "mv_ch5" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par05", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"06" , "Tipo Produto Inicial         ?","Tipo Produto Inicial         ?" , "Tipo Produto Inicial         ?" , "mv_ch6" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par06", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"07" , "Tipo Produto Final           ?","Tipo Produto Final           ?" , "Tipo Produto Final           ?" , "mv_ch7" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par07", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"08" , "Ficha Inicial                ?","Ficha Inicial                ?" , "Ficha Inicial                ?" , "mv_ch8" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par08", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"09" , "Ficha Final                  ?","Ficha Final                  ?" , "Ficha Final                  ?" , "mv_ch9" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par09", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   For i:=1 to Len(aRegs) 
+  	   If !DbSeek(cPerg+aRegs[i,2])
+	  	  RecLock("SX1",.T.)
+		   For j:=1 to FCount()
+		  	  If j <= Len(aRegs[i])
+				 FieldPut(j,aRegs[i,j])
+			  Endif
+		   Next
+		  MsUnlock()
+	   Endif
+   Next
+   dbSelectArea(_sAlias)
+Return

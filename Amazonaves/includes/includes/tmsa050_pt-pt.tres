@@ -1,0 +1,57 @@
+0001#STR0001#ALL#Doctos. Do Cliente Para Transporte
+0007#STR0007#ALL#&serviços
+0008#STR0008#ALL#&documentos
+0009#STR0009#ALL#Atenção
+0010#STR0010#ALL#O Somatório Dos Valores De Volume, Peso Ou Valor Do Documento Estão Diferentes Dos Valores Indicados Na Cotacão De Serviço
+0013#STR0013#ALL#Escolha A Cotação De Frete
+0015#STR0015#ALL#Peso Bruto
+0016#STR0016#ALL#Factura
+0017#STR0017#ALL#Observação
+0018#STR0018#ALL#Peso cubado - <f4> 
+0019#STR0019#ALL#Endereçamento - <f5> 
+0022#STR0022#ALL#Envio para moradas
+0023#STR0023#ALL#O cliente remetente e destinario estao iguais ... confirma ? 
+0025#STR0025#ALL#Não
+0026#STR0026#ALL#Observação Do Cliente
+0027#STR0027#ALL#Escolha A Inscrição
+0028#STR0028#ALL#Sequência
+0029#STR0029#ALL#Inscrição
+0030#STR0030#ALL#Documentos do edi de cliente: 
+0033#STR0033#ALL#Pedido De Colecta
+0037#STR0037#ALL#Mor.
+0038#STR0038#ALL#Valor indicado - <f6>
+0039#STR0039#ALL#Val.ind.
+0040#STR0040#ALL#Tipos de veículo - <f7>
+0041#STR0041#ALL#Tip.vei.
+0042#STR0042#ALL#Cotações realizadas - <f9>
+0043#STR0043#ALL#Cot.real.
+0044#STR0044#ALL#O Artigo
+0045#STR0045#ALL#Da Cotacão De Serviço
+0046#STR0046#ALL#, não foi indicado neste documento. continua ?
+0050#STR0050#ALL#O total de volumes do peso cubado está diferente da quantidade. de volumes indicado no documento. cofacturairma ?
+0052#STR0052#ALL#Existe um valor indicado para o documento, deseja limpar o valor indicado na mudança do serviço ?
+0053#STR0053#ALL#O local/morada indicado não está registado. Deseja registar?
+0057#STR0057#ALL#Artigos da cotacão de serviço no.: 
+0058#STR0058#ALL#Artigos x cliente remetente: 
+0061#STR0061#ALL#Cotações De Serviço Aprovadas
+0062#STR0062#ALL#Tabela De Parceiros
+0064#STR0064#ALL#A entrada do documento do cliente refere-se a uma devolução parcial ?
+0066#STR0066#ALL#Manutenção De Documentos - Visualizar
+0067#STR0067#ALL#Tabela de serviço não localizada, deseja apresentar todos os componentes do tipo de valor indicado?
+0068#STR0068#ALL#Marcar todos destinatarios iguais
+0069#STR0069#ALL#Seleccionar A Ocorrência
+0070#STR0070#ALL#Cód. Ocorrência
+0071#STR0071#ALL#Filial origem: 
+0073#STR0073#ALL#Existem Veículos Associados à Solicitação De Recolha Que Não Foram Confirmados Na Indicação Do Documento Do Cliente Para Transporte. Continuar?
+0081#STR0081#ALL#A selecção de origem está diferente da cotação de frete. Confirma ?
+0083#STR0083#ALL#TMSA050 e TMSXFUNA incompatíves. Actualize o fonte TMSXFUNA!
+0084#STR0084#ALL#Veículo / Motorista diferente da Viagem Planejada de Recolha
+0088#STR0088#ALL#, na qual a solicitação de colecta informada na entrada da Factura de Cliente está vinculada, será cancelada, pois a viagem encontra-se em aberto. 
+0089#STR0089#ALL#Este lote possui valor de Frete Informado. A alteração deste lote implicará no cancelamento da cotação de frete. Deseja continuar?
+0090#STR0090#ALL#Fact. x Class. ONU - <F10>
+0091#STR0091#ALL#Fact. x Class. ONU
+0092#STR0092#ALL#ONU X Fact.
+0096#STR0096#ALL#Recálculo
+0098#STR0098#ALL#Refacturar
+0099#STR0099#ALL#Impressão
+0107#STR0107#ALL#Cálculo Frete

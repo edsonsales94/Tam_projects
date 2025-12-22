@@ -1,0 +1,170 @@
+#include "rwmake.ch"
+
+/*/{Protheus.doc} mmcbtst1
+
+Verifia se o campo cCodBarra foi scaneado corretamente
+
+@type function
+@author Honda Lock
+@since 01/10/2017
+
+@return Logico, Se foi ou n?o correto.
+
+/*/
+
+User Function mmcbtst1()
+
+SetPrvt("_LRET,CSTR,I,NMULT,NMODULO,CCHAR")
+SetPrvt("CDIGITO,CDV1,CDV2,CDV3,CCAMPO1,CCAMPO2")
+SetPrvt("CCAMPO3,NVAL,NCALC_DV1,NCALC_DV2,NCALC_DV3,NREST")
+SetPrvt("CCODBARRA,")
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±?
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±?
+±±³Funcao    ?  CBTST1 ?Autor ?TA033 Richard Pavani  ?Data ?09/11/99 ³±?
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±?
+±±³Descricao ?Faz a checagem do campo cCodBarra se foi scaneado corre-   ³±?
+±±?         ?tamente                                                    ³±?
+±±?         ?                                                           ³±?
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±?
+±±?        ATUALIZACOES SOFRIDAS DESDE A CONSTRUCAO INICIAL              ³±?
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±?
+±±?Programador    ? Data  ?Motivo da Alteracao                         ³±?
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±?
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±?
+
+/*/
+_lRet:=.f.
+
+cStr:=M->E2_CODBAR
+i      := 0
+nMult  := 2
+nModulo:= 0
+cChar  := SPACE(1)
+cDigito:= SPACE(1)
+
+If len(AllTrim(cStr)) < 44
+	
+	cDV1    := SUBSTR(cStr,10, 1)
+	cDV2    := SUBSTR(cStr,21, 1)
+	cDV3    := SUBSTR(cStr,32, 1)
+	
+	cCampo1 := SUBSTR(cStr, 1, 9)
+	cCampo2 := SUBSTR(cStr,11,10)
+	cCampo3 := SUBSTR(cStr,22,10)
+	
+	//
+	// Calcula DV1
+	//
+	nMult := 2
+	nModulo := 0
+	nVal := 0
+	
+	For i:=Len(cCampo1) to 1 Step -1
+		cChar := Substr(cCampo1,i,1)
+		nModulo := Val(cChar)*nMult
+		If nModulo >= 10
+			nVal := NVAL + 1
+			nVal := nVal + (nModulo-10)
+		Else
+			nVal := nVal + nModulo
+		EndIf
+		nMult:= if(nMult==2,1,2)
+	Next
+	
+	nCalc_DV1 := 10 - (nVal % 10)
+	nCalc_DV1 := IIF(nCalc_DV1==10,0,nCalc_DV1)
+	
+	//
+	// Calcula DV2
+	//
+	nMult  := 2
+	nModulo:= 0
+	nVal   := 0
+	
+	For i := Len(cCampo2) to 1 Step -1
+		cChar := Substr(cCampo2,i,1)
+		nModulo := Val(cChar)*nMult
+		If nModulo >= 10
+			nVal := nVal + 1
+			nVal := nVal + (nModulo-10)
+		Else
+			nVal := nVal + nModulo
+		EndIf
+		nMult:= if(nMult==2,1,2)
+	Next
+	nCalc_DV2 := 10 - (nVal % 10)
+	nCalc_DV2 := IIF(nCalc_DV2==10,0,nCalc_DV2)
+	
+	//
+	// Calcula DV3
+	//
+	nMult  := 2
+	nModulo:= 0
+	nVal   := 0
+	
+	For i := Len(cCampo3) to 1 Step -1
+		cChar := Substr(cCampo3,i,1)
+		nModulo := Val(cChar)*nMult
+		If nModulo >= 10
+			nVal := nVal + 1
+			nVal := nVal + (nModulo-10)
+		Else
+			nVal := nVal + nModulo
+		EndIf
+		nMult:= if(nMult==2,1,2)
+	Next
+	nCalc_DV3 := 10 - (nVal % 10)
+	nCalc_DV3 := IIF(nCalc_DV3==10,0,nCalc_DV3)
+	
+	if !(nCalc_DV1 == Val(cDV1) .and.;
+		nCalc_DV2 == Val(cDV2) .and.;
+		nCalc_DV3 == Val(cDV3) )
+		*      Help(" ",1,"INVALCODBAR")
+		Alert("Codigo de Barras Invalido")
+	else
+		_lRet := .t.
+	endif
+	
+Else
+	
+	cDigito := SUBSTR(cStr,5, 1)
+	cStr    := SUBSTR(cStr,1, 4)+ ;
+	SUBSTR(cStr,6,39)
+	
+	cStr := AllTrim(cStr)
+	
+	if Len(cStr) < 43
+		*      Help(" ", 1, "FALTADG")
+		Alert("Falta Digito")
+		Return(.f.)  
+	Endif
+	
+	For i := Len(cStr) to 1 Step -1
+		cChar := Substr(cStr,i,1)
+		nModulo := nModulo + Val(cChar)*nMult
+		nMult:= if(nMult==9,2,nMult+1)
+	Next
+	nRest := 11 - (nModulo % 11)
+	nRest := if(nRest==10 .or. nRest==11,1,nRest)
+	if nRest <> Val(cDigito)
+		*      Help(" ",1,"DgSISPAG")
+		Alert("Digito Invalido")
+	else
+		_lRet := .t.
+	endif
+	
+Endif
+
+IF _lRet == .T. .AND. !EMPTY(M->E2_CODBAR)
+	cCODBARRA  := Substr(M->E2_CODBAR,1,4) + ;                             // BANCO + MOEDA
+	Substr(M->E2_CODBAR,33,1) + ;                            // DV GERAL
+	StrZero(Val(Alltrim(Substr(M->E2_CODBAR,34,14))),14) + ; // VALOR
+	Substr(M->E2_CODBAR,5,5) + ;                             // CAMPO LIVRE
+	Substr(M->E2_CODBAR,11,10) + ;
+	Substr(M->E2_CODBAR,22,10)
+ENDIF
+
+Return(_lRet)   
+

@@ -1,0 +1,499 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ CFINR010 º Autor ³ Cometais           º Data ³  04/09/14   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescri‡„o ³ Reimpressao do Recibo de Pagamento/Recebimento             º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³                                                            º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#include "protheus.ch"
+#include "rwmake.ch"
+#include "font.ch"
+#include "colors.ch"
+#include "totvs.ch"
+#INCLUDE "TBICONN.CH"
+#INCLUDE "RPTDEF.CH"
+#Include "TOPCONN.CH"
+
+User Function CFINR010()
+
+Local   cArqTrab
+Local   aStru := {}
+
+Private lSair     := .F.
+Private lInverte  := .F.
+Private cMarca    := GetMark()
+Private aCampos   := {}
+Private mvTpTit   := GETMV("MV_RCTPTIT") 
+Private cFornece  := Space(6)
+Private cCliente  := Space(6)
+Private cLoja     := Space(2)
+Private cPrefixo  := Space(3)
+Private cNumero   := Space(9)
+Private cParcela  := Space(1)
+Private dEmissao  := Space(10)
+Private dVencRea  := Space(10)
+Private cRazSoc   := Space(40)
+Private mTitulo   := cPrefixo+cNumero+cParcela
+Private cCGC      := Space(18)
+Private cClifor   := "Fornecedor"
+Private nValor    := 0.00     
+Private nCarteira := 1
+Private mCarteira := nCarteira
+Private aCarteira := {"A Pagar","A Receber"}
+
+AADD(aStru,{"TB_PREFIXO" , "C" , 03 , 0 } )
+AADD(aStru,{"TB_NUMERO"  , "C" , 09 , 0 } )
+AADD(aStru,{"TB_PARCELA" , "C" , 01 , 0 } )
+AADD(aStru,{"TB_TIPO"    , "C" , 03 , 0 } )
+AADD(aStru,{"TB_EMISSAO" , "D" , 08 , 0 } )
+AADD(aStru,{"TB_VENCREA" , "D" , 08 , 0 } )
+AADD(aStru,{"TB_DTPAGTO" , "D" , 08 , 0 } )
+AADD(aStru,{"TB_VALOR"   , "N" , 12 , 2 } )
+AADD(aStru,{"TB_BANCO"   , "C" , 30 , 0 } )
+AADD(aStru,{"TB_AGENCIA" , "C" , 05 , 0 } )
+AADD(aStru,{"TB_CONTA"   , "C" , 15 , 0 } )
+AADD(aStru,{"TB_CHEQUE"  , "C" , 15 , 0 } )
+AADD(aStru,{"TB_HISTOR"  , "C" , 40 , 0 } )
+AADD(aStru,{"TB_BENEF"   , "C" , 30 , 0 } )
+AADD(aStru,{"TB_SEQ"     , "C" , 02 , 0 } )
+AADD(aStru,{"TB_NOME"    , "C" , 40 , 0 } )
+AADD(aStru,{"TB_ENDER"   , "C" , 70 , 0 } )
+AADD(aStru,{"TB_TIPOCF"  , "C" , 01 , 0 } )
+AADD(aStru,{"TB_CGC"     , "C" , 14 , 0 } )
+cArqTrab := CriaTrab(aStru,.T.)
+dbUseArea(.T.,,cArqTrab,"TRB",.F.,.F.)
+*
+AADD(aCampos , { "TB_PREFIXO" , , "Prefixo"        } )
+AADD(aCampos , { "TB_NUMERO"  , , "Numero"         } )
+AADD(aCampos , { "TB_PARCELA" , , "Parcela"        } )
+AADD(aCampos , { "TB_DTPAGTO" , , "Dt.Pagto."      } )
+AADD(aCampos , { "TB_VALOR"   , , "Vlr.Pagto."     , "@E 99999,999.99" } )
+AADD(aCampos , { "TB_SEQ"     , , "Seq."           } )
+AADD(aCampos , { "TB_BANCO"   , , "Carteira/Banco" } )
+AADD(aCampos , { "TB_AGENCIA" , , "Agencia"        } )
+AADD(aCampos , { "TB_CHEQUE"  , , "Cheque"         } )
+
+*
+dbSelectArea("SA1")
+dbSetOrder(1)
+*
+dbSelectArea("SA2")
+dbSetOrder(1)
+*
+dbSelectArea("SA6")
+dbSetOrder(1)
+*
+dbSelectArea("SE1")
+dbSetOrder(2)
+*
+dbSelectArea("SE2")
+dbSetOrder(6)
+*
+dbSelectArea("TRB")
+
+DEFINE FONT oFnt  NAME "Arial" Size 10,17             ///LARG. X ALT.
+DEFINE FONT oFnt2 NAME "Arial" Size 10,11
+DEFINE FONT oFnt3 NAME "Arial" Size 10,12
+DEFINE FONT oFnt4 NAME "Arial" Size 10,34
+DEFINE FONT oFnt5 NAME "Arial" Size 14,72
+DEFINE FONT oFnt6 NAME "Arial" Size 9,12
+DEFINE FONT oFnt7 NAME "Arial" Size 16,74
+DEFINE FONT oFnt8 NAME "Arial" Size 12,14
+
+DEFINE MSDIALOG oDlg TITLE OemToAnsi(":::... Reimpressão do Recibo de Pagamento / Cobrança ...:::") From 000,000 To 31,110   
+
+@ 021, 002 GROUP oGroup0 TO 075, 434 PROMPT "Título"                                                 OF oDlg PIXEL                 
+@ 078, 002 GROUP oGroup1 TO 224, 434 PROMPT "Baixa Efetuada"                                         OF oDlg PIXEL             
+@ 030, 006 GROUP oGroup2 TO 072, 060 PROMPT "Carteira"                                               OF oDlg PIXEL  COLOR 16711680,0          
+
+@ 030,064 Say oCliFor           Var cCliFor                                        Size 35,7   PIXEL OF oDlg        COLOR 16711680,0
+@ 030,106 Say OemToAnsi("Loja")                                                    Size 20,7   PIXEL OF oDlg        COLOR 16711680,0
+@ 030,130 Say OemToAnsi("Pref.")                                                   Size 45,7   PIXEL OF oDlg        COLOR 16711680,0
+@ 030,156 Say OemToAnsi("Número")                                                  Size 45,7   PIXEL OF oDlg        COLOR 16711680,0
+@ 030,198 Say OemToAnsi("Parc.")                                                   Size 45,7   PIXEL OF oDlg        COLOR 16711680,0
+@ 030,222 Say OemToAnsi("Razão Social")                                            Size 38,7   PIXEL OF oDlg
+@ 052,064 Say OemToAnsi("CNPJ / CPF")                                              Size 42,7   PIXEL OF oDlg
+@ 052,156 Say OemToAnsi("Data de Emissão")                                         Size 48,7   PIXEL OF oDlg         
+@ 052,222 Say OemToAnsi("Data de Vencimento")                                      Size 56,7   PIXEL OF oDlg         
+@ 052,288 Say OemToAnsi("Valor do Documento")                                      Size 56,7   PIXEL OF oDlg
+@ 037,064 MsGet oFornece        Var cFornece       Picture "@!"   F3 "SA2"         Size 40,10  OF oDlg PIXEL  VALID f_clifor(1,cFornece)
+@ 037,064 MsGet oCliente        Var cCliente       Picture "@!"   F3 "SA1"         Size 40,10  OF oDlg PIXEL  VALID f_clifor(2,cCliente)
+@ 037,106 MsGet oLoja           Var cLoja          Picture "@!"                    Size 10,10  OF oDlg PIXEL  VALID f_clifor(0,cLoja)
+@ 037,130 MsGet oPrefixo        Var cPrefixo       Picture "@!"                    Size 20,10  OF oDlg PIXEL 
+@ 037,156 MsGet oNumero         Var cNumero        Picture "@!"                    Size 30,10  OF oDlg PIXEL  
+@ 037,198 MsGet oParcela        Var cParcela       Picture "@!"                    Size 10,10  OF oDlg PIXEL  VALID f_titulo()
+@ 037,222 MsGet oRazSoc         Var cRazSoc        Picture "@!"                    Size 204,10 OF oDlg PIXEL  WHEN .F.
+@ 060,064 MsGet oCGC            Var cCGC                                           Size 080,10 OF oDlg PIXEL  WHEN .F.
+@ 060,156 MsGet oEmissao        Var dEmissao                                       Size 50,10  OF oDlg PIXEL  WHEN .F.
+@ 060,222 MsGet oVencRea        Var dVencRea                                       Size 50,10  OF oDlg PIXEL  WHEN .F.
+@ 060,288 MsGet oValor          Var nValor          Picture "@E 99999,999.99"      Size 70,10  OF oDlg PIXEL  WHEN .F.
+
+oMark := MsSelect():New("TRB",,,aCampos,@lInverte,@cMarca,{085,007,222,433},,oDlg) 
+
+oCarteira := TRadMenu():New (040,008,aCarteira,,oDlg,,,,,,,,60,30,,,,.T.)
+oCarteira:bchange := {|| f_carteira(nCarteira) } 
+oCarteira:bSetGet := {|u1|Iif (PCount()==0,nCarteira,nCarteira:=u1)} 
+
+oTBar := TBar():New( oDlg,40,45,.T.,,,,.F. ) 
+
+oTBitmap1 := TBtnBmp2():New( 00, 00, 35, 25, 'S4WB008N' ,,,,;
+				 { || Calculadora() }  ,oTBar,'Calculadora',,.F.,.F.)
+oTBitmap2 := TBtnBmp2():New( 00, 00, 35, 25, 'button_print' ,,,,;
+             {|| f_recibo() }  ,oTBar,'Impressão do Recibo',,.F.,.F.)
+oTBitmap3 := TBtnBmp2():New( 00, 00, 35, 25, 'button_exit' ,,,,;
+             {|| ( lSair := .T. , oDlg:End() ) }  ,oTBar,'Sair',,.F.,.F.)
+
+oCliente:Hide()
+
+Activate Dialog oDlg CENTER  Valid lSair
+
+TRB->(dbCloseArea())
+
+Return
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function f_clifor(nOpc,xCliFor)
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Local lRsp := .T.
+
+IF ( !EMPTY(xClifor) )
+	IF ( nOpc == 1 )
+		SA2->(dbSeek(xFilial("SA2")+xClifor))
+		IF ( SA2->(EOF()) )
+			MsgStop("Fornecedor não cadastrado.","Atenção")
+			lRsp := .F.
+		ELSE
+			cLoja   := SA2->A2_LOJA
+			cRazSoc := SA2->A2_NOME
+			IF ( LEN(RTRIM(SA2->A2_CGC)) > 11 )
+				cCGC := TRANSF(SA2->A2_CGC,"@R 99.999.999/9999-XX")
+			ELSE
+				cCGC := TRANSF(SA2->A2_CGC,"@R 999.999.999-XX")
+			ENDIF
+		ENDIF
+	ELSEIF ( nOpc == 2 )
+		SA1->(dbSeek(xFilial("SA1")+xClifor))
+		IF ( SA1->(EOF()) )
+			MsgStop("Cliente não cadastrado.","Atenção")
+			lRsp := .F.
+		ELSE
+			cLoja   := SA1->A1_LOJA
+			cRazSoc := SA1->A1_NOME
+			IF ( LEN(RTRIM(SA1->A1_CGC)) > 11 )
+				cCGC := TRANSF(SA1->A1_CGC,"@R 99.999.999/9999-XX")
+			ELSE
+				cCGC := TRANSF(SA1->A1_CGC,"@R 999.999.999-XX")
+			ENDIF
+		ENDIF
+	ELSE
+		IF ( nCarteira == 1 )
+			SA2->(dbSeek(xFilial("SA2")+cFornece+cLoja))
+			IF ( SA2->(EOF()) )
+				MsgStop("Fornecedor não cadastrado.","Atenção")
+				lRsp := .F.
+			ELSE
+				cLoja   := SA2->A2_LOJA
+				cRazSoc := SA2->A2_NOME
+				IF ( LEN(RTRIM(SA2->A2_CGC)) > 11 )
+					cCGC := TRANSF(SA2->A2_CGC,"@R 99.999.999/9999-XX")
+				ELSE
+					cCGC := TRANSF(SA2->A2_CGC,"@R 999.999.999-XX")
+				ENDIF
+			ENDIF
+		ELSE
+			SA1->(dbSeek(xFilial("SA1")+cCliente+cLoja))
+			IF ( SA1->(EOF()) )
+				MsgStop("Cliente não cadastrado.","Atenção")
+				lRsp := .F.
+			ELSE
+				cLoja   := SA1->A1_LOJA
+				cRazSoc := SA1->A1_NOME
+				IF ( LEN(RTRIM(SA1->A1_CGC)) > 11 )
+					cCGC := TRANSF(SA1->A1_CGC,"@R 99.999.999/9999-XX")
+				ELSE
+					cCGC := TRANSF(SA1->A1_CGC,"@R 999.999.999-XX")
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+
+Return(lRsp)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function f_carteira(nCarteira)
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+IF ( nCarteira <> mCarteira )
+	IF ( nCarteira == 1 )
+		cCliFor  := "Fornecedor"
+		cFornece := SPACE(6)
+		cCliente := SPACE(6)
+		oCliente:Hide()
+		oFornece:Show()
+	ELSE
+		cCliFor  := "Cliente"
+		cCliente := SPACE(6)
+		cFornece := SPACE(6)
+		oFornece:Hide()
+		oCliente:Show()
+	ENDIF
+	cLoja    := SPACE(02)
+	cRazSoc  := SPACE(40)
+	cCGC     := SPACE(18)
+	dEmissao := SPACE(10)
+	dVencRea := SPACE(10)
+	cPrefixo := SPACE(03)
+	cNumero  := SPACE(09)
+	cParcela := SPACE(01)
+	nValor   := 0
+	
+	dbSelectArea("TRB")
+	__dbZap()
+	
+	oCliFor:Refresh()
+	oFornece:Refresh()
+	oCliente:Refresh()
+	oLoja:Refresh()
+	oRazSoc:Refresh()
+	oCGC:Refresh()
+	oEmissao:Refresh()
+	oVencRea:Refresh()
+	oValor:Refresh()
+	oPrefixo:Refresh()
+	oNumero:Refresh()
+	oParcela:Refresh()
+	oMark:oBrowse:Refresh()
+	mCarteira := nCarteira
+ENDIF
+
+RETURN
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function f_titulo()
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Local cQry,xCGC,cTpCliFor,cNome,cEnder
+Local lRsp    := .T.
+Local cForCli := IIF(nCarteira==1 , cFornece , cCliente )
+Local cRecPag := IIF(nCarteira==1 , "P" , "R" )
+Local nX      := 0
+
+IF ( (cPrefixo+cNumero+cParcela) <> mTitulo )
+	dbSelectArea("TRB")
+	dbGoTop()
+	IF ( !EOF() )
+		__dbZap()
+	ENDIF
+	
+	cQry := "SELECT * FROM "+RetSqlName("SE5")+" "
+	cQry += "WHERE D_E_L_E_T_ = ' ' "
+	cQry += "AND E5_FILIAL  = '"+xFilial("SE5")+"' "
+	cQry += "AND E5_CLIFOR = '"+cForCli+"' "
+	cQry += "AND E5_LOJA   = '"+cLoja+"' "
+	cQry += "AND E5_PREFIXO = '"+cPrefixo+"' "
+	cQry += "AND E5_NUMERO  = '"+cNumero+"' "
+	cQry += "AND E5_PARCELA = '"+cParcela+"' "
+	cQry += "AND E5_SITUACA <> 'C' "
+	cQry += "AND E5_TIPODOC IN ('CH','BA','VL') "
+	cQry += "AND E5_RECPAG = '"+cRecPag+"' "
+	cQry += "ORDER BY E5_SEQ "
+	
+	cQry := ChangeQuery(cQry)
+	
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+	TcSetField("TMP","E5_DATA","D",8,0)
+
+	dbSelectArea("TMP")
+	dbGoTop()
+	DO WHILE !EOF()
+		nX++
+		IF ( nX == 1 )
+			IF ( nCarteira == 1 )
+				SE2->(dbSeek(xFilial("SE2")+cForCli+cLoja+cPrefixo+cNumero+cParcela+TMP->E5_TIPO))
+				SA2->(dbSeek(xFilial("SA2")+cForCli+cLoja))
+				cNome     := SA2->A2_NOME
+				cTpCliFor := SA2->A2_TIPO
+				xCGC      := SA2->A2_CGC
+				cEnder    := RTRIM(SA2->A2_END)+" - "+RTRIM(SA2->A2_BAIRRO)
+				dEmissao  := DTOC(SE2->E2_EMISSAO)
+				dVencRea  := DTOC(SE2->E2_VENCREA)
+				nValor    := SE2->E2_VALOR
+			ELSE
+				SE1->(dbSeek(xFilial("SE1")+cForCli+cLoja+cPrefixo+cNumero+cParcela+TMP->E5_TIPO))
+				SA1->(dbSeek(xFilial("SA1")+cForCli+cLoja))
+				cNome     := SA1->A1_NOME
+				cTpCliFor := SA1->A1_TIPO
+				xCGC      := SA1->A1_CGC
+				cEnder    := RTRIM(SA1->A1_END)+" - "+RTRIM(SA1->A1_BAIRRO)
+				dEmissao  := DTOC(SE1->E1_EMISSAO)
+				dVencRea  := DTOC(SE1->E1_VENCREA)
+				nValor    := SE1->E1_VALOR
+			ENDIF
+			SA6->(dbSeek(xFilial("SA6")+TMP->E5_BANCO+TMP->E5_AGENCIA+TMP->E5_CONTA))
+		ENDIF
+		*
+		RecLock("TRB",.T.)
+		TRB->TB_PREFIXO  := TMP->E5_PREFIXO
+		TRB->TB_NUMERO   := TMP->E5_NUMERO
+		TRB->TB_PARCELA  := TMP->E5_PARCELA
+		TRB->TB_TIPO     := TMP->E5_TIPO
+		TRB->TB_EMISSAO  := CTOD(dEmissao)
+		TRB->TB_VENCREA  := CTOD(dVencRea)
+		TRB->TB_DTPAGTO  := TMP->E5_DATA
+		TRB->TB_VALOR    := TMP->E5_VALOR
+		TRB->TB_BANCO    := SA6->A6_NOME
+		TRB->TB_AGENCIA  := TMP->E5_AGENCIA
+		TRB->TB_CONTA    := SA6->A6_NUMCON
+		TRB->TB_CHEQUE   := TMP->E5_NUMCHEQ
+		TRB->TB_HISTOR   := TMP->E5_HISTOR
+		TRB->TB_BENEF    := TMP->E5_BENEF
+		TRB->TB_SEQ      := TMP->E5_SEQ
+		TRB->TB_NOME     := cNome
+		TRB->TB_ENDER    := cEnder
+		TRB->TB_TIPOCF   := cTpCliFor
+		TRB->TB_CGC      := xCGC
+		MsUnlock()
+		*
+		dbSelectArea("TMP")
+		dbSkip()
+	ENDDO
+	TMP->(dbCloseArea())
+	
+	IF ( nX == 0 )
+		RecLock("TRB",.T.)
+		MsUnlock()
+		MsgAlert("Não existe pagamento/recebimento para o titulo informado.","Atenção")
+	ENDIF
+	oVencRea:Refresh()
+	oValor:Refresh()
+	oMark:oBrowse:GoTop()
+	oMark:oBrowse:Refresh()
+	
+	mTitulo := cPrefixo+cNumero+cParcela
+ENDIF
+
+Return(lRsp)
+
+//////////////////////////////////////////////////////////
+Static Function f_Recibo()
+//////////////////////////////////////////////////////////
+Local _aArea     := GetArea()
+Local cRecPag    := IIF(nCarteira==1 , "P" , "R" )
+Local xCliFor    := IIF(nCarteira==1 , cFornece , cCliente )
+Local dPagto1    := DTOC(TRB->TB_DTPAGTO)
+Local dPagto2    := TRB->TB_DTPAGTO
+Local dVencRea   := DTOC(TRB->TB_VENCREA)
+Local cBenef1    := "Beneficiário: "+RTRIM(TRB->TB_BENEF)  
+Local cBenef2    := RTRIM(TRB->TB_NOME)                
+Local cValor1    := "Valor: R$ "+LTRIM(TRANSF(TRB->TB_VALOR,"@E 9999,999.99"))  
+Local cValor2    := "R$ "+TRANSF(TRB->TB_VALOR,"@E 9999,999.99")
+Local cValor3    := "R$ "+TRANSF(nValor,"@E 9999,999.99")
+Local nValor4    := TRB->TB_VALOR
+Local cDocto1    := "Documento: "+RTRIM(TRB->TB_PREFIXO)+" "+RTRIM(TRB->TB_NUMERO)
+Local cDocto2    := RTRIM(TRB->TB_NUMERO)    
+Local cDocto3    := TRB->TB_PREFIXO+"  "+RTRIM(TRB->TB_NUMERO)
+Local cCheque1   := "**********"
+Local cBanco1    := RTRIM(TRB->TB_BANCO)
+Local cAgenc1    := TRB->TB_AGENCIA 
+Local cConta1    := TRB->TB_CONTA
+Local cReferente := TRB->TB_HISTOR
+Local cEnder2    := TRB->TB_ENDER
+Local cTipoCF    := TRB->TB_TIPOCF
+Local xCGC       := TRB->TB_CGC
+
+IF ( TRB->TB_TIPO $ mvTpTit )
+	Private oDlg080
+	Private nOpcA := 0
+
+	@ 065,000 To 248,383 Dialog oDlg080 Title OemToAnsi("Impressão do Recibo")
+
+	@ 011,010 Say OemToAnsi("1- Favor ligar a impressora.")               Size 97,7
+	@ 021,010 Say OemToAnsi("2- Quando estiver pronta, pressionar o")     Size 97,7
+	@ 031,010 Say OemToAnsi("    Botão Ok para imprimir o Recibo.")       Size 97,7
+	@ 056,010 Say cBenef1                                                 Size 165,7
+	@ 067,010 Say cValor1                                                 Size 165,7
+	@ 077,010 Say cDocto1                                                 Size 165,7
+
+	@ 006,161 BmpButton Type 1 Action (nOpcA := 1 , oDlg080:End())
+	@ 026,161 BmpButton Type 2 Action f_CloseCanc()
+
+	Activate Dialog oDlg080 Centered  Valid f_CloseEnd()   
+
+	IF ( nOpcA == 1 )
+		U_CFINRCB(cRecPag,dPagto1,dPagto2,dVencRea,cBenef2,cValor2,cValor3,cDocto3,cCheque1,cBanco1,cAgenc1,cConta1,cReferente,cEnder2,nValor4,cTipoCF,xCGC,cNumero,xCliFor,cLoja)
+		////
+		////Reseta valores
+		////
+		nCarteira := 1 
+		mCarteira := nCarteira
+		cCliFor   := "Fornecedor"
+		cFornece  := SPACE(6)
+		cCliente  := SPACE(6)
+		cLoja     := SPACE(02)
+		cRazSoc   := SPACE(40)
+		cCGC      := SPACE(18)
+		dEmissao  := SPACE(10)
+		dVencRea  := SPACE(10)
+		cPrefixo  := SPACE(03)
+		cNumero   := SPACE(09)
+		cParcela  := SPACE(01)
+		nValor    := 0
+		
+		dbSelectArea("TRB")
+		__dbZap()
+		
+		oCliente:Hide()
+		oFornece:Show()
+		oCliFor:Refresh()
+		oFornece:Refresh()
+		oCliente:Refresh()
+		oLoja:Refresh()
+		oRazSoc:Refresh()
+		oCGC:Refresh()
+		oEmissao:Refresh()
+		oVencRea:Refresh()
+		oValor:Refresh()
+		oPrefixo:Refresh()
+		oNumero:Refresh()
+		oParcela:Refresh()
+		oMark:oBrowse:Refresh()
+		oFornece:SetFocus()
+		
+	ENDIF
+
+ENDIF
+
+Return
+
+////////////////////////////////////////////
+Static Function f_CloseEnd()
+////////////////////////////////////////////
+Local lRsp := .F.
+
+IF ( nOpcA <> 0 )
+	lRsp := .T.
+ENDIF
+
+Return(lRsp)
+
+////////////////////////////////////////////
+Static Function f_CloseCanc()
+////////////////////////////////////////////
+Local lRsp 
+
+lRsp := MsgBox("Deseja mesmo cancelar a impressão do Recibo?","Escolha a opção","YESNO")
+
+If ( lRsp )
+	nOpcA := 2
+   oDlg080:End()
+Endif
+
+Return(lRsp)

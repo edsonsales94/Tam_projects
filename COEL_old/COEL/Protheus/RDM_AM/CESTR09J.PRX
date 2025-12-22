@@ -1,0 +1,297 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+#include "topconn.ch"
+
+User Function CESTR09J()        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+
+SetPrvt("NORDEM,TAMANHO,LIMITE,CSTRING,TITULO,CDESC1")
+SetPrvt("CDESC2,CDESC3,LCONTINUA,LIMPRIME1,LIMPRIME2,ARETURN")
+SetPrvt("NOMEPROG,NLASTKEY,CPERG,CSAVSCR1,CSAVCUR1,CSAVROW1")
+SetPrvt("CSAVCOL1,CSAVCOR1,WNREL,M_PAG,LI,ADRIVER")
+SetPrvt("CDATPRO,DDATINI,DDATSB9,NMES,CMESANT,DDATFIN")
+SetPrvt("TABMES,ADATREF1,ADATREF,V4,V5,V5A")
+SetPrvt("V1,V2,D3PI,NX,IX,I1")
+SetPrvt("NSAIDAS,B9VINI,D1ENTR,D3REQ,D3SUC,D3OP")
+SetPrvt("D3INV,D2DEV,D2INS,B2VATU,D3OUTENT,B9VATU")
+SetPrvt("LIN4,LIN5,NDESCRIC,V3,YX,TTOTMP")
+SetPrvt("TTOTEMB,TTOTINT,TTOTDIV,TTOTAUX,NTOTAL,CGRUPO")
+SetPrvt("CTIPO,CCODP,B1CC,N1,CDESGRP,GB2VATU")
+SetPrvt("GB2TATU,GB9VINI,GD1ENTR,GD3OUTE,GD2INS,GD2DEV")
+SetPrvt("GD3INV,GD3REQ,GD3SUC,GD3OP,GSAIACM,CCHAVE")
+SetPrvt("CTIPMAT,TB9VINI,TB2TATU,TD1ENTR,TD3OUTE,TD2INS")
+SetPrvt("TD2DEV,TD3INV,TD3REQ,TD3SUC,TD3OP,TSAIACM")
+SetPrvt("TB2VATU,")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR09I ³ Autor ³ Carlos Nina           ³ Data ³ 09/11/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relatorio de Movimentacao de Material Produtivo s/MOD      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ A partir da estrutura SZZ                                  ³±±
+±±³          ³ 22/09/06: o campo ZZ_OUTENT passa a receber somente valores³±±
+±±³          ³           de outras entradas.                              ³±±
+±±³          ³           o campo ZZ_VPRD passa a receber vls producao PI  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SB1"
+titulo    := "RESUMO DE MOVIMENTACAO DE MATERIAL PRODUTIVO"
+cDesc1    := "Resumo da Movimentacao de Material Produtivo referente"
+cDesc2    := "a valor de custo."
+cDesc3    := ""
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aReturn   := { "Especial", 1,"Contabilidade", 1, 2, 1, "",1 }
+nomeprog  := "CESTR09J"
+nomeprog  := nomeprog + STRZERO(MONTH(ddatabase),2)+SUBS(DTOS(ddatabase),3,2) + "I"
+nLastKey  := 0
+cPerg     := "CESTR09J  "
+ValidPerg()
+Pergunte(cPerg,.F.)
+wnrel     := "CESTR09J"
+wnrel     := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.T.,tamanho)
+aDriver   := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+   Return
+Endif
+SetDefault(aReturn,cString)
+RptStatus({|| fRC_Imp()})  //-- Chamada do Relatorio.// Substituido pelo assistente de conversao do AP5 IDE em 11/10/01 ==>         RptStatus({|| Execute(fRC_Imp)})  //-- Chamada do Relatorio.
+Return Nil
+
+////////////////////////////////////////////////
+Static Function fRC_Imp()
+////////////////////////////////////////////////
+cDatPro := LEFT(dtos(mv_par01),6)
+dDatIni := FirstDay(mv_par01)
+dDatFin := LastDay(mv_par01)
+nMes    := MONTH(mv_par01)
+cMesAnt := LEFT(DTOS(dDatIni),6)
+Tabmes  := 'JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+aDatref1:= Rtrim(Subs(Tabmes,(nMes*9)-8,9))+'/'+Left(cDatPro,4)
+aDatref := 'CUSTO ANALITICO DA MOVIMENTACAO DE MATL. PRODUTIVO DE ' + aDatref1
+V4      := {}
+/*
+ASIZE(V4,17)
+V4[01] := {"11  ","CONT TEMPO               ","411 "}
+V4[02] := {"12  ","PROTECAO                 ","412 "}
+V4[03] := {"13  ","NIVEL                    ","413 "}
+V4[04] := {"14  ","CONT DIG TEMPERATURA     ","414 "}
+V4[05] := {"15  ","SENSORES                 ","415 "}
+V4[06] := {"16  ","DIVERSOS                 ","416 "}
+V4[07] := {"17  ","INDICADOR                ","417 "}
+V4[08] := {"18  ","CONTADOR DIGITAL         ","418 "}
+V4[09] := {"192 ","CONT DIG TEMP REFRIG     ","4192"}
+V4[10] := {"20  ","RELE DE TEMPO            ","420 "}
+V4[11] := {"21  ","INTERRUPTOR              ","421 "}
+V4[12] := {"211 ","INTERRUPTOR MECANICO     ","4211"}
+V4[13] := {"22  ","PLACAS EXCETO INFO       ","422 "}
+V4[14] := {"23  ","PLACAS USO INFO          ","423 "}
+V4[15] := {"24  ","RELE ELETR.DIGITAL       ","424 "}
+V4[16] := {"ZZ1 ","MATERIAL COMUM           ","498 "}
+V4[17] := {"ZZ2 ","NAO ESPECIFICADO         ","499 "}
+*/
+ASIZE(V4,19)
+V4[01] := {"11  ","CONT TEMPO               ","411 "}
+V4[02] := {"12  ","PROTECAO                 ","412 "}
+V4[03] := {"13  ","NIVEL                    ","413 "}
+V4[04] := {"14  ","CONT DIG TEMP QUENTE     ","414 "}
+V4[05] := {"15  ","SENSORES                 ","415 "}
+V4[06] := {"16  ","DIVERSOS                 ","416 "}
+V4[07] := {"17  ","INDICADOR                ","417 "}
+V4[08] := {"18  ","CONTADOR DIGITAL         ","418 "}
+V4[09] := {"192 ","CONT DIG TEMP REFRIG     ","4192"}
+V4[10] := {"20  ","RELE DE TEMPO            ","420 "}
+V4[11] := {"21  ","INTERRUPTOR DIGITAL      ","421 "}
+V4[12] := {"211 ","INTERRUPTOR MECANICO     ","4211"}
+V4[13] := {"22  ","PLACAS EXCETO USO INFO   ","422 "}
+V4[14] := {"23  ","PLACAS USO INFO          ","423 "}
+V4[15] := {"24  ","RELE ELETR.DIGITAL       ","424 "}
+V4[16] := {"35  ","ACESSORIOS               ","435 "}           ///SAO PAULO
+V4[17] := {"MODU","MODULO                   ","4MOD"}           ///SAO PAULO
+V4[18] := {"ZZ1 ","MATERIAL COMUM           ","498 "}
+V4[19] := {"ZZ2 ","NAO ESPECIFICADO         ","499 "}
+
+V1 := {{},{},{},{},{},{},{},{},{},{},{},{},{}}     /// MAT-PRIMA,MAT-EMB,MAT-AUX,MAT-INT,MAT-DE,MAT-EM
+V9 := {{0,0},{0,0}}  //Saldo final: Imp/Nac + Compra Imp/Nac
+VZ := {}
+FOR NX:=1 TO 13
+    ASIZE(V1[NX],16)
+    FOR IX:=1 TO 16
+        V1[NX,IX] := 0.0000
+    NEXT
+NEXT
+m_pag := 0
+Li    := 99
+setprc(0,0)
+@ 00,000 PSAY &(aDriver[5])
+*
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+dbSelectArea("SZT")
+dbSetOrder(2)
+dbSeek(xFilial("SZT")+cDatPro,.T.)
+SetRegua(Lastrec())
+DO WHILE !EOF().AND.ZT_FILIAL==xFilial("SZT").AND.SZT->ZT_DATA==cDatPro
+   IncRegua()
+   IF ( SZT->ZT_TIPO == STR(mv_par02,1) .AND. SZT->ZT_TPR == "EN" )
+      ix := VAL(SZT->ZT_TIPO)
+      IF ( SZT->ZT_TPR == "EN" )
+		   I1 := ASCAN(V4 , { |xx| xx[1] == SZT->ZT_GRUPO } )
+         IF I1 == 0 .OR. I1 > 19 .OR. IX == 0 .OR. IX > 6
+            nRegSZT := RECNO()
+            MsgAlert("** Grupo invalido no registro SZT nro. "+STRZERO(nRegSZT,7))
+            dbSkip()
+            Loop
+         ENDIF
+				nOutSaida := IIF(cDatPro < "201504" , 0 , SZT->ZT_VOUTSAI )
+            nSaidas   := ( ZT_REQ + SZT->ZT_SUC + ZT_OP + nOutSaida )
+            nSdoEst   := ( SZT->ZT_VINI + SZT->ZT_AJUSTE + SZT->ZT_DEVVDA + SZT->ZT_ENTR + SZT->ZT_VPRD + SZT->ZT_OUTENT - nSaidas + SZT->ZT_INV - SZT->ZT_DEV - SZT->ZT_INS )
+				nSdoTer   := ( SZT->ZT_P3EEC - SZT->ZT_P3ESC )
+				/*
+            V1[ix,1]  := ( V1[ix,1]  + SZT->ZT_VINI   )
+            V1[ix,2]  := ( V1[ix,2]  + SZT->ZT_ENTR        )
+            V1[ix,3]  := ( V1[ix,3]  + SZT->ZT_OUTENT      )
+            V1[ix,4]  := ( V1[ix,4]  + SZT->ZT_VPRD        )
+            V1[ix,5]  := ( V1[ix,5]  + SZT->ZT_REQ         )
+            V1[ix,6]  := ( V1[ix,6]  + SZT->ZT_SUC         )
+            V1[ix,7]  := ( V1[ix,7]  + SZT->ZT_OP          )
+            V1[ix,8]  := ( V1[ix,8]  + SZT->ZT_INV         )
+            V1[ix,9]  := ( V1[ix,9]  + SZT->ZT_DEV         )
+            V1[ix,10] := ( V1[ix,10] + SZT->ZT_INS         )
+            V1[ix,11] := ( V1[ix,11] + SZT->ZT_AJUSTE      )
+				V1[ix,15] := ( V1[ix,15] + SZT->ZT_DEVVDA      )
+				V1[ix,16] := ( V1[ix,16] + nOutSaida           )
+				V1[ix,12] := ( V1[ix,12] + nSdoTer             )
+				V1[ix,13] := ( V1[ix,13] + SZT->ZT_VATU        )
+            V1[ix,14] := ( V1[ix,14] + nSdoEst + nSdoTer   )
+				*/
+				nOutSaida := IIF(cDatPro < "201504" , 0 , SZT->ZT_VOUTSAI )
+				nAjuste   := SZT->ZT_AJUSTE + SZT->ZT_DEVVDA - nOutSaida
+				AADD(VZ , { SZT->ZT_COD           , ;
+								SZT->ZT_VINI          , ;
+								SZT->ZT_ENTR          , ;
+								SZT->ZT_OUTENT        , ;
+								SZT->ZT_VPRD          , ;
+								SZT->ZT_REQ           , ;
+								SZT->ZT_SUC           , ;
+								SZT->ZT_OP            , ;
+								SZT->ZT_INV           , ;
+								SZT->ZT_DEV           , ;
+								SZT->ZT_INS           , ;
+								nAjuste               , ;
+								nSdoTer               , ;
+								SZT->ZT_VATU          , ;
+								(nSdoEst + nSdoTer)  } )
+         *
+      ENDIF
+   ENDIF
+   dbSkip()
+ENDDO
+*
+LIN4:='                                   SALDO          (+/-) -------------- E N T R A D A --------------       REQUIS.        QUEBRA        CONSUMO         (+/-)     DEVOLUCAO         VENDA   (+/-)MOV.MES         ESTOQUE'
+LIN5:='PRODUTO                          INICIAL   ACERTO SALDO     COMPRA M.P      PRODUCAO         OUTRAS      MATERIAL      PRODUCAO        O.P.(*)   AJUSTE INV.        COMPRA       INSUMOS   D/E TERCEIRO           FINAL'
+*****  x----------------------x  9999999,999.99 9999999,999.99 9999999,999.99 999999,999.99 9999999,999.99 999999,999.99 999999,999.99 9999999,999.99 999999,999.99 999999,999.99 999999,999.99 9999999,999.99  9999999,999.99
+*****            1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220
+*****  012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+V3 := {0,0,0,0,0,0,0,0,0,0,0,0,0}
+NX := 1
+DO WHILE NX <= LEN(VZ)
+   IncRegua()
+	IF ( LI > 57 )
+		m_pag := ( m_pag + 1 )
+		@ 03,000 PSAY repl("*",220)
+		@ 04,000 PSAY '*T.I/COEL'
+		@ 04,070 PSAY 'EMPRESA..: ' + RTRIM(SM0->M0_NOMECOM)
+		@ 04,202 PSAY 'PAGINA.:    '+ STRZERO(m_pag,5,0)+'*'
+		@ 05,000 PSAY '*SYSTEM/ESTR09J'
+		@ 05,070 PSAY 'RELATORIO: ' + aDatRef + IIF(mv_par02==1," (MAT.PRIMA)",IIF(mv_par02==2," (MAT.EMBAL.)",IIF(mv_par02==3," (MAT.AUX.)"," (MATL.INTERM.)")))
+		@ 05,202 PSAY 'EMISSAO: ' + DTOC(DATE())+'*'
+		@ 06,000 PSAY repl("*",220)
+		@ 07,000 PSAY LIN4
+		@ 08,000 PSAY LIN5
+		@ 09,000 PSAY repl("*",220)
+		Li := 9
+	ENDIF
+   FOR YX:=1 TO 13
+       V3[YX] := ( V3[YX] + VZ[NX,YX+1] )
+   NEXT
+   cVlr1   := STRZERO(ABS(VZ[NX,14]),16,4)
+   cVlr2   := STRZERO(ABS(VZ[NX,15]),16,4)
+   cStatus := IIF(cVlr1 <> cVlr2 , "#" , " " )
+	IF ( cStatus == "#" )
+		LI := ( LI + 1 )
+		@ LI,000 PSAY LEFT(VZ[NX,1],24)
+		@ LI,026 PSAY VZ[NX,2]          PICTURE "@E 9999999,999.99"
+		@ LI,041 PSAY VZ[NX,12]         PICTURE "@E 9999999,999.99"
+		@ LI,056 PSAY VZ[NX,3]          PICTURE "@E 9999999,999.99"
+		@ LI,071 PSAY VZ[NX,5]          PICTURE "@E 999999,999.99"
+		@ LI,085 PSAY VZ[NX,4]          PICTURE "@E 9999999,999.99"
+		@ LI,100 PSAY VZ[NX,6]          PICTURE "@E 999999,999.99"
+		@ LI,114 PSAY VZ[NX,7]          PICTURE "@E 999999,999.99"
+		@ LI,128 PSAY VZ[NX,8]          PICTURE "@E 9999999,999.99"
+		@ LI,143 PSAY VZ[NX,9]          PICTURE "@E 999999,999.99"
+		@ LI,157 PSAY VZ[NX,10]         PICTURE "@E 999999,999.99"
+		@ LI,171 PSAY VZ[NX,11]         PICTURE "@E 999999,999.99"
+		@ LI,185 PSAY VZ[NX,13]         PICTURE "@E 9999999,999.99"
+		@ LI,201 PSAY VZ[NX,14]         PICTURE "@E 9999999,999.99"
+		@ LI,216 PSAY cStatus
+	ENDIF
+	NX++
+ENDDO	
+LI := ( LI + 1 )
+@ LI,000 PSAY "T O T A L............"
+@ LI,026 PSAY V3[1]          PICTURE "@E 9999999,999.99"
+@ LI,041 PSAY V3[11]         PICTURE "@E 9999999,999.99"
+@ LI,056 PSAY V3[2]          PICTURE "@E 9999999,999.99"
+@ LI,071 PSAY V3[4]          PICTURE "@E 999999,999.99"
+@ LI,085 PSAY V3[3]          PICTURE "@E 9999999,999.99"
+@ LI,100 PSAY V3[5]          PICTURE "@E 999999,999.99"
+@ LI,114 PSAY V3[6]          PICTURE "@E 999999,999.99"
+@ LI,128 PSAY V3[7]          PICTURE "@E 9999999,999.99"
+@ LI,143 PSAY V3[8]          PICTURE "@E 999999,999.99"
+@ LI,157 PSAY V3[9]          PICTURE "@E 999999,999.99"
+@ LI,171 PSAY V3[10]         PICTURE "@E 999999,999.99"
+@ LI,185 PSAY V3[12]         PICTURE "@E 9999999,999.99"
+@ LI,201 PSAY V3[13]         PICTURE "@E 9999999,999.99"
+*
+@ 62,000 PSAY REPL('*',220)
+@ 63,000 PSAY '* '+SM0->M0_NOMECOM+'                            Software by T.I/COEL '
+@ 63,196 PSAY 'Hora Termino: '+LEFT(TIME(),8)+' *'
+@ 64,000 PSAY REPL('*',220)
+If aReturn[5] == 1
+        dbcommitAll()
+        ourspool(wnrel)
+Endif
+MS_FLUSH()
+RETURN
+
+/////////////////////////////////////////////////////////
+Static Function ValidPerg()
+/////////////////////////////////////////////////////////
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03       | DefSPA3 | DefEng3 | CNT03 | var04 | Def04          | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Data Fechamento             ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "         " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Tipo do Produto             ?",   ""   ,  ""    , "mv_ch2" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par02", "MAT.PRIMA   " , "     " , "     " , "   " , "   " , "MAT.EMBAL.   " , "     " , "     " , "   " , "   " , "MAT.AUX. " , "     " , "     " , "   " , "   " , "MAT.INTERM. " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   	For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

@@ -1,0 +1,920 @@
+#Include "Protheus.ch"
+#Include "TopConn.ch"
+#Include "TbiConn.ch"
+
+/*/{Protheus.doc} EDIPV
+
+EDI de previsao de vendas e pedido de vendas
+
+@type function
+@author Honda Lock
+@since 01/10/2017
+
+/*/
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ EDIPV    ºAutor  ³Marcos Martins      º Data ³  29/07/08   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ EDI PREVISAO DE VENDAS E PEDIDO DE VENDAS                  º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+//Observaçoes:
+//Cadastrar a condição de pagamento e a transportadora no cliente
+//Cadastrar o TES de saida e o preço de vendas no produto
+//Arquivo no \SYSTEM\
+//Seppen e LoteHAB no browse do pedido de vendas
+User Function EDIPV()
+	Local lSucessoTotal	:= .T.
+
+	Processa({|| ProcEDI(@lSucessoTotal)}, "Preparando registros...")
+	If lSucessoTotal
+		Aviso("Importação do EDI", "Processo finalizado", {"Ok"}, 3)
+	Else
+		Aviso(	"Importação do EDI",															;
+			"Existem produtos informados no EDI que não puderam ser importados," + CRLF	+	;
+			"Verifique os arquivos de erros gerados no mesmo diretório," + CRLF +			;
+			"para resolver os problemas e depois importe-os novamente.", 					;
+			{"Ok"}, 3, "A T E N Ç Ã O")
+	EndIf
+Return
+
+Static Function ProcEDI(lSucessoTotal)
+	Local nI			:= 0
+	Local nJ			:= 0
+	Local nOpens		:= 0
+	Local nPos			:= 0
+	Local nQtCasaDec	:= 0
+	Local cPerg			:= "EDIPV"
+	Local cSlpNu		:= ""
+	Local cTipop        := ""
+	Local cCodHls		:= ""
+	Local cNLote		:= ""
+	Local cSeppe		:= ""
+	Local cMsgErro		:= ""
+	Local aArqsTmp		:= {}
+	Local aArqsImp		:= {}
+	Local cHrEntr		:= "00:00"
+	Local lCancelar		:= .F.
+	Local lGrava		:= .T.
+	Local lLimpar		:= .F.
+	Local lAchouProd	:= .F.
+	Local aDadosEDI		:= {}
+	Local cIDExp        := ""
+
+	Private _cDiretorio	:= ""
+	Private _cCodCli	:= ""
+	Private _cCodLoj	:= ""
+	Private _C6NomArq	:= ""
+	Private _cDocSC4	:= ""
+	Private _cArqTMP 	:= ""
+	Private _cIndTEDI1	:= ""
+	Private _cIndTEDI2	:= ""
+	Private _cIndTEDI3	:= ""
+	Private _cIndTEDI4	:= ""
+	Private _cIndTEDI5	:= ""
+	Private _cIndTEDI6	:= ""
+	Private cMark       := GetMark()
+	Private bFiltraTEDI
+	Private cCadastro	:= "EDI HONDA AUTOMOVEIS"
+	Private aRotina		:= {	{ "Classificar"			,'U_TPESQBROW("Classificar Itens", "TEDI", 6, aIndNome)'	,0, 4},;
+		{ "Marcar/Desmarcar"	,'U_MARKRES3()'									 			,0, 0},;
+		{ "Gerar"				,'U_GERAPV()'												,0, 0}}
+
+	For nI := 1 To 7
+		aAdd(aDadosEDI, {"", "0.00", ""})		// Data do Pedido, Quantidade, Pedido do Cliente
+	Next nI
+
+	If Pergunte(cPerg, .T.)
+		aCampos := {}
+
+		AADD(aCampos, {"D2OK"		,"C", 02, 0})
+		AADD(aCampos, {"D2CANCELAR"	,"C", 08, 0})
+		AADD(aCampos, {"D2DTENTR1"	,"D", 10, 0})
+		AADD(aCampos, {"D2DTENTR2"	,"D", 10, 0})
+		AADD(aCampos, {"D2DTENTR3"	,"D", 10, 0})
+		AADD(aCampos, {"D2DTENTR4"	,"D", 10, 0})
+		AADD(aCampos, {"D2DTENTR5"	,"D", 10, 0})
+		AADD(aCampos, {"D2DTENTR6"	,"D", 10, 0})
+		AADD(aCampos, {"D2DTENTR7"	,"D", 10, 0})
+		AADD(aCampos, {"D2HRENTR"	,"C", 05, 0})
+		AADD(aCampos, {"D2CODPROD"	,"C", 15, 0})
+		AADD(aCampos, {"D2DESCR"	,"C", 30, 0})
+		AADD(aCampos, {"D2CODHAB"	,"C", 30, 0})
+		AADD(aCampos, {"D2CODHAB2"	,"C", 30, 0}) //Add por Leandro
+		AADD(aCampos, {"D2QUANT1"	,"N", 14, 2})
+		AADD(aCampos, {"D2QUANT2"	,"N", 14, 2})
+		AADD(aCampos, {"D2QUANT3"	,"N", 14, 2})
+		AADD(aCampos, {"D2QUANT4"	,"N", 14, 2})
+		AADD(aCampos, {"D2QUANT5"	,"N", 14, 2})
+		AADD(aCampos, {"D2QUANT6"	,"N", 14, 2})
+		AADD(aCampos, {"D2QUANT7"	,"N", 14, 2})
+		AADD(aCampos, {"D2IDEXP"	,"C", 04, 0})
+		AADD(aCampos, {"D2REVISAO"	,"C", 10, 0})
+		AADD(aCampos, {"D2LOTEHAB"	,"C", 15, 0})
+		AADD(aCampos, {"D2SLIPNUM"	,"C", 14, 0})
+		AADD(aCampos, {"D2TIPOP"	,"C", 02, 0})
+		AADD(aCampos, {"D2PEDCLI1"	,"C", 09, 0})
+		AADD(aCampos, {"D2PEDCLI2"	,"C", 09, 0})
+		AADD(aCampos, {"D2PEDCLI3"	,"C", 09, 0})
+		AADD(aCampos, {"D2PEDCLI4"	,"C", 09, 0})
+		AADD(aCampos, {"D2PEDCLI5"	,"C", 09, 0})
+		AADD(aCampos, {"D2PEDCLI6"	,"C", 09, 0})
+		AADD(aCampos, {"D2PEDCLI7"	,"C", 09, 0})
+		AADD(aCampos, {"D2XXX"		,"C", 03, 0})
+
+		If Select("TEDI") > 0
+			TEDI->(DbCloseArea())
+		EndIf
+
+		// _cArqTMP := CriaTrab(aCampos, .T.)
+		// dbUseArea(.T.,, _cArqTMP, "TEDI", .T.)
+		// DbSelectArea("TEDI")
+
+		// Instancio o objeto
+		oTable  := FwTemporaryTable():New( "TEDI" )
+		// Adiciono os campos na tabela
+		oTable:SetFields( aCampos )
+		// Crio a tabela no banco de dados
+		oTable:Create()
+		//------------------------------------
+		//Pego o alias da tabela temporária
+		//------------------------------------
+		_cArqTMP := oTable:GetAlias()
+
+		_cDiretorio	:= MV_PAR01
+		_cCodCli	:= MV_PAR02
+		_cCodLoj	:= MV_PAR03
+
+		aArqsTmp := DIRECTORY(AllTrim(_cDiretorio) + "HC*.HON")
+		If Len(aArqsTmp) > 0
+			aArqsImp := aClone(aArqsTmp)
+
+			aArqsTmp := DIRECTORY(AllTrim(_cDiretorio) + "F*.TXT")
+			If Len(aArqsTmp) > 0
+				For nI := 1 To Len(aArqsTmp)
+					aAdd(aArqsImp, {aArqsTmp[nI, 01], aArqsTmp[nI, 02], aArqsTmp[nI, 03], aArqsTmp[nI, 04], aArqsTmp[nI, 05]})
+				Next nI
+			EndIf
+		Else
+			aArqsTmp := DIRECTORY(AllTrim(_cDiretorio) + "F*.TXT")
+			If Len(aArqsTmp) > 0
+				aArqsImp := aClone(aArqsTmp)
+			Else
+				TEDI->(DbCloseArea())
+			EndIf
+		EndIf
+
+		For nOpens := 1 To Len(aArqsImp)
+
+			If Select("TEDI") == 0
+				// _cArqTMP := CriaTrab(aCampos, .T.)
+				// dbUseArea(.T.,, _cArqTMP, "TEDI", .T.)
+				// DbSelectArea("TEDI")
+
+				// Instancio o objeto
+				oTable  := FwTemporaryTable():New( "TEDI" )
+				// Adiciono os campos na tabela
+				oTable:SetFields( aCampos )
+				// Crio a tabela no banco de dados
+				oTable:Create()
+				//------------------------------------
+				//Pego o alias da tabela temporária
+				//------------------------------------
+				_cArqTMP := oTable:GetAlias()
+
+			Endif
+
+			cMsgErro := ""
+
+			// Inicio Leitura arquivos HLS - Verifica se o arquivo ja foi processado
+			If Left(Upper(Alltrim(aArqsImp[nOpens, 01])), 2) <> "HC" .And. Left(Upper(Alltrim(aArqsImp[nOpens, 01])), 1) <> "F"
+				Loop
+			EndIf
+
+			// Efetua abertura do arquivo
+			_NomeArq := Fopen(AllTrim(_cDiretorio) + Alltrim(aArqsImp[nOpens, 01]), 0)
+
+			_C6NomArq	:= Alltrim(aArqsImp[nOpens, 01])
+			_cDocSC4	:= Alltrim(aArqsImp[nOpens, 01])
+
+			// Variavel com o total de bytes do arquivo
+			fSeek(_NomeArq, 0, 0)
+			nTamLin := 128						// Tamanho da Linha do Registro
+			cBuffer := Space(nTamLin)
+			fRead(_NomeArq, @cBuffer, nTamLin)
+
+			FT_FUSE(AllTrim(_cDiretorio) + Alltrim(aArqsImp[nOpens, 01]))
+
+			FT_FGOTOP()
+
+			ProcRegua(FT_FLASTREC())
+
+			Do While !FT_FEOF()
+				cBuffer := FT_FREADLN()
+				Incproc("Tipo Registro " + SubStr(cBuffer, 1, 3))
+				If SubStr(cBuffer, 1, 3) == "PE1"
+					cCodHls		:= AllTrim(SubStr(cBuffer, 037, 030))
+					nQtCasaDec	:= Val(SubStr(cBuffer, 127, 001))
+					cIDExp      := SubStr(cBuffer, 004, 003) + SubStr(cBuffer, 128, 001)
+				ElseIf SubStr(cBuffer, 1, 3) == "PE9" .or. SubStr(cBuffer, 1, 3) == "PE3"
+					lAchouProd	:= .F.
+					dbSelectArea("SB1")
+					SB1->(DbOrderNickName("CODHAB"))
+					//					SB1->(DbOrderNickName("CODHAB2"))
+					If SB1->(DbSeek(xFilial("SB1") + cCodHls))				//Codigo HLS
+
+						lAchouProd	:= .T.
+
+						If SubStr(cBuffer, 1, 3) == "PE9"
+							cSlpNu						:= SubStr(cBuffer, 004, 014)
+							cTipop  			    	:= SubStr(cBuffer, 018, 002)
+							aDadosEDI[01, 01]			:= SubStr(cBuffer, 042, 006)
+							aDadosEDI[01, 02]			:= SubStr(cBuffer, 052, 007)
+							cNLote						:= SubStr(cBuffer, 030, 012)
+							cSeppe						:= SubStr(cBuffer, 020, 010)
+							cHrEntr						:= SubStr(cBuffer, 048, 004)
+							lCancelar					:= SubStr(cBuffer, 064, 008) == "CANCELAR"
+							// Edita a informacao
+							aDadosEDI[01, 01]			:= SubStr(aDadosEDI[01, 01], 5, 2)	+ "/" + SubStr(aDadosEDI[01, 01], 3, 2) + "/" + SubStr(aDadosEDI[01, 01], 1, 2)
+							aDadosEDI[01, 02]			:= SubStr(aDadosEDI[01, 02], 1, 5)	+ "." + SubStr(aDadosEDI[01, 02], 6, 2)
+							cHrEntr						:= SubStr(cHrEntr, 1, 2)			+ ":" + SubStr(cHrEntr, 3, 2)
+						Else
+							cSlpNu	   					:= ""
+							cTipop						:= ""
+							cNLote						:= ""
+							cSeppe						:= ""
+							lCancelar					:= .F.
+
+							For nI := 1 To 7
+								If nI == 1
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 004, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 012, 009)
+								ElseIf nI == 2
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 021, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 029, 009)
+								ElseIf nI == 3
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 038, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 046, 009)
+								ElseIf nI == 4
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 055, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 063, 009)
+								ElseIf nI == 5
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 072, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 080, 009)
+								ElseIf nI == 6
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 089, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 097, 009)
+								Else
+									aDadosEDI[nI, 01]	:= SubStr(cBuffer, 106, 006)
+									aDadosEDI[nI, 02]	:= SubStr(cBuffer, 114, 009)
+								EndIf
+							Next nI
+							// Edita a informacao
+							For nI := 1 To 7
+								aDadosEDI[nI, 01]	:= SubStr(aDadosEDI[nI, 01], 5, 2) + "/" + SubStr(aDadosEDI[nI, 01], 3, 2) + "/" + SubStr(aDadosEDI[nI, 01], 1, 2)
+								If nQtCasaDec > 0
+									aDadosEDI[nI, 02]	:= SubStr(aDadosEDI[nI, 02], 1, 9 - nQtCasaDec) + "." + Right(aDadosEDI[nI, 02], nQtCasaDec)
+								EndIf
+							Next nI
+						EndIf
+
+						lGrava := .T.
+						If SubStr(cBuffer, 1, 3) == "PE9"
+							SC6->(DbOrderNickName("C6SLIPNUM"))
+							SC6->(DbGoTop())
+							If SC6->(DbSeek(xFilial("SC6") + cSlpNu))		// Achou o registro no SC6
+								If !lCancelar
+									lGrava := .F.
+								EndIf
+							Else											// Nao achou o registro no SC6.
+								If lCancelar
+									lGrava := .F.
+								EndIf
+							EndIf
+
+							If lGrava
+								dbSelectArea("TEDI")
+								RecLock("TEDI", .T.)
+								Field->D2OK										:= "  "
+								Field->D2CANCELAR								:= IIf(lCancelar, "SIM", "")
+								For nI := 1 To 7
+									Field->(&("D2DTENTR"	+ cValToChar(nI)))	:= CToD(aDadosEDI[nI, 01])
+									Field->(&("D2QUANT"		+ cValToChar(nI)))	:= Val(aDadosEDI[nI, 02])
+									Field->(&("D2PEDCLI"	+ cValToChar(nI)))	:= aDadosEDI[nI, 03]
+								Next nI
+								Field->D2HRENTR									:= cHrEntr					// Este campo so tem significado para registros do tipo PE9.
+								Field->D2CODPROD								:= SB1->B1_COD
+								Field->D2DESCR									:= SB1->B1_DESCNF
+								Field->D2CODHAB									:= cCodHls
+								Field->D2CODHAB2								:= SB1->B1_CODMATR //Add por Leandro
+								Field->D2REVISAO								:= cSeppe
+								Field->D2LOTEHAB								:= cNLote
+								Field->D2SLIPNUM								:= cSlpNu
+								Field->D2TIPOP  								:= cTipoP
+								Field->D2XXX									:= "..."
+								Field->D2IDEXP                                  := cIDExp // aqui é atribuido o local -- vfv
+								TEDI->(MsUnLock())
+							EndIf
+						EndIf
+					Else
+						// Caso o Produto informado no EDI nao tenha sido encontrado no Cadastro de Produtos (SB1),
+						// inclui o Codigo na String que será gravada posteriormente no arquivo de LOG.
+						If Empty(cMsgErro)
+							cMsgErro := "Os seguintes Produtos não foram encontrados no EDI:" + CRLF
+						EndIf
+						cMsgErro += cCodHls + CRLF
+					EndIf
+				ElseIf SubStr(cBuffer, 1, 3) == "PE5"
+					If lAchouProd
+						// Carrega o dado Pedido do Cliente no array
+						nPos := 011
+						For nI := 1 To 7
+							aDadosEDI[nI, 03] := SubStr(cBuffer, nPos, 009)
+							nPos += 16														// Para pegar as respectivas posicoes no EDI (011, 027, 043, 059, 075, 091, 107)
+						Next nI
+
+						lGrava := .F.
+						SC6->(DbOrderNickName("C6PEDCLI"))
+						For nI := 1 To 7
+							If !Empty(AllTrim(aDadosEDI[nI, 03]))
+								SC6->(DbGoTop())
+								If SC6->(DbSeek(xFilial("SC6") + aDadosEDI[nI, 03]))	// Achou o registro no SC6
+									lLimpar := .F.
+									If AllTrim(aDadosEDI[nI, 03]) == "PREVISAO"			// Tipo PREVISAO
+										// Testa se o Produto, a Quantidade e a Data sao as mesmas
+										If	SC6->C6_ENTREG == CToD(aDadosEDI[nI, 01]) .And. SC6->C6_QTDVEN == Val(aDadosEDI[nI, 02]) .And. SC6->C6_PRODUTO == SB1->B1_COD
+											lLimpar := .T.
+										EndIf
+									Else
+										lLimpar := .T.
+									EndIf
+
+									If lLimpar
+										// Limpa os dados para nao gravar registro ja gravado
+										aDadosEDI[nI, 01]	:= "00/00/00"
+										aDadosEDI[nI, 02]	:= "0.00"
+										aDadosEDI[nI, 03]	:= ""
+									EndIf
+								Else				// Nao achou o registro no SC6 entao seta o flag para incluir.
+									lGrava := .T.
+								EndIf
+							EndIf
+						Next nI
+
+						// Acerta a Data de Entrega, a Quantidade e o Pedido do Cliente para não deixar buracos nas posicoes do array
+						For nI := 1 To 6
+							If Empty(aDadosEDI[nI, 03])
+								For nJ := nI + 1 To 7
+									If !Empty(aDadosEDI[nJ, 03])
+										// Move da proxima posicao com conteudo para a atual
+										aDadosEDI[nI, 01]	:= aDadosEDI[nJ, 01]
+										aDadosEDI[nI, 02]	:= aDadosEDI[nJ, 02]
+										aDadosEDI[nI, 03]	:= aDadosEDI[nJ, 03]
+
+										// Limpa a posicao da qual leu e moveu
+										aDadosEDI[nJ, 01]	:= "00/00/00"
+										aDadosEDI[nJ, 02]	:= "0.00"
+										aDadosEDI[nJ, 03]	:= ""
+									EndIf
+								Next nJ
+							EndIf
+						Next nI
+
+						If lGrava
+							dbSelectArea("TEDI")
+							RecLock("TEDI", .T.)
+							Field->D2OK										:= "  "
+							Field->D2CANCELAR								:= IIf(lCancelar, "SIM", "")
+							For nI := 1 To 7
+								Field->(&("D2DTENTR"	+ cValToChar(nI)))	:= CToD(aDadosEDI[nI, 01])
+								Field->(&("D2QUANT"		+ cValToChar(nI)))	:= Val(aDadosEDI[nI, 02])
+								Field->(&("D2PEDCLI"	+ cValToChar(nI)))	:= aDadosEDI[nI, 03]
+							Next nI
+							Field->D2HRENTR									:= cHrEntr					// Este campo so tem significado para registros do tipo PE9.
+							Field->D2CODPROD								:= SB1->B1_COD
+							Field->D2DESCR									:= SB1->B1_DESCNF
+							Field->D2CODHAB									:= cCodHls
+							Field->D2CODHAB2								:= SB1->B1_CODMATR //Add por Leandro
+							Field->D2REVISAO								:= cSeppe
+							Field->D2LOTEHAB								:= cNLote
+							Field->D2SLIPNUM								:= cSlpNu
+							Field->D2XXX									:= "..."
+							Field->D2IDEXP                                  := cIDExp
+							TEDI->(MsUnLock())
+						EndIf
+					EndIf
+				EndIf
+
+				FT_FSKIP()
+			EndDo
+
+			If _NomeArq > 0
+				fClose(_NomeArq)
+			EndIf
+
+			If Select("TEDI") > 0
+				TEDI->(DbCloseArea())
+			EndIf
+
+			DbUseArea(.T.,, "\SYSTEM\" + _cArqTMP, "TEDI", .T.)
+
+			_cIndTEDI1	:= CriaTrab(Nil, .F.)
+			IndRegua("TEDI", _cIndTEDI1, "D2CODHAB"								,,, "Criando Índice...")
+			_cIndTEDI2	:= CriaTrab(Nil, .F.)
+			IndRegua("TEDI", _cIndTEDI2, "D2CODPROD"							,,, "Criando Índice...")
+			_cIndTEDI3	:= CriaTrab(Nil, .F.)
+			IndRegua("TEDI", _cIndTEDI3, "D2LOTEHAB"							,,, "Criando Índice...")
+			_cIndTEDI4	:= CriaTrab(Nil, .F.)
+			IndRegua("TEDI", _cIndTEDI4, "DToS(D2DTENTR1)"						,,, "Criando Índice...")
+			_cIndTEDI5	:= CriaTrab(Nil, .F.)
+			IndRegua("TEDI", _cIndTEDI5, "DToS(D2DTENTR1)+D2CODPROD"			,,, "Criando Índice...")
+			_cIndTEDI6	:= CriaTrab(Nil, .F.)
+			IndRegua("TEDI", _cIndTEDI6, "DToS(D2DTENTR1)+D2HRENTR+D2CODPROD"	,,, "Criando Índice...")
+
+			aIndNome := {}
+			AADD(aIndNome, {1, "Cod. HAB"							})
+			AADD(aIndNome, {2, "Nosso Código"						})
+			AADD(aIndNome, {3, "Lote HAB"							})
+			AADD(aIndNome, {4, "Dt.Entrega"							})
+			AADD(aIndNome, {5, "Dt.Entrega+Nosso Código"			})
+			AADD(aIndNome, {6, "Dt.Entrega+Hr.Entrega+Nosso Código"	})
+
+			dbClearIndex()
+			dbSetIndex(_cIndTEDI1 + OrdBagExt())
+			dbSetIndex(_cIndTEDI2 + OrdBagExt())
+			dbSetIndex(_cIndTEDI3 + OrdBagExt())
+			dbSetIndex(_cIndTEDI4 + OrdBagExt())
+			dbSetIndex(_cIndTEDI5 + OrdBagExt())
+			dbSetIndex(_cIndTEDI6 + OrdBagExt())
+
+			TEDI->(DbSetOrder(1))
+			TEDI->(DbGoTop())
+
+			aTela := {}
+
+			AADD(aTela, {"D2OK        ", "", "OK"				})
+			AADD(aTela, {"D2CANCELAR  ", "", "Cancelar"			})
+			AADD(aTela, {"D2DTENTR1   ", "", "DT.Entrega 1"		})
+			AADD(aTela, {"D2DTENTR2   ", "", "DT.Entrega 2"		})
+			AADD(aTela, {"D2DTENTR3   ", "", "DT.Entrega 3"		})
+			AADD(aTela, {"D2DTENTR4   ", "", "DT.Entrega 4"		})
+			AADD(aTela, {"D2DTENTR5   ", "", "DT.Entrega 5"		})
+			AADD(aTela, {"D2DTENTR6   ", "", "DT.Entrega 6"		})
+			AADD(aTela, {"D2DTENTR7   ", "", "DT.Entrega 7"		})
+			AADD(aTela, {"D2HRENTR    ", "", "Hora Entrega"		})
+			AADD(aTela, {"D2CODPROD   ", "", "Nosso Código"		})
+			AADD(aTela, {"D2DESCR     ", "", "Descrição"		})
+			AADD(aTela, {"D2CODHAB    ", "", "Cod. HAB Ent"		})
+			AADD(aTela, {"D2CODHAB2   ", "", "Cod. HAB Sai"		}) //Add por Leandro Cod Hab Saida
+			AADD(aTela, {"D2QUANT1    ", "", "Quantidade 1"		})
+			AADD(aTela, {"D2QUANT2    ", "", "Quantidade 2"		})
+			AADD(aTela, {"D2QUANT3    ", "", "Quantidade 3"		})
+			AADD(aTela, {"D2QUANT4    ", "", "Quantidade 4"		})
+			AADD(aTela, {"D2QUANT5    ", "", "Quantidade 5"		})
+			AADD(aTela, {"D2QUANT6    ", "", "Quantidade 6"		})
+			AADD(aTela, {"D2QUANT7    ", "", "Quantidade 7"		})
+			AADD(aTela, {"D2IDEXP     ", "", "ID Exportação"	})
+			AADD(aTela, {"D2REVISAO   ", "", "Seppen"			})
+			AADD(aTela, {"D2LOTEHAB   ", "", "Lote HAB"			})
+			AADD(aTela, {"D2SLIPNUM   ", "", "Slip Number"		})
+			AADD(aTela, {"D2TIPOP     ", "", "Tipo Pedido"		})
+			AADD(aTela, {"D2PEDCLI1   ", "", "Ped.1 Cliente"	})
+			AADD(aTela, {"D2PEDCLI2   ", "", "Ped.2 Cliente"	})
+			AADD(aTela, {"D2PEDCLI3   ", "", "Ped.3 Cliente"	})
+			AADD(aTela, {"D2PEDCLI4   ", "", "Ped.4 Cliente"	})
+			AADD(aTela, {"D2PEDCLI5   ", "", "Ped.5 Cliente"	})
+			AADD(aTela, {"D2PEDCLI6   ", "", "Ped.6 Cliente"	})
+			AADD(aTela, {"D2PEDCLI7   ", "", "Ped.7 Cliente"	})
+			AADD(aTela, {"D2XXX       ", "", "..."				})
+
+			// Monta o Browse do Arquivo temporario somente para os campos informados na Matriz
+			DbSelectArea("TEDI")
+			TEDI->(DbGoTop())
+			MarkBrowse("TEDI", "D2OK",, aTela,, @cMark)
+
+			// Fecha e Renomeia arquivo lido
+			fClose(_NomeArq)
+			fRename(AllTrim(_cDiretorio) + Alltrim(aArqsImp[nOpens, 01]), AllTrim(_cDiretorio) + "OK" + Alltrim(aArqsImp[nOpens, 01]))
+
+			TEDI->(dbCloseArea())
+			Ferase(_cIndTEDI1 + OrdBagExt())
+			Ferase(_cIndTEDI2 + OrdBagExt())
+			Ferase(_cIndTEDI3 + OrdBagExt())
+			Ferase(_cIndTEDI4 + OrdBagExt())
+			Ferase(_cIndTEDI5 + OrdBagExt())
+			Ferase(_cIndTEDI6 + OrdBagExt())
+
+			// Gera Log dos Produtos informados no EDI e que nao foram encontrados no cadastro de Produtos (SB1).
+			If !Empty(cMsgErro)
+				MemoWrite(AllTrim(_cDiretorio) + "Erro_" + Alltrim(aArqsImp[nOpens, 01]) + ".txt", cMsgErro)
+				lSucessoTotal := .F.
+			EndIf
+		Next nOpens
+	EndIf
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³GeraPV    ºAutor  ³Marcos Martins      º Data ³  29/07/08   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Gera pedido de vendas (msexecauto)                         º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function GeraPV()
+	Local nI			:= 0
+	Local aItemPV		:= {}
+	Local cTes          := ""
+	Local cAux          := ""
+	Local lContinua     := .T.
+	Local cMens         := ""
+	Local cHrEntr		:= "" 	// Adicionado por Luciano Lamberti - 23/10/2017
+
+	Private aCabPV		:= {}
+	Private aItensPV	:= {}
+	Private nOpc		:= 3		// Inclusao
+	Private lMsHelpAuto	:= .T.
+	Private lMsErroAuto	:= .F.
+
+	If MV_PAR04 == 1				// Gera Previsao de Vendas
+		Private aCabSC4 := {}
+
+		Begin Transaction
+			dbSelectArea("TEDI")
+			TEDI->(DbGoTop())
+			Do While TEDI->(!Eof())
+				If (TEDI->(IsMark("D2OK", ThisMark(), ThisInv()))) .And. Empty(TEDI->D2CANCELAR)
+					dbSelectArea("SB1")
+					SB1->(DbSetOrder(1))
+					SB1->(DbSeek(xFilial("SB1") + TEDI->D2CODPROD))		// Codigo HLS
+
+					For nI := 1 To 7
+						If TEDI->&("D2QUANT" + cValToChar(nI)) > 0
+							aCabSC4 := {{"C4_PRODUTO"	, SB1->B1_COD											, Nil},;	// Codigo do Produto
+								{"C4_LOCAL"		, SB1->B1_LOCPAD										, Nil},;	// Almoxarifado
+								{"C4_QUANT"		, TEDI->&("D2QUANT" + cValToChar(nI))					, Nil},;	// Quantidade Prevista	(ate 7 registros)
+								{"C4_VALOR"		, TEDI->&("D2QUANT" + cValToChar(nI)) * SB1->B1_PRV1	, Nil},;	// Valor Total do Item
+								{"C4_DATA"		, TEDI->&("D2DTENTR" + cValToChar(nI))					, Nil},;	// Data da Entrega		(ate 7 registros)
+								{"C4_DOC"		, _cDocSC4												, Nil}}		// Nome do Arquivo
+
+							MSExecAuto({|x, y, z| Mata700(x, y, z)}, aCabSC4, nOpc)
+							If lMsErroAuto
+								DisarmTransaction()
+								break
+							EndIf
+						Else
+							Exit
+						EndIf
+					Next nI
+
+				EndIf
+
+				TEDI->(dbSkip())
+			EndDo
+
+		End Transaction
+
+		If lMsErroAuto
+			MostraErro()
+			Return .f.
+		EndIf
+	EndIf
+
+	// Trata primeiro as exclusoes dos registros que vieram com "CANCELAR"
+	TEDI->(DbGoTop())
+	Do While TEDI->(!Eof())
+		If TEDI->(IsMark("D2OK", ThisMark(), ThisInv())) .And. AllTrim(TEDI->D2CANCELAR) == "SIM"
+			SC6->(DbOrderNickName("C6SLIPNUM"))
+			SC6->(DbGoTop())
+			If SC6->(DbSeek(xFilial("SC6") + TEDI->D2SLIPNUM))
+				cNumPVAnt	:= SC6->C6_NUM
+				cItemPVAnt	:= SC6->C6_ITEM
+
+				aItemPV		:= {}
+				aCabPV		:= {}
+				aItensPV	:= {}
+
+				dbSelectArea("SC5")
+				SC5->(DbSetOrder(1))
+				SC5->(DbSeek(xFilial("SC5") + cNumPVAnt))
+
+				Begin Transaction
+
+					// Usa os dados do proprio pedido ja incluido anteriormente
+					aCabPV := {	{"C5_NUM"		, cNumPVAnt			, Nil}			,; // Numero do pedido
+						{"C5_TIPO"		, SC5->C5_TIPO		, Nil}			,; // Tipo de pedido
+						{"C5_CLIENTE"	, SC5->C5_CLIENTE	, Nil}			,; // Codigo do cliente
+						{"C5_LOJACLI"	, SC5->C5_LOJACLI	, Nil}			,; // Loja do cliente
+						{"C5_EMISSAO"	, SC5->C5_EMISSAO	, Nil}			,; // Data de emissao
+						{"C5_TIPOCLI"	, SC5->C5_TIPOCLI	, Nil}			,; // Tipo do cliente no pedido
+						{"C5_CONDPAG"	, SC5->C5_CONDPAG	, Nil}			,; // Codigo da condicao de pagamanto*
+						{"C5_TIPLIB"	, SC5->C5_TIPLIB	, Nil}			,; // Tipo de Liberacao
+						{"C5_MOEDA"		, SC5->C5_MOEDA		, Nil}			,; // Moeda
+						{"C5_TRANSP"	, SC5->C5_TRANSP	, Nil}			,; // Numero da Transportadora
+						{"C5_LIBEROK"	, SC5->C5_LIBEROK	, Nil}}			   // Liberacao Total
+					//Items
+					aItemPV :={	{"C6_NUM"    	,SC6->C6_NUM		, Nil}			,; // Numero do Pedido
+						{"C6_ITEM"		,SC6->C6_ITEM		, Nil}			,; // Numero do Item no Pedido
+						{"C6_PRODUTO"	,SC6->C6_PRODUTO	, Nil}			,; // Codigo do Produto
+						{"C6_DESCRI"	,SC6->C6_DESCRI		, Nil}			,; // Descriao do Produto
+						{"C6_QTDVEN"	,SC6->C6_QTDVEN		, Nil}			,; // Quantidade Vendida
+						{"C6_PRCVEN"	,SC6->C6_PRCVEN		, Nil}			,; // Preco Unitario Liquido
+						{"C6_PRUNIT"	,SC6->C6_PRUNIT		, Nil}			,; // Preco Unitario Liquido
+						{"C6_VALOR"		,SC6->C6_VALOR		, Nil}			,; // Valor Total do Item
+						{"C6_ENTREG"	,SC6->C6_ENTREG		, Nil}			,; // Data da Entrega
+						{"C6_UM"		,SC6->C6_UM			, Nil}			,; // Unidade de Medida Primar.
+						{"C6_TES"		,SC6->C6_TES		, Nil}			,; // Tipo de Entrada/Saida do Item
+						{"C6_CF"		,SC6->C6_CF			, Nil}			,; // CFOP
+						{"C6_CLASFIS"	,SC6->C6_CLASFIS	, Nil}			,; // Origem + Situação Tributaria -> Classificação Fiscal
+						{"C6_LOCAL"		,SC6->C6_LOCAL		, Nil}			,; // Almoxarifado
+						{"C6_DESCONT"	,SC6->C6_DESCONT	, Nil}			,; // Percentual de Desconto
+						{"C6_COMIS1"	,SC6->C6_COMIS1		, Nil}			,; // Comissao Vendedor
+						{"C6_CLI"		,SC6->C6_CLI		, Nil}			,; // Cliente
+						{"C6_LOJA"		,SC6->C6_LOJA		, Nil}			,; // Loja do Cliente
+						{"C6_PEDCLI"    ,SC6->C6_PEDCLI		, Nil}			,; // Pedido do cliente
+						{"C6_SEPEN"	    ,SC6->C6_SEPEN		, Nil}			,; // Codigo Sepen
+						{"C6_SLIPNUM"	,SC6->C6_SLIPNUM	, Nil}			,; // Slip Number
+						{"C6_NOMARQ"	,SC6->C6_NOMARQ		, Nil}			,; // Nome do Arq de EDI
+						{"LINPOS"		,"C6_ITEM"			, SC6->C6_ITEM}	,; // Esta linha e a proxima, são para deletar o item.
+						{"AUTDELETA"	,"S"				, Nil}			,; // Esta linha e a anterior, são para deletar o item.
+						{"C6_LOTEHAB"   ,SC6->C6_LOTEHAB	, Nil}}			   // Lote Honda Automoveis HAB
+					AADD(aItensPV, aItemPV)
+
+
+					MSExecAuto({|x, y, z| Mata410(x, y, z)}, aCabPv, aItensPV, 4)
+					If lMsErroAuto
+						DisarmTransaction()
+						MostraErro()
+						Return .f.
+					EndIf
+
+				End Transaction
+			EndIf
+		EndIf
+
+		TEDI->(DbSkip())
+	EndDo
+
+	// Agora processa as inclusoes.
+	aItemPV		:= {}
+	aCabPV		:= {}
+	aItensPV	:= {}
+
+	//Numero do Proximo Pedido de Vendas		-- Trecho retirado para incrementar o numero do pedido de vendas pois a versao mais nova gera a operação automatico
+	dbSelectArea("SC5")							//Luciano Lamberti 02/12/2020
+	/*cPedHLS := GetSXENum("SC5", "C5_NUM")
+	If SC5->(DbSeek(xFilial("SC5") + cPedHLS))
+		SC5->(DbGoBottom())
+		cPedHLS := StrZero(Val(SC5->C5_NUM) + 1, 6)
+		ConfirmSX8()
+	EndIf
+
+	else RollBackSx8()
+	ConfirmSX8()*/
+
+	//Posiciona Cliente
+	dbSelectArea("SA1")
+	SA1->(DbSetOrder(1))
+	SA1->(DbSeek(XFILIAL("SA1") + _cCodCli + _cCodLoj))
+
+	Begin Transaction
+
+		//aCabPV := {	{"C5_NUM"    , cPedHLS       , Nil},; // Numero do pedido - trecho retirado para o incremento do num. do pedido de venda - Luciano Lamberti 02/12/2020
+		aCabPV := {	{"C5_TIPO"   , "N"           , Nil},; // Tipo de pedido
+			{"C5_CLIENTE", SA1->A1_COD   , Nil},; // Codigo do cliente
+			{"C5_LOJACLI", SA1->A1_LOJA  , Nil},; // Loja do cliente
+			{"C5_EMISSAO", dDatabase     , Nil},; // Data de emissao
+			{"C5_TIPOCLI", SA1->A1_TIPO  , Nil},; // Tipo do cliente no pedido
+			{"C5_CONDPAG", SA1->A1_COND  , Nil},; // Codigo da condicao de pagamanto*
+			{"C5_TIPLIB" , "1"           , Nil},; // Tipo de Liberacao
+			{"C5_MOEDA"  , 1             , Nil},; // Moeda
+			{"C5_TRANSP" , SA1->A1_TRANSP, Nil},; // Numero da Transportadora
+			{"C5_LIBEROK", "S"           , Nil}}  // Liberacao Total
+		//Items
+		_cItem := "0"
+		cMens  := ""
+		dbSelectArea("TEDI")
+		TEDI->(DbGotop())
+		Do While TEDI->(!Eof())
+			If (TEDI->(IsMark("D2OK", ThisMark(), ThisInv()))) .And. Empty(TEDI->D2CANCELAR)
+				dbSelectArea("SB1")
+				SB1->(DbSetOrder(1))
+				SB1->(DbSeek(xFilial("SB1") + TEDI->D2CODPROD))	// Codigo HLS
+
+				DbSelectArea("SF4")
+				SF4->(DbSetOrder(1))
+				SF4->(DbSeek(xFilial("SF4") + SB1->B1_TS))
+
+				xC6_SLIPNUM := Alltrim(TEDI->D2SLIPNUM)
+				xC6_TIPOP   := Alltrim(TEDI->D2TIPOP)
+				xC6_SEPEN   := Alltrim(TEDI->D2REVISAO)
+
+				lContinua := .T.
+				For nI := 1 To 7
+					If TEDI->&("D2QUANT" + cValToChar(nI)) > 0
+
+						xC6_PEDCLI	:= Alltrim(TEDI->&("D2PEDCLI" + cValToChar(nI)))
+
+						if Empty(xC6_SLIPNUM)			// Registro da Consecionaria
+							xC6_COMPLE  := IIf(Empty(xC6_PEDCLI), "", " " + Alltrim(xC6_PEDCLI))
+						else							// Registro da Fabrica
+							xC6_COMPLE  := " " + Alltrim(xC6_SLIPNUM) + IIf(Empty(xC6_SEPEN), "", " " + Alltrim(xC6_SEPEN))
+						endIf
+
+						_cItem	  := PadL(Soma1(_cItem, 2), 2, "0")
+						cAux      := Alltrim(GetMv("ZZ_EDIFABR")) + Alltrim(GetMv("ZZ_EDIFORN"))
+						lContinua := .T.
+
+						If Substr(TEDI->D2IDEXP,1,3) == Substr(cAux,1,3) 	&& Pedido de Exportação Honda Argentina
+							If Substr(TEDI->D2IDEXP,4,1) == Substr(cAux,4,1)
+								If (TEDI->D2TIPOP $ Alltrim(GetMv("ZZ_EDIPV")))
+									cTes := SB1->B1_ZZTSARG
+									lContinua := .T.
+								Else
+									//								cMens += "Prod.: "+SB1->B1_CODMATR+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+									cMens += "Prod.: "+SB1->B1_CODMAT2+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+									lContinua := .F.
+								Endif
+							Else
+								//							cMens += "Prod.: "+SB1->B1_CODMATR+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+								cMens += "Prod.: "+SB1->B1_CODMAT2+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+								lContinua := .F.
+							Endif
+						Else
+							If Substr(TEDI->D2IDEXP,4,1) == Substr(cAux,4,1)
+								//							cMens += "Prod.: "+SB1->B1_CODMATR+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+								cMens += "Prod.: "+SB1->B1_CODMAT2+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+								lContinua := .F.
+							Else
+								If (TEDI->D2TIPOP $ Alltrim(GetMv("ZZ_EDIPV")))
+									//								cMens += "Prod.: "+SB1->B1_CODMATR+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+									cMens += "Prod.: "+SB1->B1_CODMAT2+" - Arq.: "+Alltrim(_C6NomArq)+ CRLF
+									lContinua := .F.
+								Else
+									cTes := SB1->B1_TS
+									lContinua := .T.
+								Endif
+							Endif
+						Endif
+
+						If lContinua
+							//	aItemPV := {{"C6_NUM"    	,cPedHLS														 		, Nil},; // Numero do Pedido // Numero do pedido - trecho retirado para o incremento do num. do pedido de venda - Luciano Lamberti 02/12/2020
+							aItemPV := {{"C6_ITEM"		,_cItem     	    											 		, Nil},; // Numero do Item no Pedido
+								{"C6_PRODUTO"	,SB1->B1_COD    												 		, Nil},; // Codigo do Produto
+								{"C6_DESCRI"	,AllTrim(SB1->B1_CODMATR) + " " + AllTrim(SB1->B1_DESC) + xC6_COMPLE	, Nil},; // Descriao do Produto
+								{"C6_QTDVEN"	,TEDI->&("D2QUANT" + cValToChar(nI))							 		, Nil},; // Quantidade Vendida
+								{"C6_PRCVEN"	,SB1->B1_PRV1   												 		, Nil},; // Preco Unitario Liquido
+								{"C6_PRUNIT"	,SB1->B1_PRV1   												 		, Nil},; // Preco Unitario Liquido
+								{"C6_VALOR"		,TEDI->&("D2QUANT" + cValToChar(nI)) * SB1->B1_PRV1						, Nil},; // Valor Total do Item
+								{"C6_ENTREG"	,TEDI->&("D2DTENTR" + cValToChar(nI))							 		, Nil},; // Data da Entrega
+								{"C6_ZZHRENT"	,TEDI->D2HRENTR													 		, Nil},; // Hora da Entrega
+								{"C6_UM"		,SB1->B1_UM     												 		, Nil},; // Unidade de Medida Primar.
+								{"C6_TES"		,cTes    														 		, Nil},; // Tipo de Entrada/Saida do Item
+								{"C6_CF"		,SF4->F4_CF  													 		, Nil},; // CFOP
+								{"C6_CLASFIS"	,SB1->B1_ORIGEM + SF4->F4_SITTRIB										, Nil},; // Origem + Situação Tributaria -> Classificação Fiscal
+								{"C6_LOCAL"		,SB1->B1_LOCPAD													 		, Nil},; // Almoxarifado
+								{"C6_DESCONT"	,0   															 		, Nil},; // Percentual de Desconto
+								{"C6_COMIS1"	,0     														 			, Nil},; // Comissao Vendedor
+								{"C6_CLI"		,SA1->A1_COD												 			, Nil},; // Cliente
+								{"C6_LOJA"		,SA1->A1_LOJA  													 		, Nil},; // Loja do Cliente
+								{"C6_SEPEN"	    ,TEDI->D2REVISAO												 		, Nil},; // Codigo Sepen
+								{"C6_SLIPNUM"	,TEDI->D2SLIPNUM												 		, Nil},; // Slip Number
+								{"C6_TIPOP" 	,TEDI->D2TIPOP  												 		, Nil},; // Tipo Pedido
+								{"C6_PEDCLI"	,TEDI->&("D2PEDCLI" + cValToChar(nI))							 		, Nil},; // Pedido do CLiente
+								{"C6_NOMARQ"	,_C6NomArq      												 		, Nil},; // Nome do Arquivo de Importacao
+								{"C6_LOTEHAB"   ,TEDI->D2LOTEHAB												 		, Nil},; // Lote Honda Automoveis HAB
+								{"C6_FCICOD"    , u_GetFCICd( SB1->B1_COD )                                           	, Nil},; // Codigo da FCI
+								{"C6_ZZIDEXP"   ,TEDI->D2IDEXP													 		, Nil}}  // ID do PV de Exportação - Argentina
+							AADD(aItensPV, aItemPV)
+							//						  If TEDI->D2HRENTR <> cHrEntr
+							//	If	 !MsgYesNo("Pedido Ref ao item " + AllTrim(SB1->B1_COD) + " esta com divergencia no horario de entrega","Atenção")
+							//	  	Return(.F.)
+							//	endif
+							//	endif
+
+						Endif
+					Else
+						Exit
+					EndIf
+				Next nI
+			EndIf
+
+			dbSelectArea("TEDI")
+			TEDI->(DbSkip())
+		EndDo
+
+		If Len(aItensPV) > 0
+			MSExecAuto({|x, y, z| Mata410(x, y, z)}, aCabPv, aItensPV, nOpc)
+			If lMsErroAuto
+				DisarmTransaction()
+				MostraErro()
+				Return .f.
+			EndIf
+		EndIf
+
+	End Transaction
+
+	If !Empty(cMens)
+		&&Aviso("Importação do EDI", "Existem produtos informados no EDI que não puderam ser importados:" + CRLF	+ CRLF + cMens, {"Ok"}, 3, "A T E N Ç Ã O")
+		Alert("Existem produtos informados no EDI que não puderam ser importados:" + CRLF	+ CRLF + cMens)
+	Endif
+
+	//Atualiza o Browse Excluindo as Etiquetas Impressas
+	dbSelectArea("TEDI")
+	TEDI->(DbGotop())
+	Do While TEDI->(!Eof())
+		If (TEDI->(IsMark("D2OK", ThisMark(), ThisInv())))
+			RecLock("TEDI")
+			TEDI->(DbDelete())
+			TEDI->(MsUnlock())
+		EndIf
+
+		TEDI->(DbSkip())
+	EndDo
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³MarkRES   ºAutor  ³Marcos Martins      º Data ³  24/06/08   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Utilizado no markbrow do programa ETQHLS                   º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function MarkRES3()
+	DbSelectArea("TEDI")
+	TEDI->(DbGoTop())
+	_cTexto := ALLTRIM(cMark)
+	IF ALLTRIM(TEDI->D2OK) == ALLTRIM(cMark)
+		_ctexto := "  "
+	Endif
+
+	While TEDI->( !Eof() )
+		Reclock("TEDI")
+		Field->D2OK := _cTexto
+		MsUnlock()
+		TEDI->( DbSkip() )
+	Enddo
+	TEDI->(DbGoTop())
+Return
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³GetFCICd  ºAutor  ³Alessandro Freire   º Data ³  01/10/2013 º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Retorna o código da FCI do produto passado por parametro   º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ HONDA LOCK                                                 º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function GetFCICd( cProduto )
+
+	Local aArea := GetArea()
+	Local cRet   := " "
+	Local cTrb   := CriaTrab( nil, .f. )
+	Local cSql   := ""
+
+	cSql += "SELECT TOP 1 CFD_FCICOD "
+	cSql += "  FROM "+RetSqlName("CFD")+" "
+	cSql += " WHERE D_E_L_E_T_ = ' ' "
+	cSql += "   AND CFD_COD = '"+cProduto+"' "
+	cSql += "   AND CFD_FILIAL = '"+xFilial("CFD")+"' "
+	cSql += "ORDER BY CFD_PERCAL DESC "
+
+	MPSysOpenQuery( cSql, cTrb ) // dbUseArea( .T., "TOPCONN", TCGenQry(,,cSql), cTrb, .F., .F. )
+	dbGoTop()
+	If ! Eof()
+		cRet := (cTrb)->CFD_FCICOD
+	Endif
+	dbCloseArea()
+
+	RestArea( aArea )
+
+Return( cRet )

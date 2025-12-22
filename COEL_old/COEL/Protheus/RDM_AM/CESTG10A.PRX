@@ -1,0 +1,633 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ CESTG010 º Autor ³ Carlos Nina        º Data ³  22/11/11   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescri‡„o ³ Gera Pre-Nota de Importacao                                º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ Recebimento (CUSTOMIZACAO DO COMPLEMENTO - TABELA CD5)     º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+//#include "protheus.ch"
+#Include "totvs.ch"
+/*/
+#include "rwmake.ch"
+#INCLUDE "TOPCONN.CH"
+
+User Function CESTG10A()
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+Private oMulti,oWBrowse,aHeader,aCols,oTotProd,oTotNota
+cNroDI    := Space(10)
+dDtReg    := CTOD("")
+cLocDes   := Space(30)
+dDtDes    := CTOD("")
+nMoeda    := 1
+n         := 1
+nTxDolar  := 0
+dEmissao  := CTOD("")
+cFornece  := Space(6)
+cLoja1    := Space(2)
+cDesFor   := Space(40)
+cFabric   := Space(6)
+cLoja2    := Space(2)
+cDesFab   := Space(40)
+cObserv   := Space(50)
+cSerie    := Space(3)
+cDoc      := Space(9)
+cTipoDoc  := Space(1)
+nVlrFrete := 0
+nVlrSeg   := 0
+nDespesa  := 0
+nVlrFob   := 0
+nSuframa  := 0
+nSiscomex := 0
+nArmazem  := 0
+nFrete    := 0
+nDespacha := 0
+nTotProd  := 0
+nTotNota  := 0
+lSair     := .F.
+lComplDI  := .F.
+lCD5Ok    := .F.
+aCols   := {{"0001",SPACE(15),SPACE(30),SPACE(2),SPACE(2),0,0,0,SPACE(6),SPACE(4),SPACE(6),0,0,0,0,0}}
+
+aHeader := {}   
+/*
+AADD(aHeader,{"Item"                             , "C7_ITEM   " ,"                 " ,04,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})             
+AADD(aHeader,{"Produto"                          , "C7_PRODUTO" ,"@!               " ,15,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"Descrição"                        , "C7_DESCRI " ,"@!               " ,30,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"Tipo"                             , "C7_TIPO   " ,"@!               " ,02,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"U.M."                             , "C7_UM     " ,"@!               " ,02,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"Quantidade"                       , "C7_SALDO  " ,"@E 99999999.99   " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Prc.Unitário"                     , "C7_PRECO  " ,"@E 99999,999.9999" ,13,4, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Total"                            , "C7_TOTAL  " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Pedido"                           , "C7_PEDIDO " ,"@!               " ,06,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"Itm.Ped"                          , "C7_ITEMPC " ,"@!               " ,04,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"Fabric."                          , "C7_FORNECE" ,"@!               " ,06,0, "                               ","€€€€€€€€€€€€€€ ","C"," "," "})
+AADD(aHeader,{"Vlr.BC Import"                    , "C7_VLRBC  " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Vlr.Imp.Import"                   , "C7_VLRII  " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Vlr.Desp.Aduan"                   , "C7_VLRDSP " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Vlr.Desconto"                     , "C7_VLRDSC " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+AADD(aHeader,{"Vlr.IOF"                          , "C7_VLRIOF " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N"," "," "})
+*/
+AADD(aHeader,{"Item"                             , "TB_ITEM   " ,"                 " ,04,0, "                               ","€€€€€€€€€€€€€€ ","C","TRB","V"," "," "})             
+AADD(aHeader,{"Produto"                          , "D1_COD    " ,"@!               " ,30,0, "                               ","€€€€€€€€€€€€€€ ","C","SD1","V"," "," "})
+AADD(aHeader,{"Descrição"                        , "B1_NARRA  " ,"@!               " ,30,0, "                               ","€€€€€€€€€€€€€€ ","C","SB1","V"," "," "})
+AADD(aHeader,{"Tipo"                             , "B1_GRPNATR" ,"@!               " ,02,0, "                               ","€€€€€€€€€€€€€€ ","C","SB1","V"," "," "})
+AADD(aHeader,{"U.M."                             , "B1_CNATREC" ,"@!               " ,02,0, "                               ","€€€€€€€€€€€€€€ ","C","SB1","V"," "," "})
+AADD(aHeader,{"Quantidade"                       , "TB_QUANT  " ,"@E 99999999.99   " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","TRB","V"," "," "})
+AADD(aHeader,{"Prc.Unit.(R$)"                    , "TB_VUNIT  " ,"@E 99999,999.9999" ,13,4, "                               ","€€€€€€€€€€€€€€ ","N","TRB","V"," "," "})
+AADD(aHeader,{"Total (R$)"                       , "TB_TOTAL  " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","TRB","V"," "," "})
+AADD(aHeader,{"Pedido"                           , "TB_PEDIDO " ,"@!               " ,06,0, "ExecBlock('CESTEXG010',.F.,.F.)","€€€€€€€€€€€€€€ ","C","TRB"," "," "," "})
+AADD(aHeader,{"Itm.Ped"                          , "TB_ITEMPC " ,"@!               " ,04,0, "ExecBlock('CESTEXG010',.F.,.F.)","€€€€€€€€€€€€€€ ","C","TRB"," "," "," "})
+AADD(aHeader,{"Fabric."                          , "CD5_CODFAB" ,"@!               " ,06,0, "ExecBlock('CESTEXG010',.F.,.F.)","€€€€€€€€€€€€€€ ","C","CD5"," "," "," "})
+AADD(aHeader,{"Vlr.BC Import"                    , "C7_NUMSC  " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","SC7","V"," "," "})
+AADD(aHeader,{"Vlr.Imp.Import"                   , "CD5_VLRII " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"," "," "," "})
+AADD(aHeader,{"Vlr.Desp.Aduan"                   , "CD5_DSPAD " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"," "," "," "})
+AADD(aHeader,{"Vlr.Desconto"                     , "CD5_VDESDI" ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"," "," "," "})
+AADD(aHeader,{"Vlr.IOF"                          , "CD5_VLRIOF" ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"," "," "," "})
+AADD(aHeader,{"ERROS"                            , "C7_NUMSC  " ,"@!                ",35,0, "                               ","€€€€€€€€€€€€€€ ","C","SC7","V"," "," "})
+/*
+AADD(aHeader,{"Base PIS"                         , "CD5_BSPIS " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"})
+AADD(aHeader,{"Aliq.PIS"                         , "CD5_ALPIS " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"})
+AADD(aHeader,{"Vlr. PIS"                         , "CD5_VLPIS " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"})
+AADD(aHeader,{"Dt.Pag.PIS"                       , "CD5_DTPPIS" ,"                 " ,08,0, "                               ","€€€€€€€€€€€€€€ ","D","CD5"})
+AADD(aHeader,{"Base Cofins"                      , "CD5_BSCOF " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"})
+AADD(aHeader,{"Aliq.Cofins"                      , "CD5_ALCOF " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"})
+AADD(aHeader,{"Vlr. Cofins"                      , "CD5_VLCOF " ,"@E 999999,999.99 " ,12,2, "                               ","€€€€€€€€€€€€€€ ","N","CD5"})
+AADD(aHeader,{"Dt.Pag.Cofins"                    , "CD5_DTPCOF" ,"                 " ,08,0, "                               ","€€€€€€€€€€€€€€ ","D","CD5"})
+*/
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+dbSelectArea("SC7")
+dbSetOrder(1)
+*
+dbSelectArea("SF1")
+dbSetOrder(1)
+*
+dbSelectArea("CD5")
+dbSetOrder(4)
+*
+dbSelectArea("CDT")
+dbSetOrder(1)
+*
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Criacao da Interface                                                ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+@ 065,000 To 636,1157 Dialog oDlg Title OemToAnsi("Gera Complemento da D.I. - Importação")
+@ 001,207 To 093,506 Title OemToAnsi("Dados da Declaração")   
+@ 001,001 To 076,201 Title OemToAnsi("Dados da Nota Fiscal")
+@ 096,003 To 264,567 Title OemToAnsi("Itens da Nota Fiscal") 
+@ 008,211 Say OemToAnsi("Nro. D.I.")                                       Size 21,7
+@ 008,270 Say OemToAnsi("Data do Registro")                                Size 41,7
+@ 008,325 Say OemToAnsi("Local do Desembaraço")                            Size 57,7
+@ 008,446 Say OemToAnsi("Data do Desembaraço")                             Size 55,7
+@ 029,211 Say OemToAnsi("Taxa Moeda Estrang")                              Size 50,7
+@ 008,005 Say OemToAnsi("Data de Emissão")                                 Size 42,7
+@ 008,060 Say OemToAnsi("Série")                                           Size 15,7
+@ 008,090 Say OemToAnsi("Numero")                                          Size 20,7
+@ 029,005 Say OemToAnsi("Fornecedor/Exportador")                           Size 57,7
+@ 050,005 Say OemToAnsi("Fabricante/Produtor")                             Size 50,7
+@ 029,270 Say OemToAnsi("Valor Frete (R$)")                                Size 40,7
+@ 029,325 Say OemToAnsi("Valor Seguro (R$)")                               Size 46,7
+@ 029,380 Say OemToAnsi("Vlr.Outras Desp. (R$)")                           Size 61,7
+@ 029,446 Say OemToAnsi("Valor FOB (M.E.)")                                Size 40,7
+@ 050,211 Say OemToAnsi("Taxa Suframa")                                    Size 35,7
+@ 050,270 Say OemToAnsi("Taxa Siscomex")                                   Size 37,7
+@ 050,325 Say OemToAnsi("Taxa Infraereo/Eadi")                             Size 50,7
+@ 050,380 Say OemToAnsi("Taxa Frete Local")                                Size 43,7
+@ 050,446 Say OemToAnsi("Taxa Despachante")                                Size 47,7
+@ 071,211 Say OemToAnsi("Observacao" )                                     Size 35,7
+@ 266,005 Say OemToAnsi("Total dos Produtos")                              Size 50,7
+@ 266,075 Say OemToAnsi("Total da Pré-Nota")                               Size 50,7
+@ 016,005 Get dEmissao                                                     Size 45,10                       
+@ 016,060 Get cSerie                                                       Size 12,10  
+@ 016,090 Get cDoc            Picture "@R 999999999"                       Size 40,10  Valid fl_Doc()
+@ 037,005 Get cFornece                                  F3 "SA2"           Size 30,10                       WHEN .F.
+@ 037,045 Get cLoja1                                                       Size 12,10                       WHEN .F.
+@ 037,065 Get cDesFor                                                      Size 130,10                      WHEN .F.      Object oDesFor
+@ 058,005 Get cFabric                                   F3 "SA2"           Size 30,10  Valid fl_Fabric(1)   WHEN lCD5Ok
+@ 058,045 Get cLoja2                                                       Size 12,10  Valid fl_Fabric(2)   WHEN lCD5Ok
+@ 058,065 Get cDesFab                                                      Size 130,10                      WHEN .F.      Object oDesFab
+@ 016,211 Get cNroDI          Picture "@R 99/9999999-9"                    Size 50,10  Valid fl_DI()        WHEN lCD5Ok
+@ 016,270 Get dDtReg                                                       Size 45,10                       WHEN lCD5Ok
+@ 016,325 Get cLocDes         Picture "@!"                                 Size 110,10                      WHEN lCD5Ok
+@ 016,446 Get dDtDes                                                       Size 45,10                       WHEN lCD5Ok
+@ 037,211 Get nTxDolar        Picture "@E 999.9999"                        Size 40,10  Valid nTxDolar >= 0  WHEN lCD5Ok
+@ 037,270 Get nVlrFrete       Picture "@E 9999,999.99"                     Size 50,10  WHEN .F.
+@ 037,325 Get nVlrSeg         Picture "@E 9999,999.99"                     Size 50,10  WHEN .F.
+@ 037,380 Get nDespesa        Picture "@E 9999,999.99"                     Size 50,10  WHEN .F.
+@ 037,446 Get nVlrFob         Picture "@E 99999,999.99"                    Size 53,10                       WHEN lCD5Ok
+@ 058,211 Get nSuframa        Picture "@E 9999,999.99"                     Size 50,10                       WHEN lCD5Ok
+@ 058,270 Get nSiscomex       Picture "@E 9999,999.99"                     Size 50,10                       WHEN lCD5Ok
+@ 058,325 Get nArmazem        Picture "@E 9999,999.99"                     Size 50,10                       WHEN lCD5Ok
+@ 058,380 Get nFrete          Picture "@E 9999,999.99"                     Size 50,10                       WHEN lCD5Ok
+@ 058,446 Get nDespacha       Picture "@E 9999,999.99"                     Size 55,10                       WHEN lCD5Ok
+@ 079,211 Get cObserv         Picture "@!"                                 Size 286,10                      WHEN lCD5Ok
+@ 273,005 Get nTotProd        Picture "@E 9999,999.99"                     Size 50,10                       WHEN .F.      Object oTotProd
+@ 273,075 Get nTotNota        Picture "@E 9999,999.99"                     Size 55,10                       WHEN .F.      Object oTotNota
+
+@ 104,008 TO 258,564 MULTILINE MODIFY FREEZE 3  Object oMulti      
+///oMulti:oBrowse:bchange  := { || LineOkk("CHANGE") }
+///oMulti:oBrowse:baltered := { || LineOkk("ALTERED") }
+
+@ 005,512 Button OemToAnsi("_Gerar")                               Size 55,16 Action fl_ProcDI()
+@ 025,512 Button OemToAnsi("_Cancelar")                            Size 55,16 Action fl_Cancela()                  
+
+Activate Dialog oDlg CENTER Valid lSair
+
+Return
+
+//////////////////////////////////////////////
+Static Function fl_Cancela()
+//////////////////////////////////////////////
+Local lRsp 
+
+lRsp := MsgBox("Deseja realmente cancelar o Complemento da D.I.?","Escolha a opção","YESNO")
+
+IF ( lRsp )
+	lSair := .T.
+	oDlg:End()
+ENDIF
+
+Return(lRsp)
+
+////////////////////////////////////	
+Static Function fl_DI()
+////////////////////////////////////
+Local cQry
+Local lRsp := .T.
+Local xDI := TRANSF(cNroDI,"@R 99/9999999-9")
+
+IF ( !EMPTY(cNroDI) )
+	cQry  := "SELECT COUNT(*) CTD FROM "+RetSqlName("SF1")
+	cQry  += " WHERE D_E_L_E_T_ = ' '"
+	cQry  += " AND F1_FILIAL = '"+xFilial("SF1")+"'"
+	cQry  += " AND F1_EST = 'EX'"
+	cQry  += " AND F1_DOC+F1_SERIE <> '"+cDoc+cSerie+"'"
+	cQry  += " AND F1_OBSNFE4 LIKE '%"+xDI+"%' "
+
+	cQry := ChangeQuery(cQry)
+
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB3', .T., .T.)
+
+	IF ( TB3->CTD > 0 )
+		MsgInfo("Existe NF amarrada a esta D.I. Favor verificar o numero correto.")
+	ENDIF
+	
+	IF ( EMPTY(cObserv) )
+		cObserv := "DI: " + TRANSF(cNroDI,"@R 99/9999999-9") + SPACE(40)
+		cObserv := LEFT(cObserv,50)
+	///ELSE
+		///cObserv := STUFF(cObserv,5,12,TRANSF(cNroDI,"@R 99/9999999-9"))
+	ENDIF
+
+	TB3->(dbCloseArea())
+	
+ENDIF	
+
+Return(lRsp)
+
+//////////////////////////////////////////////////
+Static Function fl_Doc()
+//////////////////////////////////////////////////
+Local lRsp := .T.
+
+IF ( !EMPTY(cDoc) )
+	aCols    := {}
+	lComplDI := .F.
+	cTipoDoc := "N"
+	dbSelectArea("SD1")
+	dbSetOrder(3)
+	dbSeek(xFilial("SD1")+DTOS(dEmissao)+cDoc+cSerie,.T.)
+	DO WHILE !EOF().AND.D1_FILIAL==xFilial("SD1").AND.D1_DOC==cDoc.AND.D1_SERIE==cSerie.AND.D1_EMISSAO==dEmissao
+		IF ( SD1->D1_CF $ "3101 ,3102 ,3107 ,3551 " )
+			SB1->(dbSeek(xFilial("SB1")+SD1->D1_COD))
+			SC7->(dbSeek(xFilial("SC7")+SD1->D1_PEDIDO+SD1->D1_ITEMPC))
+			nMoeda   := SC7->C7_MOEDA
+			cFornece := SD1->D1_FORNECE
+			cLoja1   := SD1->D1_LOJA
+			cTipoDoc := SD1->D1_TIPO
+			nTotProd := ( nTotProd + SD1->D1_TOTAL )
+			xFabric  := IIF(EMPTY(cFabric) , SD1->D1_FORNECE , cFabric )
+				
+			AADD(aCols , { SD1->D1_ITEM      , ;
+								SD1->D1_COD       , ;
+								SB1->B1_DESC      , ;
+								SD1->D1_TP        , ;
+								SD1->D1_UM        , ;
+								SD1->D1_QUANT     , ;
+								SD1->D1_VUNIT     , ;
+								SD1->D1_TOTAL     , ;
+								SD1->D1_PEDIDO    , ;
+								SD1->D1_ITEMPC    , ;
+								xFabric           , ;
+								SD1->D1_TOTAL     , ;
+								0                 , ;
+								0                 , ;
+								0                 , ;
+								0 } )
+				
+		ENDIF
+		dbSkip()
+	ENDDO
+	IF ( Len(aCols) > 0 )
+		SA2->(dbSeek(xFilial("SA2")+cFornece+cLoja1))
+		SF1->(dbSeek(xFilial("SF1")+cDoc+cSerie+cFornece+cLoja1+cTipoDoc))
+		CD5->(dbSeek(xFilial("CD5")+cDoc+cSerie+cFornece+cLoja1+"0001"))
+		
+		cDesFor   := SA2->A2_NOME
+		dEmissao  := SF1->F1_DTDIGIT
+		nDespesa  := SF1->F1_DESPESA 
+		nVlrFrete := SF1->F1_FRETE   
+		nVlrSeg   := SF1->F1_SEGURO  			
+		nVlrFob   := SF1->F1_FOB_R   
+		nTxDolar  := SF1->F1_TXMOEDA 
+		cObserv   := SF1->F1_OBSNFE4 
+		nSuframa  := SF1->F1_CVLSUFR 
+		nSisComex := SF1->F1_CVLSISC 
+		nArmazem  := SF1->F1_CVLARMZ 
+		nFrete    := SF1->F1_CVLFRET 
+		nDespacha := SF1->F1_CVLDSPC 
+		nTotNota  := ( nTotNota + nTotProd + nVlrFrete + nVlrSeg + nDespesa )
+		aCols     := aSort(aCols,,, { |x, y| x[1] < y[1] })
+		lComplDI  := .T.
+		lCD5Ok    := CD5->(EOF())
+		IF ( !lCD5Ok )
+			cNroDI  := CD5->CD5_NDI
+			dDtReg  := CD5->CD5_DTDI
+			cLocDes := CD5->CD5_LOCDES
+			dDtDes  := CD5->CD5_DTDES
+		ENDIF
+		oMulti:oBrowse:Refresh()
+	ELSE
+		lRsp := .F.
+		MsgStop("** Nota Fiscal/Série não é uma nota de Importação ou Nota Fiscal não cadastrada. Favor verificar!")
+	ENDIF
+ENDIF	
+
+Return(lRsp)
+
+/////////////////////////////////////////////////////////////////
+Static Function fl_Fabric(nOpc)
+/////////////////////////////////////////////////////////////////
+Local lRsp := .T.
+
+IF ( !EMPTY(cFabric) )
+
+	dbSelectArea("SA2")
+	dbSetOrder(1)
+	IF ( nOpc == 1 )
+		dbSeek(xFilial("SA2")+cFabric)
+	ELSE
+		dbSeek(xFilial("SA2")+cFabric+cLoja2)
+	ENDIF
+	IF ( EOF() )
+		lRsp := .F.
+		MsgInfo("** Fabricante/Loja não cadastrado. Favor verificar!")
+	ELSE
+		cLoja2  := SA2->A2_LOJA
+		cDesFab := SA2->A2_NOME
+	ENDIF
+	
+ENDIF	
+
+Return(lRsp)
+	
+/////////////////////////////////////////////////
+Static Function fl_ProcDI()
+////////////////////////////////////////////////
+Local cNadic   := "100"
+Local cSqItem  := cNadic
+Local nMaxFor  := LEN(aCols)
+Local cEstDes  := IIF(M->cNumEmp=="0301" , "AM" , "SP" )
+
+lRsp := MsgBox("Confirma a geração do Complemento da D.I.?","Escolha a opção","YESNO")
+
+IF ( !lRsp )
+	Return
+ENDIF
+IF ( !lCD5Ok )
+	MsgStop("** Complemento de D.I. já foi gerado.")
+	Return
+ENDIF
+IF ( EMPTY(cSerie).OR.EMPTY(cDoc) )
+	MsgStop("** Falta preencher Série e/ou N.Fiscal.")
+	Return
+ENDIF
+IF ( !lComplDI )
+	MsgStop("** Série/Nota Fiscal inválido.")
+	Return
+ENDIF
+IF ( EMPTY(cNroDI).OR.EMPTY(dDtReg).OR.EMPTY(cLocDes).OR.EMPTY(dDtDes) )
+	MsgStop("** Falta o preenchimento de informações da D.I.")
+	Return
+ENDIF
+nx := 1	
+DO WHILE nx <= nMaxFor.AND.lRsp
+	lRsp := IIf( EMPTY(aCols[nx,11]) , .F. , lRsp )
+	nx++
+ENDDO
+IF ( !lRsp )
+	MsgStop("** Falta informar Código de Fabricante no item "+aCols[nx-1,1])
+	Return
+ENDIF	
+IF ( ( nSuframa + nSiscomex + nArmazem + nFrete + nDespacha ) <> nDespesa )
+	MsgStop("** Valores das Taxas não bate com o Vlr. Outras Desp.:  "+TRANSF(nDespesa,"@E 99999999.99")+"  <>  "+TRANSF(nsuframa+nsiscomex+narmazem+nfrete+ndespacha,"@E 99999999.99"))
+	Return
+ENDIF
+
+Begin Transaction
+	For nX := 1 To nMaxFor
+			IF ( !EMPTY(cNroDI) )
+				IF ( STR(nx,3) $ "100,200,300,400" )
+					cNadic  := ( nx + 100 )
+					cNadic  := STR(cNadic,3)
+					cSqItem := LEFT(cNadic,1)+"00"
+				ENDIF
+				cSqItem := Soma1(cSqItem,3)
+				dbSelectArea("CD5")
+				RecLock("CD5",.T.)
+				CD5->CD5_FILIAL  := xFilial("CD5")
+				CD5->CD5_DOC     := cDoc
+				CD5->CD5_SERIE   := cSerie
+				CD5->CD5_ESPEC   := "SPED"
+				CD5->CD5_FORNEC  := cFornece
+				CD5->CD5_LOJA    := cLoja1
+				CD5->CD5_TPIMP   := "0"
+				CD5->CD5_DOCIMP  := cNroDI
+				CD5->CD5_ACDRAW  := "."
+				CD5->CD5_LOCAL   := "0"
+				CD5->CD5_NDI     := cNroDI
+				CD5->CD5_DTDI    := dDtReg
+				CD5->CD5_LOCDES  := cLocDes
+				CD5->CD5_UFDES   := cEstDes
+				CD5->CD5_DTDES   := dDtDes
+				CD5->CD5_CODEXP  := cFornece
+				CD5->CD5_NADIC   := cNadic
+				CD5->CD5_SQADIC  := cSqItem
+				CD5->CD5_CODFAB  := aCols[nx,11]
+				CD5->CD5_BCIMP   := aCols[nx,12]
+				CD5->CD5_ITEM    := aCols[nx,01]
+				MsUnlock()
+			ENDIF	
+	Next nX
+	If ( cSqItem <> "100" )
+		dbSelectArea("SF1")
+		dbSetOrder(1)
+		dbSeek(xFilial("SF1")+cDoc+cSerie+cFornece+cLoja1+cTipoDoc)
+		If ( !EOF() )
+		
+			RecLock("SF1",.F.)
+			SF1->F1_FOB_R   := nVlrFob
+			SF1->F1_TXMOEDA := nTxDolar
+			SF1->F1_OBSNFE4 := cObserv
+			SF1->F1_CVLSUFR := nSuframa
+			SF1->F1_CVLSISC := nSiscomex
+			SF1->F1_CVLARMZ := nArmazem
+			SF1->F1_CVLFRET := nFrete
+			SF1->F1_CVLDSPC := nDespacha
+			SF1->F1_CMOEDA  := nMoeda
+			MsUnlock() 
+			*
+			dbSelectArea("CDT")
+			RecLock("CDT",.T.)
+			CDT->CDT_FILIAL  := xFilial("CDT")
+			CDT->CDT_TPMOV   := "E"
+			CDT->CDT_DOC     := cDoc
+			CDT->CDT_SERIE   := cSerie
+			CDT->CDT_CLIFOR  := cFornece
+			CDT->CDT_LOJA    := cLoja1
+			CDT->CDT_INDFRT  := "1"
+			MsUnlock()
+			*
+			dbSelectArea("SE2")
+			dbSetOrder(6)
+			dbSeek(xFilial("SE2")+SF1->F1_FORNECE+SF1->F1_LOJA+SF1->F1_SERIE+SF1->F1_DOC)
+			
+			////
+			////Altera o valor do titulo de Vlr.CIF (Produto+Despesas) para Vlr.Fob (Produto)
+			////
+			IF ( SF1->F1_EST == "EX" .AND. SF1->F1_FOB_R > 0 .AND. SF1->F1_SERIE+SF1->F1_DOC+SF1->F1_FORNECE+SF1->F1_LOJA+DTOS(SF1->F1_EMISSAO) == SE2->E2_PREFIXO+SE2->E2_NUM+SE2->E2_FORNECE+SE2->E2_LOJA+DTOS(SE2->E2_EMISSAO) ) 
+				
+					Reclock("SE2",.F.)
+					SE2->E2_VALOR  := SF1->F1_VALMERC
+					SE2->E2_SALDO  := SF1->F1_VALMERC
+					SE2->E2_VLCRUZ := SF1->F1_VALMERC
+					MsUnlock()
+					
+			ENDIF
+			
+		EndIf	
+				
+	EndIf
+		
+End Transaction
+
+MsgInfo("**** Complemento da D.I. "+TRANSF(cNroDI,"@R 99/9999999-9")+" gerado com sucesso!")
+
+lSair := .T.
+
+oDlg:End()
+
+Return(.T.)
+
+//////////////////////////////////////////////////
+User Function CESTEXG010()
+//////////////////////////////////////////////////
+Local lRsp  := .T.
+Local cxObs := ""
+Local cVar  := ReadVar()
+Local nX    := n
+Local nW    := 1
+Local nQtd  := 0
+Local lItem := .F.
+Local cPedido := IIF(cVar=="M->TB_PEDIDO" , M->TB_PEDIDO , aCols[nX,10] )
+Local cItemPc := IIF(cVar=="M->TB_ITEMPC" , M->TB_ITEMPC , aCols[nX,11] )
+
+DO CASE
+   CASE cVar == "M->CD5_CODFAB"
+		  SA2->(dbSeek(xFilial("SA2")+M->CD5_CODFAB))
+		  IF ( SA2->(EOF()) )
+		     Help(' ',1,"REGNOIS")
+			  lRsp := .F.
+		  ENDIF
+		  
+   CASE cVar $ "M->TB_PEDIDO\M->TB_ITEMPC"
+		  IF ( !EMPTY(cPedido).AND.!EMPTY(cItemPc) )
+		  
+			   SC7->(dbSeek(xFilial("SC7")+cPedido+cItemPc))
+			  	
+				IF ( SC7->(EOF()) )
+					cxObs := "Pedido/Item NÃO cadastrado."
+				ELSEIF ( SC7->C7_ENCER == "E" .OR. SC7->C7_RESIDUO == "S" )
+					cxObs := "Pedido/Item Encerrado."
+				ELSEIF ( SC7->C7_CONAPRO == "B" )
+					cxObs := "Pedido/Item Bloqueado."
+				ELSEIF ( SC7->C7_PRODUTO <> aCols[nX,2] )
+					cxObs := "Codigo do Produto divergente."
+				ELSE
+					nQtd := ( SC7->C7_QUANT - SC7->C7_QUJE )
+					DO WHILE nW <= LEN(aCols)
+						IF ( ( aCols[nX,10] + aCols[nX,11] ) == ( aCols[nW,10] + aCols[nW,11] ) )
+							nQtd -= aCols[nW,6]
+						ENDIF
+						nW++
+					ENDDO
+					IF ( nQtd < 0 )
+						cxObs := "Pedido/Item com saldo insuficiente."
+					ENDIF	
+				ENDIF
+				aCols[nX,18] := cxObs
+				  
+		  ENDIF
+		  /*
+	CASE cVar == "M->D1_ITEMPC"
+		  IF ( !EMPTY(M->D1_ITEMPC).AND.!EMPTY(M->D1_PEDIDO) )
+			  SC7->(dbSeek("SC7")+M->D1_PEDIDO+M->D1_ITEMPC))
+		  ENDIF
+		  */
+   CASE cVar == "M->D1_COD"
+		  ///SB1->(dbSeek(xFilial("SB1")+M->C7_PRODUTO))
+		  SB1->(dbSeek(xFilial("SB1")+M->D1_COD))
+		  IF ( SB1->(EOF()) )
+		     Help(' ',1,"REGNOIS")
+			  lRsp := .F.
+		  ELSE			  
+			  ///TRP->C7_DESCRI  := SB1->B1_DESC
+			  ///TPR->C7_TIPO    := SB1->B1_TIPO
+			  ///TPR->C7_UM      := SB1->B1_UM
+           aCols[nx,3] := SB1->B1_DESC
+			  aCols[nx,4] := SB1->B1_TIPO
+			  aCols[nx,5] := SB1->B1_UM
+		  ENDIF
+   ///CASE cVar == "M->C7_SALDO"                             
+   CASE cVar == "M->TB_QUANT"                             
+	     IF ( M->TB_QUANT < 0 )
+		     lRsp := .F.
+		  ELSE
+			  ///TPR->C7_TOTAL := ROUND(M->C7_SALDO * TPR->C7_PRECO , 2 )
+			  ///TPR->C7_VLRBC := TPR->C7_TOTAL
+			  lItem        := .T.
+			  M->TB_TOTAL  := aCols[nx,9]
+			  nTotal2      := ( M->TB_QUANT * aCols[nx,7] )                  ///Total do item na moeda estrangeira
+           nTotal2      := ROUND( nTotal2 * nTxDolar , 2 )		           ///Total do item na moeda R$
+			  aCols[nx,8]  := ROUND( nTotal2 / M->TB_QUANT , 4 )             ///Vlr.Unitario na moeda R$
+           aCols[nx,9]  := ROUND( aCols[nx,8] * M->TB_QUANT , 2 )		     ///Novo total do item na moeda R$ (porque a Coel trabalha com 4 decimas no unitario)
+			  aCols[nx,13] := aCols[nx,9]
+			  nTotProd     := ( nTotProd + aCols[nx,9] - M->TB_TOTAL )
+			  nTotNota     := ( nTotNota + aCols[nx,9] - M->TB_TOTAL )
+		  ENDIF
+   ///CASE cVar == "M->C7_PRECO2"                                
+   CASE cVar == "M->TB_VUNIT2"                                
+	     IF ( M->TB_VUNIT2 <= 0 )
+		     lRsp := .F.
+		  ELSE
+			  ///TPR->C7_TOTAL := ROUND(M->C7_PRECO * TPR->C7_SALDO , 2 )
+			  ///TPR->C7_VLRBC := TPR->C7_TOTAL
+			  lItem        := .T.
+			  M->TB_TOTAL  := aCols[nx,9]
+			  nTotal2      := ( M->TB_VUNIT2 * aCols[nx,6] )                  ///Total do item na moeda estrangeira
+           nTotal2      := ROUND( nTotal2 * nTxDolar , 2 )		            ///Total do item na moeda R$
+			  aCols[nx,8]  := ROUND( nTotal2 / aCols[nx,6] , 4 )              ///Vlr.Unitario na moeda R$
+           aCols[nx,9]  := ROUND( aCols[nx,8] * aCols[nx,6] , 2 )		      ///Novo total do item na moeda R$ (porque a Coel trabalha com 4 decimas no unitario)
+			  aCols[nx,13] := aCols[nx,9]
+			  aCols[nx,8]  := ROUND( aCols[nx,9] / aCols[nx,6] , 4 )
+			  nTotProd     := ( nTotProd + aCols[nx,9] - M->TB_TOTAL )
+			  nTotNota     := ( nTotNota + aCols[nx,9] - M->TB_TOTAL )
+		  ENDIF
+   ///CASE cVar == "M->C7_PRECO"                                
+   CASE cVar == "M->TB_VUNIT"                                
+	     IF ( M->TB_VUNIT <= 0 )
+		     lRsp := .F.
+		  ELSE
+			  ///TPR->C7_TOTAL := ROUND(M->C7_PRECO * TPR->C7_SALDO , 2 )
+			  ///TPR->C7_VLRBC := TPR->C7_TOTAL
+			  lItem        := .T.
+			  M->TB_TOTAL  := aCols[nx,9]
+           aCols[nx,9]  := ROUND( M->TB_VUNIT * aCols[nx,6] , 2 )		  
+			  aCols[nx,13] := aCols[nx,9]
+			  nTotProd     := ( nTotProd + aCols[nx,9] - M->TB_TOTAL )
+			  nTotNota     := ( nTotNota + aCols[nx,9] - M->TB_TOTAL )
+		  ENDIF
+	///CASE cVar == "M->C7_TOTAL" 
+	CASE cVar == "M->TB_TOTAL" 
+	     IF ( M->TB_TOTAL < 0 )
+		     lRsp := .F.
+		  ELSE
+			  nDifer := ABS( M->TB_TOTAL - aCols[nx,9] )
+			  ///nDifer := ABS( M->C7_TOTAL - TPR->C7_TOTAL )
+			  IF ( nDifer > 0.03 )
+					MsgStop("** Valor total inválido.")
+					lRsp := .F.
+			  ELSE
+					///TPR->C7_PRECO := ROUND(M->C7_TOTAL / TPR->C7_SALDO , 2 )
+					lItem       := .T.
+					aCols[nx,8] := ROUND(M->TB_TOTAL / aCols[nx,6] , 4 )		  				
+					nTotProd    := ( nTotProd - aCols[nx,9] + M->TB_TOTAL )
+					nTotNota    := ( nTotNota - aCols[nx,9] + M->TB_TOTAL )
+			  ENDIF
+		  ENDIF
+	CASE cVar == "M->CD5_VLRIOF" 
+	     IF ( M->CD5_VLRIOF = 0 )
+				aCols[nx,1] := SPACE(4)
+		  ENDIF
+	OTHERWISE
+ENDCASE	
+
+IF ( lItem .AND. EMPTY(aCols[nx,1]) )
+	cItemSq     := Soma1(cItemSq,4)
+	aCols[nx,1] := cItemSq
+ENDIF
+
+oTotProd:Refresh()
+oTotNota:Refresh()
+oMulti:oBrowse:Refresh()
+
+Return(lRsp)

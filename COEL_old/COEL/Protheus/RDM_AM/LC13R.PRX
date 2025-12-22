@@ -1,0 +1,978 @@
+#include 'rwmake.ch'
+#include 'protheus.ch'
+#include 'totvs.ch'
+#include 'colors.ch'
+#include 'topconn.ch'                                                                          
+#Include "vkey.ch"   
+#include "font.ch"
+
+/*
+#include 'ap5mail.ch'
+#Include "Winapi.ch"
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหออออออัอออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ LC13R    บAutor ณCarlos Nina          บ Data ณ  25/10/10   บฑฑ
+ฑฑฬออออออออออุออออออออออสออออออฯอออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ PEDIDO DE COMPRAS (Emissao em formato Grafico)             บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Compras                                                    บฑฑ
+ฑฑฬออออออออออุออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบDATA      ณ ANALISTA ณ MOTIVO: Exclusivo para a Envision               บฑฑ
+ฑฑฬออออออออออุออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ          ณ          ณ                                                 บฑฑ
+ฑฑศออออออออออฯออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+User Function LC13R()
+
+Private	lEnd		:= .f.,;
+		aAreaSC7	:= SC7->(GetArea()),;
+		aAreaSA2	:= SA2->(GetArea()),;
+		aAreaSA5	:= SA5->(GetArea()),;
+		aAreaSZF	:= SZF->(GetArea()),;
+		aAreaSF4	:= SF4->(GetArea()),;
+		cPerg		:= 'LC13R     '
+
+      aDadosUser  := {}
+		aADD(aDadosUser,{"","",""})
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณAjusta os parametros.ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		AjustaSX1(cPerg)
+
+		If	( ! Pergunte(cPerg,.T.) )
+			Return
+		Else
+			Private	cNumPed1	:= mv_par01			// Numero do Pedido de Compras
+			Private	cNumPed2	:= mv_par02			// Numero do Pedido de Compras
+			Private	cNumPed 	:= ""			    // Numero do Pedido de Compras
+		EndIf
+
+		DbSelectArea('SC7')
+		SC7->(DbSetOrder(1))
+		If	( ! SC7->(DbSeek(xFilial('SC7') + cNumPed)) )
+			Help('',1,'LC13R',,OemToAnsi('Pedido nใo encontrado.'),1)
+			Return .f.
+		EndIf
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณExecuta a rotina de impressao ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		Processa({ |lEnd| xPrintRel(),OemToAnsi('Gerando o relat๓rio.')}, OemToAnsi('Aguarde...'))
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณRestaura a area anterior ao processamento. !ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		RestArea(aAreaSC7)
+		RestArea(aAreaSA2)
+		RestArea(aAreaSA5)
+		RestArea(aAreaSZF)
+		RestArea(aAreaSF4)
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหออออออัอออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ xPrintRelบAutor ณ                     บ Data ณ  10/09/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสออออออฯอออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime a Duplicata...                                     บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Funcao Principal                                           บฑฑ
+ฑฑฬออออออออออุออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบDATA      ณ ANALISTA ณ MOTIVO                                          บฑฑ
+ฑฑฬออออออออออุออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ          ณ          ณ                                                 บฑฑ
+ฑฑศออออออออออฯออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function xPrintRel()
+Private cFileIso  :=	cFileLogo	:= GetSrvProfString('Startpath','') + 'LogoIso9001.BMP'//
+Private	oPrint	:= TMSPrinter():New(OemToAnsi('Pedido de Compras')),;
+		oBrush		:= TBrush():New(,4),;
+		oPen		   := TPen():New(0,5,CLR_BLACK),;
+		cFileLogo	:= GetSrvProfString('Startpath','') + 'LGRL' + cNUMEMP + '.BMP',;
+		cAssinatura := GetSrvProfString('Startpath','') + ALLTRIM(cUserName) + '.BMP',;
+		oFont07		:= TFont():New('Courier New',07,07,,.F.,,,,.T.,.F.),;
+		oFont08		:= TFont():New('Courier New',08,08,,.F.,,,,.T.,.F.),;
+		oFont09		:= TFont():New('Tahoma',09,09,,.F.,,,,.T.,.F.),;
+		oFont10		:= TFont():New('Tahoma',10,10,,.F.,,,,.T.,.F.),;
+		oFont10n	   := TFont():New('Courier New',10,10,,.T.,,,,.T.,.F.),;
+		oFont11		:= TFont():New('Tahoma',11,11,,.F.,,,,.T.,.F.),;
+		oFont12		:= TFont():New('Tahoma',12,12,,.T.,,,,.T.,.F.),;
+		oFont12n	   := TFont():New('Tahoma',12,12,,.F.,,,,.T.,.F.),;
+		oFont13		:= TFont():New('Tahoma',13,13,,.T.,,,,.T.,.F.),;
+		oFont14		:= TFont():New('Tahoma',14,14,,.T.,,,,.T.,.F.),;
+		oFont15		:= TFont():New('Courier New',15,15,,.T.,,,,.T.,.F.),;
+		oFont18		:= TFont():New('Arial',18,18,,.T.,,,,.T.,.T.),;
+		oFont16		:= TFont():New('Arial',16,16,,.T.,,,,.T.,.F.),;
+		oFont20		:= TFont():New('Arial',20,20,,.F.,,,,.T.,.F.),;
+		oFont22		:= TFont():New('Arial',22,22,,.T.,,,,.T.,.F.)
+
+Private	lFlag		:= .t.,;	// Controla a impressao do fornecedor
+		nLinha		:= 3000,;	// Controla a linha por extenso
+		nLinFim		:= 0,;		// Linha final para montar a caixa dos itens
+		lPrintDesTab:= .f.,;	// Imprime a Descricao da tabela (a cada nova pagina)
+		cRepres		:= Space(80)
+
+Private	_nQtdReg	:= 0,;		// Numero de registros para intruir a regua
+		_nValMerc 	:= 0,;		// Valor das mercadorias
+		_nValIPI	:= 0,;		// Valor do I.P.I.
+		_nValDesc	:= 0,;		// Valor de Desconto
+		_nTotAcr	:= 0,;		// Valor total de acrescimo
+		_nTotSeg	:= 0,;		// Valor de Seguro
+		_nTotFre	:= 0,;		// Valor de Frete
+		_nTotIcmsRet:= 0		// Valor do ICMS Retido
+		_nTotIcmsDed:= 0		// Valor da Deducao ICMS
+		_nItens     := 0		// Valor da Deducao ICMS 
+		_dEmissao   := ""
+		_cTpFrete   := ""
+		_cSituacaoPed := ""
+		_cEncer       := ""
+		_cResiduo     := ""   
+		aMes        := {}
+		aADD(aMes,{"Jan","Jan"})
+		aADD(aMes,{"Fev","Feb"})
+		aADD(aMes,{"Mar","Mar"})
+		aADD(aMes,{"Abr","Apr"})
+		aADD(aMes,{"Mai","May"})
+		aADD(aMes,{"Jun","Jun"})
+		aADD(aMes,{"Jul","Jul"})
+		aADD(aMes,{"Ago","Aug"})
+		aADD(aMes,{"Set","Sep"})
+		aADD(aMes,{"Out","Oct"})
+		aADD(aMes,{"Nov","Nov"})
+		aADD(aMes,{"Dez","Dec"})
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณPosiciona nos arquivos necessarios. !ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		CTT->(DbSetOrder(1))
+		SA4->(dbSetOrder(1))
+		SA5->(DbSetOrder(1))
+		SB1->(DbSetOrder(1))  
+		SC7->(DbSetOrder(1))
+      SE4->(DbSetOrder(1))
+      SW2->(DbSetOrder(1))
+		
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณDefine que a impressao deve ser PAISAGEMณ
+		//ณSETPORTRAIT()serแ RETRATO               ณ		
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		oPrint:setlandscape()  //SetPortrait() // 
+		
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+        //ณ Imcrementa quatidade de reemissใo      ณ
+        //ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+        cUpDate := "UPDATE " + RetSqlName('SC7') + " SET C7_QTDREEM = (C7_QTDREEM + 1) WHERE " + RetSqlName('SC7') + ".D_E_L_E_T_<>'*' AND C7_FILIAL = '" + xFilial('SC7') + "' AND C7_NUM >= '"+cNumPed1+"' AND C7_NUM <= '"+cNumPed2+"'"
+        TCSQLExec(cUpDate)
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณMonta query !ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		cSELECT :=	'SC7.C7_FILIAL, SC7.C7_NUM, SC7.C7_EMISSAO, SC7.C7_FORNECE, SC7.C7_LOJA, '+;
+					'SC7.C7_ITEM, SC7.C7_PRODUTO, SC7.C7_X_PARTN, SC7.C7_DESCRI, SC7.C7_UM, SC7.C7_QUANT, '+;
+					'SC7.C7_PRECO, SC7.C7_PRECO2,SC7.C7_TOTAL2, SC7.C7_IPI, SC7.C7_TOTAL, SC7.C7_VLDESC, SC7.C7_DESPESA, '+;
+					'SC7.C7_SEGURO, SC7.C7_MOEDA, SC7.C7_TXMOEDA, SC7.C7_VALFRE, SC7.C7_VALIPI, SC7.C7_TES, SC7.C7_ICMSRET, SC7.C7_CC, '+;
+					'SC7.C7_NUMSC, SC7.C7_ITEMSC, SC7.C7_COND, SC7.C7_TPFRETE, SC7.C7_DATPRF, SC7.C7_OBS, '+;
+					'SC7.C7_RESIDUO, SC7.C7_ENCER, SC7.C7_CVIA, SC7.C7_CONAPRO, SC7.C7_CONTATO, SC7.C7_QTDREEM, SC7.C7_USER, SC7.R_E_C_N_O_ '
+
+		cFROM   :=	RetSqlName('SC7') + ' SC7 '
+
+		cWHERE  :=	'SC7.D_E_L_E_T_ <>    '+CHR(39) + '*'            +CHR(39) + ' AND '+;
+					   'SC7.C7_FILIAL  =     '+CHR(39) + xFilial('SC7') +CHR(39) + ' AND '+;
+					   'SC7.C7_NUM     >=    '+CHR(39) + cNumPed1       +CHR(39) + ' AND '+;
+					   'SC7.C7_NUM     <=    '+CHR(39) + cNumPed2       +CHR(39) 					 
+
+		cORDER  :=	'SC7.C7_NUM, SC7.C7_ITEM '
+
+		cQuery  :=	' SELECT '   + cSELECT + ; 
+					   ' FROM '     + cFROM   + ;
+					   ' WHERE '    + cWHERE  + ;
+					   ' ORDER BY ' + cORDER
+
+		TCQUERY cQuery NEW ALIAS 'TRA'
+
+		If	! USED()
+			MsgBox(cQuery+'. Query errada','Erro!!!','STOP')
+		EndIf
+
+		DbSelectArea('TRA')
+		Count to _nQtdReg
+		ProcRegua(_nQtdReg)
+		TRA->(DbGoTop())
+		
+		While 	TRA->( ! Eof() )
+
+	      _nQtdReg	:= 0		// Numero de registros para intruir a regua
+		   _nValMerc 	:= 0		// Valor das mercadorias
+		   _nValIPI	:= 0		// Valor do I.P.I.
+		   _nValDesc	:= 0		// Valor de Desconto
+		   _nTotAcr	:= 0		// Valor total de acrescimo
+		   _nTotSeg	:= 0		// Valor de Seguro
+		   _nTotFre	:= 0		// Valor de Frete
+		   _nTotIcmsRet:= 0		// Valor do ICMS Retido
+		   _nTotIcmsDed:= 0		// Valor da Deducao ICMS
+		   cComprador  := TRA->C7_USER
+		   cObs1       := ""
+		   cObs2       := ""
+		   cObs3       := ""
+		   cObs4       := ""
+		   cObs5       := ""
+		   		      
+		   cNumped   := TRA->C7_NUM
+		   _dEmissao := STOD(TRA->C7_emissao)
+		   nLinha    := 3000
+		   _nItens   := 0
+		   _nLinDet  := 0
+		   _nCol     := 44
+		   _nPag     := 0
+		   _nPagImp  := 0
+
+		   SC7->(DbSeek(Xfilial('SC7') + TRA->C7_NUM))
+
+		   While SC7->( ! Eof() ) .AND. cNumped == SC7->C7_NUM
+
+		      _nLinDet++
+
+		      If ++_nItens == 1
+		         cObs1       := SC7->C7_OBS
+		      ElseIf _nItens == 2
+		         cObs2       := SC7->C7_OBS
+		      ElseIf _nItens == 3
+		         cObs3       := SC7->C7_OBS
+		      ElseIf _nItens == 4
+		         cObs4       := SC7->C7_OBS
+		      ElseIf _nItens == 5
+		         cObs5       := SC7->C7_OBS
+		      Endif
+
+		      SC7->(DbSkip())
+		      _nCol := 44
+
+		   endDo
+
+		   While .T.
+
+		      _nPag++
+
+		      If _nLinDet <= 26
+                 Exit
+		      Else
+		         _nLinDet -= 26
+		      EndIf
+
+		   EndDo
+
+		   If _nLinDet >= 15
+		      _nPag++
+		   EndIf
+
+		   _nItens := 0
+			_nMoeda := TRA->C7_MOEDA
+		   Do While 	TRA->( ! Eof() ) .AND. cNumped == TRA->C7_NUM
+
+		      if empty(_cSituacaoPed )
+		         _cSituacaoPed := TRA->C7_CONAPRO
+		      endif
+
+		      _cEncer       := TRA->C7_ENCER
+		      _cResiduo     := TRA->C7_RESIDUO
+		      _nVias        := TRA->C7_QTDREEM
+
+	         DbSelectArea('SA2')
+		      SA2->(DbSetOrder(1))
+		      SA2->(DbSeek(xFilial('SA2')+TRA->C7_FORNECE+TRA->C7_LOJA))
+		      If	SA2->A2_COD<>TRA->C7_FORNECE .OR. TRA->C7_LOJA<>SA2->A2_LOJA
+		         MsgBox("Fornecedor / Loja nao encontrado!!! ver pedido e cadastro de Fornecedor")
+			     TRA->(DbCloseArea())
+			     Return .f.
+		      EndIf
+
+				mv_par06 := IIF(SA2->A2_EST<>"EX" , 1 , 2 )
+
+				xVerPag()
+
+				Cabec1()
+				
+				oPrint:Line(nLinha,080,nLinha+60,080)   //ITEM
+				oPrint:Line(nLinha,180,nLinha+60,180)   //CODIGO
+				oPrint:Line(nLinha,480,nLinha+60,480)   //DESCRICAO
+				oPrint:Line(nLinha,1110,nLinha+60,1110) //PART NUMBER
+				oPrint:Line(nLinha,1460,nLinha+60,1460) //UM
+				oPrint:Line(nLinha,1560,nLinha+60,1560) //QTDE
+				oPrint:Line(nLinha,1760,nLinha+60,1760) //VLR.UNIT.
+				IF ( TRA->C7_MOEDA == 1 )
+					oPrint:Line(nLinha,2000,nLinha+60,2000) //TOTAL 
+					oPrint:Line(nLinha,2240,nLinha+60,2240) //IPI  
+					oPrint:Line(nLinha,2340,nLinha+60,2340) //ENTREGA
+					oPrint:Line(nLinha,2540,nLinha+60,2540) //OBS         
+	
+				ELSE
+					oPrint:Line(nLinha,2000,nLinha+60,2000) //UNIT R$
+					oPrint:Line(nLinha,2250,nLinha+60,2250) //TOTAL
+					oPrint:Line(nLinha,2490,nLinha+60,2490) //IPI  
+					oPrint:Line(nLinha,2590,nLinha+60,2590) //ENTREGA
+					oPrint:Line(nLinha,2790,nLinha+60,2790) //OBS 
+				ENDIF
+				oPrint:Line(nLinha,3290,nLinha+60,3290) 
+
+				nLinha += 10
+				
+				oPrint:Say(nLinha,0100,TRA->C7_ITEM,oFont08)
+
+				SA5->(DbSetOrder(1))
+				SA5->(DbSeek(xFilial('SA5') + SA2->A2_COD + SA2->A2_LOJA + TRA->C7_PRODUTO))
+				SB1->(DbSeek(xFilial('SB1') + TRA->C7_PRODUTO ))
+				SE4->(DbSeek(xFilial('SE4') + TRA->C7_COND ))
+	    		SX5->(dbSeek(xFilial("SX5")+"ZV"+TRA->C7_CVIA))
+		
+				_nFator   := SB1->B1_CONV
+				_cTpFrete := TRA->C7_TPFRETE
+
+				oPrint:Say(nLinha,0200,TRA->C7_PRODUTO,oFont08)
+            oPrint:Say(nLinha,0500,TRA->C7_DESCRI,oFont08)  //oFont10
+            oPrint:Say(nLinha,1120,TRA->C7_X_PARTN,oFont08)
+            oPrint:Say(nLinha,1480,TRA->C7_UM,oFont08)
+				oPrint:Say(nLinha,1750,AllTrim(TransForm(TRA->C7_QUANT,'@E 9999999.99')),oFont08,,,,1)
+            oPrint:Say(nLinha,1986,AllTrim(TransForm(TRA->C7_PRECO,'@E 9999,999.9999')),oFont08,,,,1)
+				IF ( TRA->C7_MOEDA == 1 )
+					oPrint:Say(nLinha,2220,AllTrim(TransForm(TRA->C7_TOTAL,'@E 9999,999.99')),oFont08,,,,1)
+					oPrint:Say(nLinha,2320,AllTrim(TransForm(TRA->C7_IPI,'@E 99')+"%"),oFont08,,,,1)
+
+					IF MV_PAR06 == 1
+						oPrint:Say(nLinha,2510,DTOC(STOD(TRA->C7_DATPRF)),oFont08,,,,1)
+					ELSE
+						oPrint:Say(nLinha,2490,aMes[month(STOD(TRA->C7_DATPRF)),2]+" "+SUBSTR(TRA->C7_DATPRF,7,2)+","+SUBSTR(TRA->C7_DATPRF,1,4), oFont08,,,,1)
+					ENDIF
+
+					// oPrint:Say(nLinha,3060,TRA->C7_OBS,oFont08,,,,1) //Roger
+					oPrint:Say(nLinha,2610,'Via: '+RTRIM(SUBS(SX5->X5_DESCRI,4,25)),oFont08,,,,)//3164
+	
+				ELSE
+					oPrint:Say(nLinha,2230,AllTrim(TransForm(TRA->C7_PRECO2,'@E 9999,999.9999')),oFont08,,,,1)
+					oPrint:Say(nLinha,2470,AllTrim(TransForm(TRA->C7_TOTAL,'@E 9999,999.99')),oFont08,,,,1)
+					oPrint:Say(nLinha,2560,AllTrim(TransForm(TRA->C7_IPI,'@E 99')+"%"),oFont08,,,,1)
+
+					IF MV_PAR06 == 1
+						oPrint:Say(nLinha,2750,DTOC(STOD(TRA->C7_DATPRF)),oFont08,,,,1)
+					ELSE
+						oPrint:Say(nLinha,2780,aMes[month(STOD(TRA->C7_DATPRF)),2]+" "+SUBSTR(TRA->C7_DATPRF,7,2)+","+SUBSTR(TRA->C7_DATPRF,1,4), oFont08,,,,1)
+					ENDIF
+
+					///oPrint:Say(nLinha,3316,RTRIM(TRA->C7_OBS),oFont08,,,,1)
+	//				oPrint:Say(nLinha,3304,TRA->C7_OBS,oFont08,,,,1)                                  //Roger
+	        		oPrint:Say(nLinha,2800,'Via: '+RTRIM(SUBS(SX5->X5_DESCRI,4,25)),oFont08,,,,)     //3560
+	
+				ENDIF
+
+				nLinha += 40
+
+				_nValMerc   	+= TRA->C7_TOTAL
+				_nValIPI		+= TRA->C7_VALIPI
+				_nValDesc   	+= TRA->C7_VLDESC
+				_nTotAcr		+= TRA->C7_DESPESA
+				_nTotSeg		+= TRA->C7_SEGURO
+				_nTotFre		+= TRA->C7_VALFRE
+
+				If	( Empty(TRA->C7_TES) )
+					_nTotIcmsRet	+= TRA->C7_ICMSRET
+				Else
+					DbSelectArea('SF4')
+					SF4->(DbSetOrder(1))
+					If	SF4->(DbSeek(xFilial('SF4') + TRA->C7_TES))
+						If	( AllTrim(SF4->F4_INCSOL) == 'S' )
+							_nTotIcmsRet	+= TRA->C7_ICMSRET
+						EndIf
+					EndIf
+				EndIf
+
+			   _nItens++
+
+			   If _nItens == 26
+			      oPrint:Line(nLinha,080,nLinha,3290) 
+			      nLinha := 3000
+			      xVerPag()
+		         Cabec1()
+			   EndIf
+
+			   _nCol := 44
+
+			   IncProc()
+			   TRA->(DbSkip())
+
+		   End
+
+         If _nItens >= 15 .AND. _nItens <= 25
+            oPrint:Line(nLinha,080,nLinha,3290) 
+            nLinha := 3000
+            _nItens := 1
+         Endif
+
+		   xVerPag()
+			
+		   Cabec1()
+
+		   While _nItens <= 15
+
+				oPrint:Line(nLinha,080,nLinha+60,080)
+				oPrint:Line(nLinha,180,nLinha+60,180)
+				oPrint:Line(nLinha,480,nLinha+60,480)
+				oPrint:Line(nLinha,1110,nLinha+60,1110)
+				oPrint:Line(nLinha,1460,nLinha+60,1460)
+				oPrint:Line(nLinha,1560,nLinha+60,1560)
+				oPrint:Line(nLinha,1760,nLinha+60,1760)
+				IF ( _nMoeda == 1 )
+					oPrint:Line(nLinha,2000,nLinha+60,2000) //TOTAL 
+					oPrint:Line(nLinha,2240,nLinha+60,2240) //IPI  
+					oPrint:Line(nLinha,2340,nLinha+60,2340) //ENTREGA
+					oPrint:Line(nLinha,2540,nLinha+60,2540) //OBS 
+				ELSE
+					oPrint:Line(nLinha,2000,nLinha+60,2000) //UNIT R$
+					oPrint:Line(nLinha,2250,nLinha+60,2250) //TOTAL
+					oPrint:Line(nLinha,2490,nLinha+60,2490) //IPI  
+					oPrint:Line(nLinha,2590,nLinha+60,2590) //ENTREGA
+					oPrint:Line(nLinha,2790,nLinha+60,2790) //OBS 
+				ENDIF
+				oPrint:Line(nLinha,3290,nLinha+60,3290)
+            nLinha += 60
+            _nItens++
+
+         EndDo
+			  
+           oPrint:Line(nLinha,080,nLinha,3290) //2300
+
+           nLinha += 20
+
+		     xVerPag()
+
+			  x_Moeda := iif(_nMoeda==1,"(R$)",if(_nMoeda==2,"(US$)",if(_nMoeda==5,"(Eu)","")))
+
+           oPrint:Line(nLinha,0080,nLinha,3290)       
+           oPrint:Line(nLinha,0080,nLinha+80,0080)
+           oPrint:Line(nLinha,0631,nLinha+80,0631)
+           oPrint:Line(nLinha,1182,nLinha+80,1182)
+           oPrint:Line(nLinha,1733,nLinha+80,1733)
+           oPrint:Line(nLinha,2284,nLinha+80,2284)
+           oPrint:Line(nLinha,2835,nLinha+80,2835)
+           oPrint:Line(nLinha,3290,nLinha+80,3290)
+
+           oPrint:Say(nLinha,0250,if(mv_par06==1,'Valor Mercadoria ','Value   goods ')+x_Moeda,oFont10)
+
+           if mv_par06==1
+              oPrint:Say(nLinha,0801,'Valor Desconto(-)',oFont10)
+              oPrint:Say(nLinha,1352,'Valor  Seguro (+)',oFont10)
+              oPrint:Say(nLinha,1903,'Valor  Frete  (+)',oFont10)
+		        oPrint:Say(nLinha,2454,'Valor Acresc. (+)',oFont10)
+              oPrint:Say(nLinha,2910,'Valor Total '+x_Moeda,oFont12)
+           else
+              oPrint:Say(nLinha,0801,'Discount value(-)',oFont10)
+              oPrint:Say(nLinha,1352,'Safe value    (+)',oFont10)
+              oPrint:Say(nLinha,1903,'Freight value (+)',oFont10)
+              oPrint:Say(nLinha,2454,'Value addition(+)',oFont10)
+              oPrint:Say(nLinha,2880,'Total Amount '+x_Moeda,oFont12)         
+           endif
+
+		   nLinha +=80
+
+           oPrint:Line(nLinha,0080,nLinha,3290)       //2300
+           oPrint:Line(nLinha,0080,nLinha+80,0080)
+           oPrint:Line(nLinha,0631,nLinha+80,0631)
+           oPrint:Line(nLinha,1182,nLinha+80,1182)
+           oPrint:Line(nLinha,1733,nLinha+80,1733)
+           oPrint:Line(nLinha,2284,nLinha+80,2284)
+           oPrint:Line(nLinha,2835,nLinha+80,2835)
+           oPrint:Line(nLinha,3290,nLinha+80,3290)
+
+           oPrint:Say(nLinha,0340,TransForm(_nValMerc,'@E 99,999,999.99'),oFont10)
+           oPrint:Say(nLinha,0861,TransForm(_nValDesc,'@E 99,999,999.99'),oFont10)
+           oPrint:Say(nLinha,1412,TransForm(_nTotSeg,'@E 99,999,999.99'),oFont10)
+           oPrint:Say(nLinha,1963,TransForm(_nTotFre,'@E 99,999,999.99'),oFont10)
+           oPrint:Say(nLinha,2514,TransForm((_nTotAcr+_nValIPI),'@E 99,999,999.99'),oFont10)
+           oPrint:Say(nLinha,3005,TransForm(_nValMerc + _nValIPI - _nValDesc + _nTotAcr + _nTotSeg + _nTotFre + _nTotIcmsRet - _nTotIcmsDed,'@E 99,999,999.99'),oFont12)
+
+		   nLinha +=80
+		   oPrint:Line(nLinha,080,nLinha,3290)       
+		   nLinha += 20
+
+         cTerms := SE4->E4_DESCRI
+
+   	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณImprime a linha de prazo pagamento/entrega!ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+             
+             	// Rogerio 25/02/14                                    
+            If _cTpFrete=="C"
+               _DescFrete:="CIF"
+            ElseIf _cTpFrete=="F"
+               _DescFrete:="FOB"  
+            ElseIf _cTpFrete=="S"
+               _DescFrete:="EX WORKS"
+            ElseIf _cTpFrete=="T"
+               _DescFrete:="TERCEIROS"
+            Else
+               _DescFrete:="SEM"
+            EndIf
+            
+
+		   oPrint:Say(nLinha,0080,OemToAnsi(if(mv_par06==1,'Condi็ใo de Pagamento: ','Payment Terms: ')),oFont10)
+         oPrint:Say(nLinha,0490,if(mv_par06==1,alltrim(SE4->E4_DESCRI),cTerms),oFont10)
+ 	      oPrint:Say(nLinha,1480,OemToAnsi(if(mv_par06==1,'Tipo de Frete :','Incoterms :')),oFont10)
+	//		   oPrint:Say(nLinha,1730,IF(_cTpFrete=="C","CIF","FOB"),oFont10)  
+         oPrint:Say(nLinha,1730,_DescFrete,oFont10)  
+		   nLinha += 50
+			
+	      oPrint:Say(nLinha,0080,OemToAnsi(if(mv_par06==1,'Local de Entrega/Faturamento: ','Billing and Ship to: ')+;
+											ALLTRIM(SM0->M0_ENDENT)+'          Bairro: '+ALLTRIM(SM0->M0_BAIRENT)+'  -  Cep: '+;
+											TRANSF(SM0->M0_CEPENT,"@R 99999-999")+'    -  Cidade: '+ALLTRIM(SM0->M0_CIDENT)+' / '+ALLTRIM(SM0->M0_ESTENT)),oFont10)
+
+			///xVerPag()
+
+		   nLinha += 50
+			
+		   ///xVerPag()
+			
+		   ////Cabec1()		
+
+			nRegSm0 := SM0->(RECNO())
+			IF ( M->cNumEmp == "0101" )
+				SM0->(dbSeek("0104"))
+			ENDIF
+	      oPrint:Say(nLinha,0080,OemToAnsi(if(mv_par06==1,'Local de Cobranca: ','Bill to: ')+;
+											ALLTRIM(SM0->M0_ENDCOB)+IIF(!EMPTY(SM0->M0_COMPCOB),'  '+RTRIM(SM0->M0_COMPCOB),'')+'          Bairro: '+ALLTRIM(SM0->M0_BAIRCOB)+'  -  Cep: '+;
+											TRANSF(SM0->M0_CEPCOB,"@R 99999-999")+'    -  Cidade: '+ALLTRIM(SM0->M0_CIDCOB)+' / '+ALLTRIM(SM0->M0_ESTCOB)),oFont10)
+			SM0->(dbGoTo(nRegSm0))
+		   nLinha += 90
+		   
+			xVerPag()
+		   
+			Cabec1()				   
+		   
+		   xRodape()
+
+        ENDDO
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณImprime em Video, e finaliza a impressao. !ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+      oPrint:Preview()
+		
+      TRA->(DbCloseArea())
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหออออออัอออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ xVerPag()บAutor ณ                     บ Data ณ  25/10/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสออออออฯอออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Verifica se deve ou nao saltar pagina...                   บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Funcao Principal                                           บฑฑ
+ฑฑฬออออออออออุออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบDATA      ณ ANALISTA ณ  MOTIVO                                         บฑฑ
+ฑฑฬออออออออออุออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ          ณ          ณ                                                 บฑฑ
+ฑฑศออออออออออฯออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function xVerPag()
+
+	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+	//ณInicia a montagem da impressao.ณ
+	//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+	If	( nLinha >= 2300 )     
+
+		If	( ! lFlag )
+         oPrint:Line(nLinha,080,nLinha,3290) 
+			oPrint:EndPage()
+			nLinha:= 700
+		Else
+			nLinha:= 700
+		EndIf
+
+		oPrint:StartPage()
+
+		xCabec()
+
+		lFlag		 := .t. 
+		_nItens   := 0
+
+	EndIf
+	
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหออออออัอออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ xCabec() บAutor ณ                     บ Data ณ  25/10/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสออออออฯอออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime o Cabecalho do relatorio...                        บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Funcao Principal                                           บฑฑ
+ฑฑฬออออออออออุออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบDATA      ณ ANALISTA ณ  MOTIVO                                         บฑฑ
+ฑฑฬออออออออออุออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ          ณ          ณ                                                 บฑฑ
+ฑฑศออออออออออฯออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function xCabec()
+
+Local xTel   := IIF(M->cNumEmp=="0302" , "551120663211" , SM0->M0_TEL )
+Local xFax   := IIF(M->cNumEmp=="0302" , "551120663201" , SM0->M0_FAX )
+Local xMoeda := iif(TRA->C7_MOEDA==1,"R$ ",if(TRA->C7_MOEDA==2,"US$ ",if(TRA->C7_MOEDA==5,"Eur ","")))	
+Local xPhone := iif(mv_par06==1,TRANSF(SUBS(xTel,3,10),"@R (99)9999-9999"),TRANSF(xTel,"@R 99-99-9999-9999"))
+Local xFaxx  := iif(mv_par06==1,TRANSF(SUBS(xFax,3,10),"@R (99)9999-9999"),TRANSF(xFax,"@R 99-99-9999-9999"))
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณ Observacoes !ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+		oPrint:SayBitmap(050,0080,cFileIso,0380,0360)		
+
+		oPrint:Box(0420,0080,0690,0880)   
+		oPrint:Line(0470,0080,0470,0880)
+
+		IF MV_PAR06 == 1
+			oPrint:Say(0430,0400,OemToAnsi('Observa็oes'),oFont10)
+	      oPrint:Say(0475,0090,'- S๓ aceitaremos a mercadoria se, em sua Nota Fiscal',oFont07)
+	      oPrint:Say(0500,0090,'  constar  o  nosso  Numero do  Pedido de  Compras, ',oFont07)               
+         oPrint:Say(0525,0090,'  C๓digo e Part Number.                             ',oFont07)	       
+	      oPrint:Line(0555,0080,0555,0880)
+			IF ( TRA->C7_MOEDA > 1 )
+			   oPrint:Say(0590,0090,'- Taxa da Moeda: '+xMoeda+LTRIM(TRANSF(TRA->C7_TXMOEDA,"@E 9999.9999")),oFont07)
+			ENDIF
+			/*
+	      oPrint:Say(0490,0110,cObs1,oFont07)
+	      oPrint:Say(0515,0110,cObs2,oFont07)
+	      oPrint:Say(0540,0110,cObs3,oFont07)
+	      oPrint:Say(0565,0110,cObs4,oFont07)
+	      oPrint:Say(0590,0110,cObs5,oFont07)
+			*/
+      ELSE
+			oPrint:Say(0430,0400,OemToAnsi('Observation'),oFont10)
+	      oPrint:Say(0475,0090,'- We will accept the merchandise  if  your  invoice ',oFont07)
+	      oPrint:Say(0500,0090,'  included in our Purchase Order Number, Part Number',oFont07)
+	      oPrint:Say(0525,0090,'  and Supply Part Number.                           ',oFont07)
+         oPrint:Line(0555,0080,0555,0880)
+			oPrint:Say(0590,0090,'- Currency Rate: '+xMoeda+LTRIM(TRANSF(TRA->C7_TXMOEDA,"@E 9999.9999")),oFont07)
+			/*
+         oPrint:Say(0510,0110,cObs1,oFont07)
+	      oPrint:Say(0535,0110,cObs2,oFont07)
+	      oPrint:Say(0560,0110,cObs3,oFont07)
+	      oPrint:Say(0585,0110,cObs4,oFont07)
+	      oPrint:Say(0610,0110,cObs5,oFont07)
+			*/
+      ENDIF   
+      /*        Roger
+		IF ( SM0->M0_CODIGO == "03" )
+			SX5->(dbSeek(xFilial("SX5")+"ZV"+TRA->C7_CVIA))
+			oPrint:Say(0650,0090,'- Via Transp: '+RTRIM(SUBS(SX5->X5_DESCRI,4,25)),oFont07)
+		ENDIF	
+	*/			
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณImprime o cabecalho da empresa. !ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+		oPrint:SayBitmap(050,900,cFileLogo,750,0260)		
+		oPrint:Say(050,1700,AllTrim(Upper(SM0->M0_NOMECOM)),oFont12)
+		oPrint:Say(130,1700,AllTrim(SM0->M0_ENDENT)+ '  -  ' +AllTrim(SM0->M0_BAIRENT)+'  -  Cep: '+AllTrim(TransForm(SM0->M0_CEPENT,'@R 99999-999')),oFont09)
+   		
+		oPrint:Say(080,2780,OemToAnsi(if(mv_par06==1,'Pedido de','Purchase')),oFont13)
+		oPrint:Say(150,2780,OemToAnsi(if(mv_par06==1,'Compras  ','Order ')),oFont13)
+		oPrint:Say(220,2780,OemToAnsi('Pag.: [ '+alltrim(Transform(++_nPagImp,'99'))+' / '+alltrim(Transform(_nPag,'99'))+' ]'),oFont09)
+                     
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณNumero/Emissaoณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		oPrint:Box(050,2760,0285,3290) 
+//		oPrint:FillRect({050,2780,0240,3310},oBrush)
+		oPrint:Say(0080,3070,cNUMPED,oFont16)
+		oPrint:Say(0150,3070,Dtoc(_dEMISSAO),oFont12)
+		oPrint:Say(0220,3120,Transform(_nVias,'99')+'a. Via',oFont09)		
+		oPrint:Say(180,1700,Capital(AllTrim(SM0->M0_CIDENT))+'/'+AllTrim(SM0->M0_ESTENT)+ '      Fone/Fax: ' +xPhone + '  -  ' + xFaxx ,oFont09)
+		oPrint:Say(225,1700,AllTrim('Website: www.coel.com.br'),oFont09)
+		oPrint:Line(285,1700,285,2880)
+		oPrint:Say(300,1700,"CNPJ: "+TransForm(SM0->M0_CGC,'@R 99.999.999/9999-99'),oFont09)
+		oPrint:Say(300,2230,"I.E.: "+SM0->M0_INSC,oFont09)
+		oPrint:Say(300,2580,"Suframa: "+SM0->M0_INS_SUF,oFont09)
+
+Return
+
+Static Function Cabec1()
+Local cVlrUnit := if(mv_par06==1,'Vlr.Unit.','Unit Price') + if(TRA->C7_MOEDA==1,"(R$)",if(TRA->C7_MOEDA==2,"(US$)",if(TRA->C7_MOEDA==5,"(Eu)","")))	
+
+     If	( lFlag )
+			//ฺฤฤฤฤฤฤฤฤฤฤฟ
+			//ณFornecedorณ
+			//ภฤฤฤฤฤฤฤฤฤฤู
+			//oPrint:Say(0380,0940,OemToAnsi(if(mv_par06==1,'Dados do Fornecedor/Prestador de Servicos',"Supplier's Informations")),oFont08)
+			oPrint:Box(0410,0900,0690,3290)
+			oPrint:Say(0430,0920,OemToAnsi(if(mv_par06==1,'Fornecedor:','Supplier:')),oFont10)
+			oPrint:Say(0420,1120,AllTrim(SA2->A2_NOME) + '  ('+AllTrim(SA2->A2_COD)+'/'+AllTrim(SA2->A2_LOJA)+')',oFont13)
+			oPrint:Say(0480,0920,OemToAnsi(if(mv_par06==1,'Endere็o: ','Address: ')),oFont10)
+			oPrint:Say(0480,1120,ALLTRIM(SA2->A2_END),oFont10)
+			oPrint:Say(0530,0920,OemToAnsi(if(mv_par06==1,'Municํpio: ','City: ')),oFont10)
+			oPrint:Say(0530,1120,AllTrim(SA2->A2_MUN)+'/'+AllTrim(SA2->A2_EST),oFont10)
+			oPrint:Say(0530,1650,OemToAnsi(if(mv_par06==1,'Cep:','Zipcode:')+' '+TransForm(SA2->A2_CEP,'@R 99999-999')),oFont10)
+			oPrint:Say(0530,2100,OemToAnsi('CNPJ: '+TransForm(SA2->A2_CGC,'@R 99.999.999/9999-99')),oFont10)   
+			oPrint:Say(0530,2580,OemToAnsi('Inscr. Estadual:  '+ALLTRIM(SA2->A2_INSCR)),oFont10)
+			oPrint:Say(0580,0920,OemToAnsi(if(mv_par06==1,'Telefone: ','Phone: ')),oFont10)
+			oPrint:Say(0580,1120,LEFT(SA2->A2_TEL,15)+'                        Fax: '+LEFT(SA2->A2_FAX,15),oFont10)
+			oPrint:Say(0630,0920,OemToAnsi(if(mv_par06==1,'Contato: ',"Contact: ")),oFont10)
+			oPrint:Say(0630,1120,SA2->A2_CONTATO,oFont10)
+
+			lFlag := .f. 
+		
+			oPrint:Line(nLinha,080,nLinha,3290)       
+			oPrint:Line(nLinha,080,nLinha+70,080)
+			oPrint:Line(nLinha,180,nLinha+70,180)
+			oPrint:Line(nLinha,480,nLinha+70,480)            
+			oPrint:Line(nLinha,1110,nLinha+70,1110)   					
+			oPrint:Line(nLinha,1460,nLinha+70,1460)   
+			oPrint:Line(nLinha,1560,nLinha+70,1560)   
+			oPrint:Line(nLinha,1760,nLinha+70,1760)   
+			IF ( TRA->C7_MOEDA == 1 )
+				oPrint:Line(nLinha,2000,nLinha+70,2000) //TOTAL 
+				oPrint:Line(nLinha,2240,nLinha+70,2240) //IPI  
+				oPrint:Line(nLinha,2340,nLinha+70,2340) //ENTREGA
+				oPrint:Line(nLinha,2540,nLinha+70,2540) //OBS 
+			ELSE
+				oPrint:Line(nLinha,2000,nLinha+70,2000) //UNIT R$
+				oPrint:Line(nLinha,2250,nLinha+70,2250) //TOTAL
+				oPrint:Line(nLinha,2490,nLinha+70,2490) //IPI  
+				oPrint:Line(nLinha,2590,nLinha+70,2590) //ENTREGA
+				oPrint:Line(nLinha,2790,nLinha+70,2790) //OBS 
+			ENDIF
+			oPrint:Line(nLinha,3290,nLinha+70,3290)
+					
+			IF ( mv_par06 == 1 )
+				oPrint:Say(nLinha+10,0100,OemToAnsi('Item'),oFont10)
+				oPrint:Say(nLinha+10,0200,OemToAnsi('C๓digo'),oFont10)
+				oPrint:Say(nLinha+10,0500,OemToAnsi('Descri็ใo'),oFont10)
+				oPrint:Say(nLinha+10,1120,OemToAnsi('Part Number'),oFont10)
+				oPrint:Say(nLinha+10,1480,OemToAnsi('UM'),oFont10)
+				oPrint:Say(nLinha+10,1660,OemToAnsi('Qtde'),oFont10)
+				oPrint:Say(nLinha+10,1780,OemToAnsi(cVlrUnit),oFont10)
+				IF ( TRA->C7_MOEDA == 1 )
+					oPrint:Say(nLinha+10,2020,OemToAnsi('Valor Total'),oFont10) 
+					oPrint:Say(nLinha+10,2260,OemToAnsi('IPI'),oFont10) 
+					oPrint:Say(nLinha+10,2360,OemToAnsi('Entrega'),oFont10) 
+					oPrint:Say(nLinha+10,2560,OemToAnsi('Via de Transp'),oFont10) 
+				ELSE
+					oPrint:Say(nLinha+10,2020,OemToAnsi('Vlr. Unit (R$)'),oFont10) 
+					oPrint:Say(nLinha+10,2300,OemToAnsi('Valor Total'),oFont10) 
+					oPrint:Say(nLinha+10,2510,OemToAnsi('IPI'),oFont10) 
+					oPrint:Say(nLinha+10,2610,OemToAnsi('Entrega'),oFont10) 
+					oPrint:Say(nLinha+10,2804,OemToAnsi('Via de transp'),oFont10) 
+				ENDIF
+			ELSE  
+				oPrint:Say(nLinha+10,0100,OemToAnsi('Item'),oFont10)
+				oPrint:Say(nLinha+10,0194,OemToAnsi('Part Number'),oFont10)
+				oPrint:Say(nLinha+10,0500,OemToAnsi('Description'),oFont10)
+				oPrint:Say(nLinha+10,1130,OemToAnsi("Supply Part Number"),oFont10)
+				oPrint:Say(nLinha+10,1480,OemToAnsi('UM'),oFont10)
+				oPrint:Say(nLinha+10,1670,OemToAnsi('Qty'),oFont10)
+				oPrint:Say(nLinha+10,1780,OemToAnsi(cVlrUnit),oFont10) 
+				oPrint:Say(nLinha+10,2020,OemToAnsi('Unit Price (R$)'),oFont10) 
+				oPrint:Say(nLinha+10,2340,OemToAnsi('Amount'),oFont10) 
+				oPrint:Say(nLinha+10,2510,OemToAnsi('IPI'),oFont10) 
+				oPrint:Say(nLinha+10,2610,OemToAnsi('Ship Date'),oFont10) 
+				oPrint:Say(nLinha+10,2804,OemToAnsi('Transport'),oFont10) 
+			ENDIF
+			nLinha += 70
+			oPrint:Line(nLinha,080,nLinha,3290) 
+     EndIf
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหออออออัอออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ xRodape()บAutor ณ                     บ Data ณ  25/10/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสออออออฯอออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime o Rodape do Relatorio....                          บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Funcao Principal                                           บฑฑ
+ฑฑฬออออออออออุออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบDATA      ณ ANALISTA ณ  MOTIVO                                         บฑฑ
+ฑฑฬออออออออออุออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ          ณ          ณ                                                 บฑฑ
+ฑฑศออออออออออฯออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function xRodape()
+   /*   
+   oPrint:Box(nLinha,0100,nLinha+220,2960)    
+	 
+	//oPrint:SayBitmap(nLinha,0100,cAssinatura,nLinha-700,230) // Imprime assinatura
+	
+   oPrint:Say(nLinha,0110,if(MV_PAR06 == 1,'Comprador','Buyer'),oFont08) //aDadosUser[2] 
+   oPrint:Say(nLinha,0750,if(MV_PAR06 == 1,'Gerencia' ,'Manager'),oFont08)   
+   oPrint:Say(nLinha,1400,if(MV_PAR06 == 1,'Diretoria','Director'),oFont08)
+   oPrint:Say(nLinha,2050,if(MV_PAR06 == 1,'Situacao Pedido','Status Purchase'),oFont08)
+	*
+	oPrint:Line(nLinha,740,nLinha+220,740)
+	oPrint:Line(nLinha,1390,nLinha+220,1390)
+	oPrint:Line(nLinha,2040,nLinha+220,2040)
+   nLinha += 150
+	oPrint:Line(nLinha,0130,nLinha,0700)
+	oPrint:Line(nLinha,0800,nLinha,1300)
+	oPrint:Line(nLinha,1500,nLinha,2000)
+	oPrint:Line(nLinha,2200,nLinha,2850)
+
+    nLinha += 20
+    
+	oPrint:Say((nLinha-10),0130,ALLTRIM(Posicione("SY1",3,xFilial("SY1")+cComprador,"Y1_NOME" )),oFont07) //aDadosUser[2]
+	oPrint:Say(nLinha,2200,if(MV_PAR06 == 1,'Liberacao do Pedido  -  Data:    /    /    ','Authorization Purchase  -  Date:    /    /    '),oFont08)
+
+	nLinha += 20                                              
+	oPrint:Say(nLinha,0150,ALLTRIM(SY1->Y1_EMAIL),oFont07) // Email
+//	oPrint:Say(nLinha,0150,aDadosUser[3],oFont08) // Email	
+	*/
+	
+   oPrint:Box(nLinha,0080,nLinha+220,2840)	
+	oPrint:Line(nLinha,631,nLinha+220,631)
+   oPrint:Say(nLinha,0090,if(MV_PAR06 == 1,'Aprova็ใo','Approval'),oFont08) 
+   nLinha += 10
+   oPrint:Say(nLinha,0650,'Pagamentos somente em Carteira e เs quintas-feiras.',oFont09)
+   nLinha += 60
+   oPrint:Say(nLinha,0650,'Nใo receberemos mercadorias com Danfe sem o envio do respectivo arquivo XML para o email: nfe@coel.com.br',oFont09)
+   nLinha += 60
+    oPrint:Say(nLinha,0650,'S๓ aceitaremos a mercadoria se, em sua Nota Fiscal constar  o  nosso  N๚mero do  Pedido de  Compras, C๓digo e Part Number.',oFont09)
+     
+	oPrint:Line(nLinha,0110,nLinha,0580)
+	///oPrint:Line(nLinha,0650,nLinha,1420)
+   nLinha += 20
+	///oPrint:Say(nLinha,0650,if(MV_PAR06 == 1,'Libera็ใo do Pedido  -  Data:    /    /    ','Authorization Purchase  -  Date:    /    /    '),oFont08)
+	nLinha += 80
+	If SM0->M0_CODIGO == "03"
+	_cMens:="SISTEMA DE GESTรO DE QUALIDADE: ISO 9001:2015"
+	elseif SM0->M0_CODIGO == "09"
+		_cMens:="SISTEMA DE GESTรO DE QUALIDADE: ISO 9001:2015"
+	Else
+	_cMens:="-"
+	EndIf
+	oPrint:Say(nLinha,1680,OemToAnsi(_cMens),oFont12)
+
+	nLinha += 10
+
+Return 
+
+********************************************************************************************************************************************************
+Static Function _Email(pLogin)//Fun็ใo de localiza็ใo de Nome e email pelo login do microsiga 
+********************************************************************************************************************************************************
+Local aUser	:= {}    
+Local cNome:=Space(60),cEmail:=Space(60)
+	PswOrder(2)
+	If PswSeek(pLogin)
+		aUser := Aclone(PswRet(1))
+		If Len(aUser) > 0
+			cNome	:= AllTrim(aUser[1][4])	// Nome
+			cEmail	:= AllTrim(aUser[1][14])	// e-mail
+		Endif
+	Endif
+Return({pLogin,cNome,cEmail})
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหออออออัอออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ AjustaSX1บAutor ณ                     บ Data ณ  25/10/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสออออออฯอออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Ajusta o SX1 - Arquivo de Perguntas..                      บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Funcao Principal                                           บฑฑ
+ฑฑฬออออออออออุออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบDATA      ณ ANALISTA ณ MOTIVO                                          บฑฑ
+ฑฑฬออออออออออุออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ          ณ          ณ                                                 บฑฑ
+ฑฑศออออออออออฯออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function AjustaSX1(cPerg)
+Local	aRegs   := {},; 
+		_sAlias := Alias(),;
+		nX
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณCampos a serem grav. no SX1ณ
+		//ณaRegs[nx][01] - X1_GRUPO   ณ
+		//ณaRegs[nx][02] - X1_ORDEM   ณ
+		//ณaRegs[nx][03] - X1_PERGUNTEณ
+		//ณaRegs[nx][04] - X1_PERSPA  ณ
+		//ณaRegs[nx][05] - X1_PERENG  ณ
+		//ณaRegs[nx][06] - X1_VARIAVL ณ
+		//ณaRegs[nx][07] - X1_TIPO    ณ
+		//ณaRegs[nx][08] - X1_TAMANHO ณ
+		//ณaRegs[nx][09] - X1_DECIMAL ณ
+		//ณaRegs[nx][10] - X1_PRESEL  ณ
+		//ณaRegs[nx][11] - X1_GSC     ณ
+		//ณaRegs[nx][12] - X1_VALID   ณ
+		//ณaRegs[nx][13] - X1_VAR01   ณ
+		//ณaRegs[nx][14] - X1_DEF01   ณ
+		//ณaRegs[nx][15] - X1_DEF02   ณ
+		//ณaRegs[nx][16] - X1_DEF03   ณ
+		//ณaRegs[nx][17] - X1_F3      ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณCria uma array, contendo todos os valores...ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		aAdd(aRegs,{cPerg,'01','Pedido  De  ?       ','Pedido  De  ?       ','Pedido  De  ?       ','mv_ch1','C', 6,0,0,'G','','mv_par01','','','',''})
+		aAdd(aRegs,{cPerg,'02',"Pedido  Ate'?       ","Pedido  Ate'?       ","Pedido  Ate'?       ",'mv_ch2','C', 6,0,0,'G','','mv_par02','','','',''})
+
+		DbSelectArea('SX1')
+		SX1->(DbSetOrder(1))
+
+		For nX:=1 to Len(aRegs)
+			If	RecLock('SX1',Iif(!SX1->(DbSeek(aRegs[nx][01]+aRegs[nx][02])),.t.,.f.))
+				Replace SX1->X1_GRUPO		With aRegs[nx][01]
+				Replace SX1->X1_ORDEM   	With aRegs[nx][02]
+				Replace SX1->X1_PERGUNTE	With aRegs[nx][03]
+				Replace SX1->X1_PERSPA		With aRegs[nx][04]
+				Replace SX1->X1_PERENG		With aRegs[nx][05]
+				Replace SX1->X1_VARIAVL		With aRegs[nx][06]
+				Replace SX1->X1_TIPO		With aRegs[nx][07]
+				Replace SX1->X1_TAMANHO		With aRegs[nx][08]
+				Replace SX1->X1_DECIMAL		With aRegs[nx][09]
+				Replace SX1->X1_PRESEL		With aRegs[nx][10]
+				Replace SX1->X1_GSC			With aRegs[nx][11]
+				Replace SX1->X1_VALID		With aRegs[nx][12]
+				Replace SX1->X1_VAR01		With aRegs[nx][13]
+				Replace SX1->X1_DEF01		With aRegs[nx][14]
+				Replace SX1->X1_DEF02		With aRegs[nx][15]
+				Replace SX1->X1_DEF03		With aRegs[nx][16]
+				Replace SX1->X1_F3   		With aRegs[nx][17]
+				MsUnlock('SX1')
+			Else
+				Help('',1,'REGNOIS')
+			Endif
+		Next nX
+
+Return                                     
+
+///User Function MT120BRW()  //// Inclui botใo de op็ใo na tela de pedido de compras
+
+///AAdd( aRotina, { 'Pedido Grแfico', 'U_LC13R', , } )
+
+///Return

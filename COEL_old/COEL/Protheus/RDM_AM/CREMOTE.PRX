@@ -1,0 +1,123 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "TBICONN.CH"
+
+#DEFINE TOKEN_VALUE			Chr(63)     ///?
+#DEFINE TOKEN_PARAMETERS	Chr(38)     ///&
+
+/*/
+	Sintaxe:	totvsclient.exe -q -p=U_EvalPrg a="Emp?01&Fil?01&FunName?MATA010&ModName?SIGAFAT" -c=rnp_local -e=rnp -m -l ( Chamada Via Linha de Comando )
+	
+	Ex.: C:\Ap11\Smartclient.exe -q -p=u_cremote a="EMP?03&Fil?01&FunName?U_ROTINA&ModName?SIGAEST&Usuario?AM_CARLOS&Password?123456" -c=tcp -e=coel -M -L
+/*/
+User Function CRemote( cParameters )
+
+	Local aParameters
+
+	Local bWindowInit		:=	{ || __Execute( cFunName+"()" , "xxxxxxxxxxxxxxxxxxxx" , cFunName , cModName , cModName , 1 , .T. ) }
+	
+	Local cEmp
+	Local cFil
+	Local cMod
+	Local cParam
+	Local cFunName
+	Local cModName
+	Local xUser 
+	Local xPwd 
+
+	Local cTknValue			:= TOKEN_VALUE
+	Local cTknParameters	:= TOKEN_PARAMETERS
+
+	
+	Local nParam
+	Local nParameters
+	
+	DEFAULT cParameters	:= "Emp?01&Fil?01&FunName?MATA010&ModName?SIGAEST&Usuario?Admin&Password? "
+	
+	aParameters				:= StrTokArr( cParameters , TOKEN_PARAMETERS )
+	
+	nParameters				:= Len( aParameters )
+	
+	For nParam := 1 To nParameters
+		cParam	:= Lower( aParameters[ nParam ] )
+		
+		DO CASE
+			CASE ( "emp" $ cParam )
+				cEmp := StrTokArr( cParam , TOKEN_VALUE	 )[2]
+			CASE ( "fil" $ cParam )	
+				cFil := StrTokArr( cParam , TOKEN_VALUE	 )[2]
+			CASE  ( "funname" $ cParam )	
+				cFunName := StrTokArr( cParam , TOKEN_VALUE	 )[2]
+			CASE  ( "modname" $ cParam )		
+				cModName := StrTokArr( cParam , TOKEN_VALUE	 )[2]
+			CASE  ( "usuario" $ cParam )				
+				cParam	:= Upper( aParameters[ nParam ] )
+				xUser := StrTokArr( cParam , TOKEN_VALUE	 )[2]
+			CASE  ( "password" $ cParam )		
+				cParam	:= Upper( aParameters[ nParam ] )
+				xPwd := StrTokArr( cParam , TOKEN_VALUE	 )[2]
+		ENDCASE		
+	Next nParam
+
+	DEFAULT cEmp		:= "03"
+	DEFAULT cFil		:= "01"
+	DEFAULT cFunName	:= "MATA010"
+	DEFAULT cModName	:= "SIGAEST"
+
+	SetModulo( @cModName , @cMod )
+	
+	PREPARE ENVIRONMENT EMPRESA( cEmp ) FILIAL ( cFil ) USER ( xUser ) PASSWORD ( xPwd ) MODULO ( cMod ) 
+	
+	InitPublic()
+
+	SetsDefault()
+	
+	SetModulo( @cModName , @cMod )
+
+	TINICIO := Time()
+	DDATABASE := MsDate()
+		
+	DEFINE WINDOW oMainWnd FROM 001,001 TO 01,01 TITLE OemToAnsi( FunName() )             ///400,500
+	ACTIVATE WINDOW oMainWnd MAXIMIZED ON INIT ( Eval( bWindowInit ) , oMainWnd:End() )      ///
+	
+	RESET ENVIRONMENT
+
+Return( NIL )
+
+/*/
+	Funcao:		SetModulo
+	Descricao:	Setar o Modulo em Execucao
+/*/
+Static Function SetModulo( cModName , cMod )
+
+	Local aRetModName	:= RetModName( .T. )
+	
+	Local cSvcModulo
+	Local nSvnModulo
+	
+	IF ( Type("nModulo") == "U" )
+		_SetOwnerPrvt( "nModulo" , 0 )
+	Else
+		nSvnModulo := nModulo
+	EndIF
+	
+	cModName := Upper( AllTrim( cModName ) )
+	IF ( nModulo <> aScan( aRetModName , { |x| Upper( AllTrim( x[2] ) ) == cModName } ) )
+		nModulo := aScan( aRetModName , { |x| Upper( AllTrim( x[2] ) ) == cModName } )
+		IF ( nModulo == 0 )
+			cModName	:= "SIGAFAT"
+			nModulo		:= aScan( aRetModName , { |x| Upper( AllTrim( x[2] ) ) == cModName } )
+		EndIF
+	EndIF
+	
+	IF ( Type("cModulo") == "U" )
+		_SetOwnerPrvt( "cModulo" , "" )
+	Else
+		cSvcModulo := cModulo
+	EndIF
+	
+	cMod := SubStr( cModName , 5 )
+	IF ( cModulo <> cMod )
+		cModulo := cMod
+	EndIF
+
+Return( { cSvcModulo , nSvnModulo  } )

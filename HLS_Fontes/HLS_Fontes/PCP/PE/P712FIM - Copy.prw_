@@ -1,0 +1,212 @@
+#include "totvs.ch"
+/*/{Protheus.doc} P712FIM
+	pe para substituir o calculo de geracao de necessidade padrao do MRP Memoria 
+	pelo calculo customizado do cliente
+	@author  ivan.caproni
+	@since	 07/10/2023
+	@version 1.0
+	@type    function
+/*/
+user function P712FIM()
+    local lConcluiu	:= ParamixB[1]
+    local cTicket	:= ParamixB[3]
+	local lFieldHWB := HWB->( FieldPos("HWB_XBKNEC") > 0 )
+	local lFieldHWC := HWC->( FieldPos("HWC_XBKNEC") > 0 )
+	local lEnable	:= GetMV("ES_ENBNMRP",,.T.)
+	if lFieldHWB .and. lFieldHWC .and. lConcluiu .and. lEnable
+		Processa({|| ProcNewQt(cTicket) }, "Aguarde...", "Carregando novas necessidades personalizadas ...",.F.)
+	endif
+return
+/*/{Protheus.doc} ProcNewQt
+	processamento principal
+	@author  ivan.caproni
+	@since	 07/10/2023
+	@version 1.0
+	@type    function
+/*/
+static function ProcNewQt(cTicket)
+	local cTmp		:= "__TMPMRP__"
+	local cPmp		as character
+	local cTipo		as character
+	local cQry		as character
+	local cPrdPai	as character
+	
+	local aSB1		as array
+	local aInfo		:= {}
+	
+	local nIndice	as numeric
+	local nQtEmb	as numeric
+	local nInteiro	as numeric
+	local nParcial	as numeric
+	local nMeses	as numeric
+	local nRegs		as numeric
+	local nSomaPMP	as numeric
+	local nSaldo	as numeric
+	local nInd		as numeric
+	local nLen		as numeric
+	local nIndProp	as numeric
+	local nRet		as numeric
+	local nCnt		:= 0
+	
+	local dDataDe	as date
+	local dDataAte	as date
+
+	// o sistema gera a mesma quantidade de linhas que tem em meses no cadastro do PMP
+	// porem so precisamos do dia atual
+	cQry := "UPDATE "+RetSqlName("HWB")+" SET D_E_L_E_T_='*', R_E_C_D_E_L_=R_E_C_N_O_"
+	cQry += " WHERE HWB_FILIAL='"+xFilial("HWB")+"' AND HWB_TICKET='"+cTicket+"' AND D_E_L_E_T_=' '"
+	cQry += " AND HWB_DATA != '"+DtoS(dDatabase)+"'"
+	nRet := TcSqlExec(cQry)
+
+	cQry := "UPDATE "+RetSqlName("HWC")+" SET D_E_L_E_T_='*', R_E_C_D_E_L_=R_E_C_N_O_"
+	cQry += " WHERE HWC_FILIAL='"+xFilial("HWC")+"' AND HWC_TICKET='"+cTicket+"' AND D_E_L_E_T_=' '"
+	cQry += " AND HWC_DATA != '"+DtoS(dDatabase)+"'"
+	nRet := TcSqlExec(cQry)
+	
+	if Select(cTmp) > 0 ; (cTmp)->( dbClosearea() ) ; endif
+	BeginSql alias cTmp
+		SELECT PAI.HWC_PRODUT PROD_PAI,
+			PAI.R_E_C_N_O_ REC_PAI,
+			FILHO.HWC_PRODUT PROD_FILHO,
+			FILHO.R_E_C_N_O_ REC_FILHO
+		FROM %table:HWC% FILHO
+		JOIN %table:HWC% PAI
+			ON  PAI.HWC_FILIAL = FILHO.HWC_FILIAL
+			AND PAI.HWC_TICKET = FILHO.HWC_TICKET
+			AND PAI.HWC_DOCFIL = FILHO.HWC_DOCPAI
+			AND PAI.%notDel%
+		WHERE	FILHO.HWC_FILIAL=%xFilial:HWC%
+			AND FILHO.HWC_TICKET=%Exp:cTicket%
+			AND FILHO.%notDel%
+		ORDER BY 1,3
+	EndSql
+	
+	Count to nLen
+	
+	ProcRegua(nLen)
+	
+	(cTmp)->( dbGotop() )
+	
+	HWB->( dbSetOrder(RetOrder("HWB","HWB_FILIAL+HWB_TICKET+DTOS(HWB_DATA)+HWB_PRODUT+HWB_IDOPC")) )
+	HWC->( dbSetOrder(RetOrder("HWC","HWC_FILIAL+HWC_TICKET+HWC_PRODUT+HWC_IDOPC+STR(HWC_QTSUBS)")) )
+	
+	cPrdPai := (cTmp)->PROD_PAI
+	while (cTmp)->( ! Eof() )
+		nCnt ++
+		IncProc("Processando "+cValtochar(nCnt)+" de "+cValtochar(nLen)+" ...")
+		ProcessMessages()
+		
+		HWC->( dbGoto((cTmp)->REC_FILHO) ) 
+		
+		if HWB->( dbSeek(xFilial()+cTicket+DtoS(HWC->HWC_DATA)+(cTmp)->PROD_FILHO) )
+			if aScan(aInfo,HWB->(Recno())) == 0
+				aAdd(aInfo,HWB->(Recno()))
+			endif
+		endif
+		
+		(cTmp)->( dbSkip() )
+		
+		if cPrdPai != (cTmp)->PROD_PAI
+			if HWB->( dbSeek(xFilial()+cTicket+DtoS(HWC->HWC_DATA)+cPrdPai) )
+				aSB1 := GetAdvfVal("SB1",{"B1_XINDICE","B1_QE","B1_TIPO"},xFilial("SB1")+cPrdPai,1,{0,0,""})
+				nIndice := aSB1[1]
+				nQtEmb	:= aSB1[2]
+				cTipo	:= aSB1[3]
+				
+				if nIndice > 0
+					nInteiro := Int(nIndice) // quantidade de meses a 100%
+					nParcial := nIndice - nInteiro // percentual do ultimo mes
+					nMeses	 := nInteiro+Iif(nParcial>0,1,0)
+					dDataDe	 := FirstDay(MonthSum(HWB->HWB_DATA,1))
+					dDataAte := LastDay(MonthSum(HWB->HWB_DATA,nMeses))
+				
+					cPmp :=  GetNextAlias()
+					BeginSql alias cPmp
+						SELECT SUBSTRING(T4J_DATA,1,6) T4J_DATA, T4J_QUANT, MAX(T4J_REV) T4J_REV
+						FROM %table:T4J%
+						WHERE
+							T4J_FILIAL=%xFilial:T4J%
+							AND T4J_DATA BETWEEN %Exp:dDataDe% AND %Exp:dDataAte%
+							AND T4J_PROD=%Exp:cPrdPai%
+							//AND T4J_ORIGEM='1' // 1=Plano Mestre
+							AND %notDel%
+						GROUP BY SUBSTRING(T4J_DATA,1,6), T4J_QUANT
+						ORDER BY 1
+					EndSql
+					
+					Count to nRegs
+					
+					if nRegs == nMeses
+						(cPmp)->( dbGotop() ) ; nSaldo := nIndice ; nSomaPMP := 0
+						
+						while (cPmp)->( ! Eof() .and. nSaldo > 0 )
+							if nSaldo >= 1 // faz os inteiros
+								nSomaPMP += (cPmp)->T4J_QUANT
+							elseif nSaldo > 0 // faz o ultimo mes
+								nSomaPMP += (cPmp)->T4J_QUANT * nParcial
+							endif
+							(cPmp)->( dbSkip() ) ; nSaldo --
+						end
+						
+						// verifica se eh multiplo da qtd por embalagem
+						// se a quantidade por embalagem no cadastro estiver preenchido
+						if nQtEmb > 0 .and. Mod(nSomaPMP,nQtEmb) != 0
+							nSomaPMP := nQtEmb * ( Int(nSomaPMP/nQtEmb)+1 ) // arredondo para cima de acordo com a embalagem
+						endif
+						
+						Reclock("HWB",.F.)
+						HWB->HWB_XBKNEC := HWB->HWB_QTNECE
+						HWB->HWB_QTNECE := nSomaPMP
+						HWB->( MsUnlock() )
+						
+						// indice de proporcao
+						nIndProp := HWB->HWB_XBKNEC / nSomaPMP
+
+						AjustarHWC(cTicket,HWB->HWB_PRODUT,HWB->HWB_XBKNEC,HWB->HWB_QTNECE)
+						
+						for nInd := 1 to Len(aInfo)
+							HWB->( dbGoto(aInfo[nInd]) )
+							Reclock("HWB",.F.)
+							HWB->HWB_XBKNEC := HWB->HWB_QTNECE
+							HWB->HWB_QTNECE := HWB->HWB_XBKNEC / nIndProp
+							HWB->( MsUnlock() )
+							
+							AjustarHWC(cTicket,HWB->HWB_PRODUT,HWB->HWB_XBKNEC,HWB->HWB_QTNECE)
+						next nInd
+					endif
+					
+					(cPmp)->( dbClosearea() )
+				endif
+			endif
+
+			aInfo	:= {}
+			cPrdPai	:= (cTmp)->PROD_PAI
+		endif
+	end
+	
+	(cTmp)->( dbClosearea() )
+return
+
+static function AjustarHWC(cTicket,cCodProd,nNecAntiga,nNecNova)
+	local cTemp := GetNextAlias()
+	BeginSql alias cTemp
+		SELECT R_E_C_N_O_ REGHWC
+		FROM %table:HWC%
+		WHERE	HWC_FILIAL=%xFilial:HWC%
+			AND HWC_TICKET=%Exp:cTicket%
+			AND HWC_PRODUT=%Exp:cCodProd%
+			AND HWC_DATA=%Exp:HWB->HWB_DATA%
+			AND %notDel%
+	EndSql
+	
+	while (cTemp)->( ! Eof() )
+		HWC->( dbGoto((cTemp)->REGHWC) )
+		Reclock("HWC",.F.)
+		HWC->HWC_XBKNEC := HWC->HWC_QTNECE
+		HWC->HWC_QTNECE := nNecNova * ( HWC->HWC_QTNECE / nNecAntiga )
+		HWC->( MsUnlock() )
+		(cTemp)->( dbSkip() )
+	end
+	
+	(cTemp)->( dbCloseArea() )
+return

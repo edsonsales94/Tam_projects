@@ -1,0 +1,326 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CFATR540 ³ Autor ³ Carlos Nina           ³ Data ³ 11/12/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ RESUMO DO FATURAMENTO P/APURACAO DE FRETE                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico  - DIRETORIA                                      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+#Include "rwmake.ch"
+#Include "Topconn.ch"
+
+User Function CFATR540()
+
+    Private lPrint
+    Private oReport
+    Private nRegistro
+
+ ///If FindFunction("TRepInUse") .And. TRepInUse()
+    oReport   := ReportDef()
+	 If !Empty(oReport:uParam)
+		 Pergunte(oReport:uParam,.F.)
+	 EndIf
+    oReport:PrintDialog()
+ ///EndIf
+
+Return
+
+Static Function ReportDef()
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Criacao do componente de impressao                                      ³
+		//³                                                                        ³
+		//³TReport():New                                                           ³
+		//³ExpC1 : Nome do relatorio                                               ³
+		//³ExpC2 : Titulo                                                          ³
+		//³ExpC3 : Pergunte                                                        ³
+		//³ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao  ³
+		//³ExpC5 : Descricao                                                       ³
+		//³                                                                        ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+      Local   oReport
+	  Local   oTipo
+      Local   oParam
+	  Local   oSection
+      Local   cPict1 := "@EZ 99999,999.99"
+	  Local   cPict2 := "@EZ 99999999.999"
+	  Private cPerg  := "CFATR540  "
+	   //Local cPicQuant := PesqPictQt("G1_QUANT",13)
+	   //Local cPicUnit	 := PesqPict("SB1","B1_CUSTD",18)
+	   //Local cPicTot	 := PesqPict("SB1","B1_CUSTD",19)
+	   //TRCell():New(oSection,"CEL"		,"",/*Titulo*/,/*Picture*/,/*Tamanho*/,/*lPixel*/,/*{|| Code block }*/)
+
+	   ValidPerg()
+
+      cCabec  := "FATURAMENTO-AP.FRETE"
+	   oReport := TReport():New("FATR540",cCabec,cPerg, {|oReport| ReportPrint(oReport)},"Resumo do Faturamento para Apuração de Frete. CFOP's utilizadas: 5101/5102/5107/5122/6101/6102/6107/6122/6401/7101/7102/7107.")
+
+	   oTipo := TRSection():New(oReport,"Tipo de Venda")
+	   TRCell():New(oTipo,"TIPO"    ,"","TIPO")
+      *
+	   oParam := TRSection():New(oReport,"Parametros")
+	   TRCell():New(oParam,"PARAM1"    ,"","PARAM1",,24)
+	   TRCell():New(oParam,"PARAM2"    ,"","PARAM2",,62)
+	   TRCell():New(oParam,"PARAM3"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM4"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM5"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM6"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM7"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM8"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM9"    ,"","",,22)
+      *
+	   oSection := TRSection():New(oTipo,"FATURAMENTO")
+	   TRCell():New(oSection,"EMISSAO"  ,"", "EMISSÃO",,24)
+	   TRCell():New(oSection,"CLIENTE"  ,"", "C L I E N T E",,62)
+	   TRCell():New(oSection,"NFISCAL"  ,"", "N.FISCAL",,22)
+	   TRCell():New(oSection,"VOLUME"   ,"", "VOLUME",,22)
+	   TRCell():New(oSection,"PESOBR"   ,"", "PESO BRUTO (Kg)",,22)
+	   TRCell():New(oSection,"VLRNOTA"  ,"", "VALOR N.FISCAL (R$)",cPict1,22)
+	   TRCell():New(oSection,"CNHTO"    ,"", "CONHECIMENTO",,22)
+	   TRCell():New(oSection,"VLRFRETE" ,"", "VALOR FRETE (R$)",cPict1,22)
+	   TRCell():New(oSection,"REGIME"   ,"", "REGIME TRIBUTAÇÃO",,22)
+
+		oSubTtl := TRSection():New(oSection,"Sub-Total")
+		TRCell():New(oSubTtl,"EMISSAO"  ,"","",,24)
+	   TRCell():New(oSubTtl,"TXTTOTAL" ,"","** SUB-TOTAL",,62)
+	   TRCell():New(oSubTtl,"NFISCAL"  ,"","",,22)
+	   TRCell():New(oSubTtl,"VOLUME"   ,"","",,22)
+	   TRCell():New(oSubTtl,"PESOBR"   ,"","",,22)
+	   TRCell():New(oSubTtl,"VLRNOTA"  ,"","",cPict1,22)
+	   TRCell():New(oSubTtl,"CNHTO"    ,"","",,22)
+	   TRCell():New(oSubTtl,"VLRFRETE" ,"","",cPict1,22)
+	   TRCell():New(oSubTtl,"REGIME"   ,"","",,22)
+		oSubTtl:SetHeaderSection(.F.)	//Nao imprime o cabeçalho da secao
+
+		oTotais := TRSection():New(oSection,"Total Geral")
+		TRCell():New(oTotais,"EMISSAO"  ,"","",,24)
+	   TRCell():New(oTotais,"TXTTOTAL" ,"","** TOTAL GERAL",,62)
+	   TRCell():New(oTotais,"NFISCAL"  ,"","",,22)
+	   TRCell():New(oTotais,"VOLUME"   ,"","",,22)
+	   TRCell():New(oTotais,"PESOBR"   ,"","",,22)
+	   TRCell():New(oTotais,"VLRNOTA"  ,"","",cPict1,22)
+	   TRCell():New(oTotais,"CNHTO"    ,"","",,22)
+	   TRCell():New(oTotais,"VLRFRETE" ,"","",cPict1,22)
+	   TRCell():New(oTotais,"REGIME"   ,"","",,22)
+		oTotais:SetHeaderSection(.F.)	//Nao imprime o cabeçalho da secao
+
+		//If TCSrvType() <> "AS/400"
+		//	#IFNDEF TOP
+		//		TRPosition():New ( oTitsForn, "SA2" , 1 ,{|| xfilial("SA2")+SE2->(E2_FORNECE+E2_LOJA) } , .T. )
+		//		TRPosition():New ( oTitsForn, "SED" , 1 ,{|| xfilial("SED")+SE2->(E2_NATUREZ) } , .T. )
+		//	#ENDIF
+		//Endif
+
+Return(oReport)
+
+Static Function ReportPrint(oReport)
+	Local cTipo,cTpVenda
+	Local oTipo    := oReport:Section(1)
+   Local oParam   := oReport:Section(2)
+   Local oSection := oReport:Section(1):Section(1)
+	Local oSubTtl	:= oReport:Section(1):Section(1):Section(1)
+	Local oTotais	:= oReport:Section(1):Section(1):Section(1)
+   Local aRegTrb  := {{"OS"},{"LP"},{"LRC"},{"LRNC"},{"ZFM"},{"N/SE APLICA"}} 
+	Local nTotGer  := 0
+	Local nFretGer := 0
+	Local cParam1  := "CFATR540-FATURAMENTO"
+	Local cParam2  := "P/APURAÇÃO DE FRETE - Periodo: " + DTOC(mv_par01) + " A " + DTOC(mv_par02)
+	Private aFats  := {}
+   Private nDecs2 := 2
+	Private nDesc3 := 3
+
+	Proc_R540()
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Inicio da impressao do fluxo do relatorio                               ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	//oTotais:Cell("TXTTOTAL"):SetTitle("** TOTAL GERAL..............")
+	oReport:NoUserFilter()  // Desabilita a aplicacao do filtro do usuario no filtro/query das secoes
+	oTipo:Init()
+	oParam:Init()
+	oSection:Init()
+	*
+	oSubTtl:SetColSpace(0)
+	oTotais:SetColSpace(0)
+   *
+	oTipo:SetColSpace(0)
+	oTipo:SetTotalText("")
+	oTipo:SetHeaderSection(.F.)
+	oTipo:SetTotalInLine(.T.)
+	*
+   oParam:SetColSpace(0)
+	oParam:SetTotalText("")
+   oParam:SetHeaderPage()
+	oParam:SetTotalInLine(.T.)
+	oParam:Cell("PARAM1"):SetTitle(cParam1)
+	oParam:Cell("PARAM2"):SetTitle(cParam2)
+	*
+	oSection:Cell("PESOBR"):SetHeaderAlign("RIGHT")
+	oSection:Cell("VLRNOTA"):SetHeaderAlign("RIGHT")
+	oSection:Cell("VLRFRETE"):SetHeaderAlign("RIGHT")
+	oSection:Cell("VOLUME"):SetAlign("RIGHT")
+	oSection:Cell("PESOBR"):SetAlign("RIGHT")
+	oSection:Cell("VLRNOTA"):SetAlign("RIGHT")
+	oSection:Cell("VLRFRETE"):SetAlign("RIGHT")
+	oSection:SetColSpace(0)
+   oSection:SetHeaderPage()
+	oSection:SetTotalInLine(.T.)
+	*
+	oReport:SetTotalInLine(.F.)
+	oReport:SetLandScape()
+	oReport:SetMeter(nRegistro)
+	oReport:lxlsheader := .F.
+   *
+   ix    := 1
+	Do While !oReport:Cancel() .And. ix <= LEN(aFats)
+		cTpVenda := aFats[ix,1]
+      cTipo    := IIF(cTpVenda=="2","VENDAS EXPORTAÇÃO","VENDAS NACIONAL")
+		oTipo:Cell("TIPO"):SetValue(cTipo)
+		oTipo:PrintLine()
+		nCtdTip   := 0
+      nTotNota  := 0
+		nTotFrete := 0
+      DO WHILE !oReport:Cancel().AND.ix<=LEN(aFats).AND.aFats[ix,1]==cTpVenda
+			If oReport:Cancel()
+				Exit
+			EndIf
+			oReport:IncMeter()
+         nCtdTip   := ( nCtdTip + 1 )
+         nTotNota  := ( nTotNota + aFats[ix,9] )
+         nTotFrete := ( nTotFrete + aFats[ix,13] )
+			nRegTrb   := VAL(aFats[ix,10])
+			nRegTrb   := IIF(nRegTrb==0 .OR. nRegTrb>6 , 6 , nRegTrb )
+			nRegTrb   := IIF(aFats[ix,11]=="AM" , 5 , nRegTrb )
+			cRegime   := IIF(nRegTrb==6 .OR. cTpVenda=="2" , " "  , aRegTrb[nRegTrb,1] )
+			nPesoBr   := IIF(nRegTrb > 4 .OR. cTpVenda=="2" , 0.00 , aFats[ix,8] )
+			nPesoBr   := IIF(nPesoBr==0 , "" , nPesoBr)
+			nVolume   := IIF(nRegTrb > 4 .OR. cTpVenda=="2" , 0.00 , aFats[ix,12] )
+			nVolume   := IIF(nVolume==0 , "" , nVolume)
+			oSection:Cell("EMISSAO"):SetValue(STOD(aFats[ix,2]))
+			oSection:Cell("CLIENTE"):SetValue(aFats[ix,5])
+			oSection:Cell("NFISCAL"):SetValue(aFats[ix,7])
+			oSection:Cell("VOLUME"):SetValue(nVolume)
+			oSection:Cell("PESOBR"):SetValue(nPesoBr)
+			oSection:Cell("VLRNOTA"):SetValue(aFats[ix,9])
+			oSection:Cell("CNHTO"):SetValue(" ")
+			oSection:Cell("VLRFRETE"):SetValue(aFats[ix,13])
+			oSection:Cell("REGIME"):SetValue(cRegime)
+ 			//oSection:Cell("VLRNOTA"):SetPicture(Tm ( VV[1],oSection:Cell("VLRNOTA"):nSize,nDecs ) )
+		   oSection:PrintLine()
+         ix++
+	   Enddo
+		nTotGer += nTotNota
+		nFretGer += nTotFrete
+      IF ( nCtdTip > 1 )
+			oSubTtl:Cell("TXTTOTAL"):SetBlock({||"** SUB-TOTAL "+cTipo  })
+			oSubTtl:Cell("VLRNOTA"):SetValue(nTotNota)
+			oSubTtl:Cell("VLRFRETE"):SetValue(nTotFrete)
+			oSubTtl:Init()
+			oSubTtl:PrintLine()
+			oReport:ThinLine()
+			oSubTtl:Finish()
+      ENDIF
+   EndDo
+	oTotais:Cell("TXTTOTAL"):SetBlock({||"** TOTAL GERAL FATURAMENTO"  })
+	oTotais:Cell("VLRNOTA"):SetValue(nTotGer)
+	oTotais:Cell("VLRFRETE"):SetValue(nFretGer)
+	oTotais:Init()
+	oTotais:PrintLine()
+	oReport:ThinLine()
+	oTotais:Finish()
+	oSection:Finish()
+
+RETURN NIL
+
+***************************
+Static Function Proc_R540()
+***************************
+Local cGrp,cCond,cQuery,cQry
+Local mvpar03 := ALLTRIM(mv_par03)
+
+mvpar03 := STRTRAN(mvpar03,",",";")
+mvpar03 := FormatIn (mvpar03 , ";")
+
+cGrp   := " GROUP BY D2_EMISSAO,D2_CLIENTE,D2_LOJA,A1_NOME,D2_DOC,F2_VOLUME1,F2_PBRUTO,F2_VALBRUT,F2_FRETE,F2_EST,A1_REGTRIB"
+cOrde  := " ORDER BY D2_EMISSAO,D2_DOC " 
+cCond  := " WHERE A.D_E_L_E_T_ <> '*' AND B.D_E_L_E_T_ <> '*' AND C.D_E_L_E_T_ <> '*' AND D2_FILIAL = '"+xFilial("SD2")+"' AND"
+cCond  := cCond + " D2_EMISSAO >= '"+Dtos(mv_par01)+"' AND D2_EMISSAO <= '"+Dtos(mv_par02)+"' AND"
+IF ( !EMPTY(mv_par03) )
+	cCond := cCond + " ( D2_CF IN ('5101','5102','5107','5122','6101','6102','6107','6122','6401','7101','7102','7107')"
+	cCond := cCond + " OR D2_TES IN "+mvpar03+" ) AND"
+ELSE
+	cCond := cCond + " D2_CF IN ('5101','5102','5107','5122','6101','6102','6107','6122','6401','7101','7102','7107') AND"
+ENDIF
+cCond  := cCond + " F2_FILIAL = '"+xFilial("SF2")+"' AND"
+cCond  := cCond + " F2_DOC = D2_DOC AND F2_SERIE = D2_SERIE AND"
+cCond  := cCond + " F2_CLIENTE = D2_CLIENTE AND F2_LOJA = D2_LOJA AND"
+cCond  := cCond + " F2_DUPL <> ' ' AND"
+cCond  := cCond + " A1_COD = D2_CLIENTE AND A1_LOJA = D2_LOJA "
+		
+cQuery := "SELECT COUNT(*) SOMA FROM "+RetSqlName("SD2")+" A,"+RetSqlName("SF2")+" B,"+RetSqlName("SA1")+" C" + cCond
+cQry   := ChangeQuery(cQuery)
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'SOM', .T., .T.)
+nRegistro := SOMA
+SOM->(DbCloseArea())
+		
+cQuery := "SELECT D2_EMISSAO,D2_CLIENTE,D2_LOJA,A1_NOME,D2_DOC,F2_VOLUME1,F2_PBRUTO,F2_VALBRUT,F2_FRETE,F2_EST,A1_REGTRIB" 
+cQuery += " FROM "+RetSqlName("SD2")+" A,"+RetSqlName("SF2")+" B,"+RetSqlName("SA1")+" C" + cCond + cGrp + cOrde
+		
+cQry := ChangeQuery(cQuery)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+///TcSetField("TMP","D2_EMISSAO","D",8,0)
+
+dbSelectArea("TMP")
+dbGoTop()
+Do While !Eof()
+	///cTipo := IIF(LEFT(TMP->D2_CF,1)=="7" , "2" , "1" )
+	cTipo := IIF(TMP->F2_EST=="EX" , "2" , "1" )
+	AADD( aFats , { cTipo           , ;
+						 TMP->D2_EMISSAO , ;      ///Formato: AAAAMMDD
+						 TMP->D2_CLIENTE , ;
+						 TMP->D2_LOJA    , ;
+						 TMP->A1_NOME    , ;
+						 SPACE(5)        , ;      ///C.F.
+						 TMP->D2_DOC     , ;
+						 TMP->F2_PBRUTO  , ;
+						 TMP->F2_VALBRUT , ;
+						 TMP->A1_REGTRIB , ;
+						 TMP->F2_EST     , ;
+						 TMP->F2_VOLUME1 , ;
+						 TMP->F2_FRETE } )
+	dbSkip()					 
+EndDo  
+
+TMP->(dbCloseArea())
+
+aSort(aFats,,,{|x,y| x[1]+x[2]+x[7] < y[1]+y[2]+y[7] } ) 
+    
+Return
+
+Static Function ValidPerg()
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Do Período                  ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Até o Período               ?",   ""   ,  ""    , "mv_ch2" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "TES adicionais              ?",   ""   ,  ""    , "mv_ch3" , "C" ,   15   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

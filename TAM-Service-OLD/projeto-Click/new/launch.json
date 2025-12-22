@@ -1,0 +1,30 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_web_debug",
+			"request": "launch",
+			"name": "Smart Client Web Debug",
+			"program": "${command:AskForProgramName}",
+			"isMultiSession": true,
+			"cwb": "${workspaceFolder}",
+			"smartclientURL": "http://10.0.0.7:8089/webapp/",
+			"enableTableSync": true
+		}
+	],
+	"lastPrograms": [
+		{
+			"label": "SIGAMDI"
+		},
+		{
+			"args": [],
+			"label": "u_MAKEZPC_NOENV"
+		},
+		{
+			"args": [],
+			"label": "U_PROJCON"
+		}
+	],
+	"lastProgramExecuted": "SIGAMDI",
+	"lastProgramArguments": []
+}

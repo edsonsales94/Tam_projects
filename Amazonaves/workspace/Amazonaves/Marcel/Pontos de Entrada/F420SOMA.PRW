@@ -1,0 +1,19 @@
+
+
+USER Function F420SOMA()
+ 
+    _Juros := (SE2->E2_XMULTA + SE2->E2_XJUROS)
+    nValorTit :=0
+    nValorTit := SE2->E2_SALDO+SE2->E2_SDACRES+SE2->E2_XJUROS+SE2->E2_XMULTA-SE2->E2_SDDECRE-SE2->E2_XDESCON
+
+
+If AScan( aTitCNAB , SE2->E2_PREFIXO+SE2->E2_NUM+SE2->E2_PARCELA+SE2->E2_TIPO+SE2->E2_FORNECE+SE2->E2_LOJA) == 0
+    AAdd( aTitCNAB , SE2->E2_PREFIXO+SE2->E2_NUM+SE2->E2_PARCELA+SE2->E2_TIPO+SE2->E2_FORNECE+SE2->E2_LOJA)
+
+    _nTotEnt   += SE2->E2_XOUTENT               
+    _nTotAbat  += SE2->E2_DECRESC
+    _nTotAcres += _Juros
+    _nTotGps   += (SE2->E2_SALDO - SE2->E2_XOUTENT)
+Endif
+
+return nValorTit

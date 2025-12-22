@@ -1,0 +1,395 @@
+/*/
+‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±⁄ƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒø±±
+±±≥Funáao    ≥ CFATR538 ≥ Autor ≥ Carlos Nina           ≥ Data ≥ 17/12/11 ≥±±
+±±√ƒƒƒƒƒƒƒƒƒƒ≈ƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒ¥±±
+±±≥Descriáao ≥ RESUMO DE FATURAMENTO MENSAL - 12 meses                    ≥±±
+±±√ƒƒƒƒƒƒƒƒƒƒ≈ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¥±±
+±±≥ Uso      ≥ Generico  - MATERIAIS                                      ≥±±
+±±¿ƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+#include "rwmake.ch"
+#include "topconn.ch"
+
+User Function CFATR538()
+
+SetPrvt("APEDS","TITULO")
+
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SB1"
+titulo    := OemToAnsi("RESUMO DE FATURAMENTO MENSAL - 12MESES")
+cDesc1    := OemToAnsi("Emite um relatorio gerencial do faturamento anual, por mes, de acordo com o ano informado.")
+cDesc2    := OemToAnsi("Por Produto.")
+cDesc3    := OemToAnsi("")
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+cRodaTxt  := ""
+nCntImpr  := 0
+aOrd      := {"Produto","Cliente"}
+aReturn   := { "Especial", 1,"Materiais", 1, 2, 1, "",1 }
+nomeprog  := "FATR538"
+nLastKey  := 0
+cPerg     := "CFATR538  "
+wnrel     := "FATR538"
+ValidPerg()
+Tabmes   := 'JANFEVMARABRMAIJUNJULAGOSETOUTNOVDEZ'
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,aOrd,.T.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+   Return
+Endif
+SetDefault(aReturn,cString)
+
+RptStatus({||Imprimir()})
+
+Return
+
+**************************
+Static Function Imprimir()
+**************************
+Private nRegistro
+
+V4 := {}
+ASIZE(V4,15)
+V4[01] := {"11  ","CONT TEMPO               ","411 "}
+V4[02] := {"12  ","PROTECAO                 ","412 "}
+V4[03] := {"13  ","NIVEL                    ","413 "}
+V4[04] := {"14  ","CONT DIG TEMPERATURA     ","414 "}
+V4[05] := {"15  ","SENSORES                 ","415 "}
+V4[06] := {"16  ","DIVERSOS                 ","416 "}
+V4[07] := {"17  ","INDICADOR                ","417 "}
+V4[08] := {"18  ","CONTADOR DIGITAL         ","418 "}
+V4[09] := {"20  ","RELE DE TEMPO            ","420 "}
+V4[10] := {"21  ","INTERRUPTOR              ","421 "}
+V4[11] := {"22  ","PLACAS EXCETO USO INFO   ","422 "}
+V4[12] := {"23  ","PLACAS USO INFO          ","423 "}
+V4[13] := {"24  ","RELE ELETR.DIGITAL       ","424 "}
+V4[14] := {"192 ","CONT DIG TEMP REFRIG     ","4192"}
+V4[15] := {"999 ","*** DESCONHECIDO ***     ","4999"}
+
+nTipo   := IIF(aReturn[4]==1,15,18)
+m_pag   := 1
+Li      := 99
+cabec3  := IIF(aReturn[8]==1 , "F A M I L I A"+SPACE(40) , "C L I E N T E"+SPACE(40))+"JANEIRO   FEVEREIRO       MARCO       ABRIL        MAIO       JUNHO       JULHO      AGOSTO    SETEMBRO    OUTUBRO     NOVEMBRO    DEZEMBRO     T O T A L     (%)S/FAT."       
+cabec1  := IIF(aReturn[8]==1 , "F A M I L I A" , "C L I E N T E" )
+cabec2  := "  PRODUTO         DESCRICAO.....................     JANEIRO   FEVEREIRO       MARCO       ABRIL        MAIO       JUNHO       JULHO      AGOSTO    SETEMBRO    OUTUBRO     NOVEMBRO    DEZEMBRO     T O T A L     (%)S/FAT."       
+*****         x-------------x x----------------------------x 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 9999.999,99 999999.999,99       999.999       
+*****                 1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220         
+*****       01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123         
+
+RptStatus({|| Corpo3() })
+
+Return
+
+************************
+Static Function Corpo3()
+************************
+Local nTotal
+Private cRazSoc, dDataIni, dDataFin, titulo, nRegis
+
+       dDataIni := mv_par05 + "0101"
+       dDataIni := Stod(dDataIni)
+       dDataFin := mv_par05 + "1231"
+       dDataFin := Stod(dDataFin)
+
+       Processa( {|| Extrai_Fat() } )
+		 
+       ///IF ( mv_par07 < 3 )
+		 
+	       ////Processa( {|| CriarDev() } )
+			 
+       ///ENDIF
+
+		 nTotFat := 0
+       aTotMes := {0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+		 IF (aReturn[8]==1 )
+			 cCondic := "B1_CLCFAM==cGrupo" 
+			 aTotBrk := { {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} , ;
+							  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,""} }
+		 ELSE
+			 cCondic := "A1_NOME==cRazSoc" 
+		    aTotBrk := {}
+		 ENDIF 
+		 nRegistro := IIF(mv_par07==1,(nRegistro*2),nRegistro)
+	    DbSelectArea("TMP")
+	    SetRegua(nRegistro)
+		 DbGoTop()
+	    Do While !Eof()
+          cGrupo  := TMP->B1_CLCFAM
+			 cRazSoc := TMP->A1_NOME
+			 nTotal  := 0
+			 IF ( aReturn[8]==2 )
+				 AADD(aTotBrk , {0,0,0,0,0,0,0,0,0,0,0,0,0,0,cRazSoc} )
+				 I1 := LEN(aTotBrk)
+			 ELSE	 
+				 I1             := ASCAN( V4 , { |xx| xx[1]==cGrupo } )
+				 I1             := IIF(I1==0 , 15 , I1 )
+				 aTotBrk[I1,15] := V4[I1,1]+" - "+V4[I1,2]
+			 ENDIF
+          DO WHILE !EOF().AND.&(cCondic)  
+	          D2COD := TMP->D2_COD
+				 D2FIL := TMP->D2_FILIAL	
+      	    DO WHILE !EOF().AND.&(cCondic).AND.D2_COD==D2COD.AND.D2_FILIAL==D2FIL
+	      	    IncRegua()
+	         	 nMes := VAL(SUBS(TMP->D2_EMISSAO,5,2)) 
+            	 IF ( mv_par06 == 1 )
+	   	      	 aTotBrk[I1,nMes] += TMP->D2_TOTAL
+						 nTotal           += TMP->D2_TOTAL
+						 nTotFat          += TMP->D2_TOTAL
+	             ELSE
+		   	       aTotBrk[I1,nMes] += TMP->D2_QUANT
+						 nTotal           += TMP->D2_QUANT
+						 nTotFat          += TMP->D2_QUANT
+      	       ENDIF
+	      	    dbSkip()
+	          ENDDO
+			 ENDDO
+			 aTotBrk[I1,13] := nTotal
+		 EndDo
+		 *
+		 I1 := 0
+		 IF ( mv_par07 == 1 )
+			 dbSelectArea("TMP")
+			 dbGoTop()
+			 Do While !Eof()
+				nCtd    := 0
+				lBrk    := .T.
+				cGrupo  := TMP->B1_CLCFAM
+				cRazSoc := TMP->A1_NOME
+				IF ( aReturn[8]==1 )
+					I1      := ASCAN( V4 , { |xx| xx[1]==cGrupo } )
+					I1      := IIF(I1==0 , 15 , I1 )
+				ELSE
+					I1++
+				ENDIF
+				DO WHILE !EOF().AND.&(cCondic)  
+					D2COD  := TMP->D2_COD
+					D2FIL  := TMP->D2_FILIAL	
+					B1DESC := LEFT(TMP->B1_DESC,30)
+					cxCod  := D2COD   
+					aMeses := {0,0,0,0,0,0,0,0,0,0,0,0,0}   ///Detalhe: totais dos meses
+					DO WHILE !EOF().AND.&(cCondic).AND.D2_COD==D2COD.AND.D2_FILIAL==D2FIL
+						IncRegua()
+						nMes := VAL(SUBS(TMP->D2_EMISSAO,5,2))
+						IF ( mv_par06 == 1 )
+							aMeses[nMes] += TMP->D2_TOTAL
+						ELSE
+							aMeses[nMes] += TMP->D2_QUANT
+						ENDIF
+						dbSkip()
+					ENDDO
+					If ( Li > 56 )
+						li := Cabec(titulo,cabec1,cabec2,wnrel,Tamanho,nTipo)
+						lBrk := .T.
+					EndIf
+					li := ( li + 1 )
+					IF ( lBrk )
+						nCol := 49
+						@ li,000 PSAY aTotBrk[I1,15]   
+						FOR ix:=1 TO 12
+							 IF ( mv_par06 == 1 )
+								 @ li,nCol PSAY aTotBrk[I1,ix]   PICTURE "@E 9999,999.99"
+							 ELSE
+								 @ li,nCol PSAY aTotBrk[I1,ix]   PICTURE "@E 9999999,999"
+							 ENDIF
+							 nCol := ( nCol + 12 )
+						NEXT
+						IF ( mv_par06 == 1 )
+							@ li,193 PSAY aTotBrk[I1,13]    PICTURE "@E 999999,999.99"
+						ELSE
+							@ li,193 PSAY aTotBrk[I1,13]    PICTURE "@E 999999999,999"
+						ENDIF
+						nPercent := ROUND( ( aTotBrk[I1,13] / nTotFat ) * 100 , 3 )
+						@ li,213 PSAY nPercent                 PICTURE "@E 999.999"
+						li   := ( li + 1 )
+						lBrk := .F.
+					ENDIF
+					nCtd := ( nCtd + 1 )
+					nCol := 49
+					@ li,002 PSAY LEFT(cxCod,15)
+					@ li,018 PSAY B1DESC
+					FOR ix:=1 TO 13
+   	           IF ( ix < 13 )
+      	           IF ( mv_par06 == 1 )
+				           @ li,nCol PSAY aMeses[ix]   PICTURE "@E 9999,999.99"
+            	     ELSE
+			      	     @ li,nCol PSAY aMeses[ix]   PICTURE "@E 9999999,999"
+	                 ENDIF
+   		           nCol       := ( nCol + 12 )
+	   	      	  aMeses[13] := ( aMeses[13] + aMeses[ix] )
+         	     ENDIF
+            	  aTotMes[ix] := ( aTotMes[ix] + aMeses[ix] )
+					NEXT
+					IF ( mv_par06 == 1 )
+						@ li,193 PSAY aMeses[13]    PICTURE "@E 999999,999.99"
+					ELSE
+						@ li,193 PSAY aMeses[13]    PICTURE "@E 999999999,999"
+					ENDIF
+					nPercent := ROUND( ( aMeses[13] / nTotFat ) * 100 , 3 )
+					@ li,213 PSAY nPercent         PICTURE "@E 999.999"
+				ENDDO
+				li := ( li + 1 )
+				IF ( nCtd > 1 )
+					@ li,000 PSAY REPLICATE("=",220)
+				ENDIF
+			ENDDO
+		 ELSE
+			FOR ix:=1 TO LEN(aTotBrk)
+				 nPercent       := ROUND( ( aTotBrk[ix,13] / nTotFat ) * 100 , 3 )
+				 aTotBrk[ix,14] := nPercent
+			NEXT
+         aSort(aTotBrk,,,{|x,y| x[14] > y[14] } ) //Ordena por percentual descendente
+			FOR iw:=1 TO LEN(aTotBrk)
+				 IF ( aTotBrk[iw,13] > 0 )
+					 If ( Li > 56 )
+						 li := Cabec(titulo,cabec3,"",wnrel,Tamanho,nTipo)
+					 EndIf
+					 li   := ( li + 1 )
+					 nCol := 49
+					 @ li,000 PSAY aTotBrk[iw,15]    
+					 FOR ix:=1 TO 13
+						  IF ( ix < 13 )
+							  IF ( mv_par06 == 1 )
+								  @ li,nCol PSAY aTotBrk[iw,ix]   PICTURE "@E 9999,999.99"
+							  ELSE
+								  @ li,nCol PSAY aTotBrk[iw,ix]   PICTURE "@E 9999999,999"
+							  ENDIF
+							  nCol := ( nCol + 12 )
+						   ENDIF	
+						   aTotMes[ix] := ( aTotMes[ix] + aTotBrk[iw,ix] )
+					 NEXT
+					 IF ( mv_par06 == 1 )
+						 @ li,193 PSAY aTotBrk[iw,13]    PICTURE "@E 999999,999.99"
+					 ELSE
+						 @ li,193 PSAY aTotBrk[iw,13]    PICTURE "@E 999999999,999"
+					 ENDIF
+					 @ li,213 PSAY aTotBrk[iw,14]       PICTURE "@E 999.999"
+				 ENDIF	  
+			NEXT
+			li++
+			@ li,000 PSAY REPLICATE("=",220)
+		 ENDIF
+		 *
+       nCol := 48
+   	 li   := ( li + 1 )
+       @ li,000 PSAY "** TOTAL GERAL"
+       FOR ix:=1 TO 12
+           IF ( mv_par06 == 1 )
+	           @ li,nCol PSAY aTotMes[ix]   PICTURE "@E 99999,999.99"
+           ELSE
+	           @ li,nCol PSAY aTotMes[ix]   PICTURE "@E 99999999,999"
+           ENDIF
+           nCol := ( nCol + 12 )
+       NEXT
+       IF ( mv_par06 == 1 )
+	       @ li,193 PSAY aTotMes[13]    PICTURE "@E 999999,999.99"
+       ELSE
+	       @ li,193 PSAY aTotMes[13]    PICTURE "@E 999999999,999"
+       ENDIF
+		 nPercent := ROUND( ( aTotMes[13] / nTotFat ) * 100 , 3 )
+		 @ li,213 PSAY nPercent          PICTURE "@E 999.999"
+       @ li+1,000 PSAY REPLICATE("=",220)
+   	 If li <> 99
+		   Roda(nCntImpr,cRodaTxt,Tamanho)
+	    EndIf
+		 
+	    TMP->(DbCloseArea())
+		 
+	    If aReturn[5] == 1
+   	    Set Printer TO
+      	 DbCommitAll()
+	       OursPool(wnrel)
+   	 EndIf
+		 
+	    MS_FLUSH()
+		 
+Return
+
+/////////////////////////////////////////////////////
+Static Function Extrai_Fat()
+/////////////////////////////////////////////////////
+Local cCond,cGrp,cOrde,cQuery
+
+		IF ( mv_par06 == 1 )
+		   	titulo := "FATURAMENTO ANUAL "+IIF(mv_par07==1,"ANALITICO","SINTETICO")+" DE " + mv_par05 + " EM R$ (BRUTO)"  /// - FILIAL " + Trim(mv_par01) + " A " + Trim(mv_par02)
+	   ELSE
+		   titulo := "FATURAMENTO ANUAL "+IIF(mv_par07==1,"ANALITICO","SINTETICO")+" DE " + mv_par05 + " EM QUANTIDADE"  /// - FILIAL " +  Trim(mv_par01) + " A " + Trim(mv_par02)
+      ENDIF
+		
+	   cGrp   := " GROUP BY D2_FILIAL,D2_COD,B1_TIPO,B1_DESC,B1_CLCFAM,LEFT(D2_EMISSAO,6),A1_NOME"
+	   cOrde  := IIF(aReturn[8]==1 , " ORDER BY B1_CLCFAM,D2_COD,D2_FILIAL " , " ORDER BY A1_NOME,D2_COD,D2_FILIAL " )
+		cCond  := " WHERE A.D_E_L_E_T_ <> '*' AND B.D_E_L_E_T_ <> '*' AND C.D_E_L_E_T_ <> '*' AND D.D_E_L_E_T_ = ' ' AND"
+		cCond  := cCond + " D2_CLIENTE >= '"+mv_par01+"' AND D2_CLIENTE <= '"+mv_par02+"' AND"
+	   cCond  := cCond + " D2_COD >= '"+mv_par03+"' AND D2_COD <= '"+mv_par04+"' AND"
+		cCond  := cCond + " D2_EMISSAO >= '"+Dtos(dDataIni)+"' AND D2_EMISSAO <= '"+Dtos(dDataFin)+"' AND"
+	   cCond  := cCond + " D2_CF IN ('5101','5102','5107','5122','6101','6102','6107','6122','7101','7102','7107') AND"
+  		cCond  := cCond + " F4_CODIGO = D2_TES AND F4_ESTOQUE = 'S' AND"
+		cCond  := cCond + " B1_FILIAL = '"+xFilial("SB1")+"' AND"
+		cCond  := cCond + " B1_COD = D2_COD AND B1_TIPO = 'PA' AND"
+		cCond  := cCond + " A1_COD = D2_CLIENTE AND A1_LOJA = D2_LOJA "
+		
+		cQuery := "SELECT COUNT(*) SOMA FROM "+RetSqlName("SB1")+" A,"+RetSqlName("SD2")+" B,"+RetSqlName("SF4")+" C,"+RetSqlName("SA1")+" D" + cCond
+		cQry   := ChangeQuery(cQuery)
+		dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'SOM', .T., .T.)
+		nRegistro := SOMA
+	   SOM->(DbCloseArea())
+		
+		cQuery := "SELECT D2_FILIAL,D2_COD,B1_TIPO,B1_DESC,B1_CLCFAM,LEFT(D2_EMISSAO,6) D2_EMISSAO,A1_NOME,SUM(D2_QUANT) D2_QUANT,SUM(D2_TOTAL) D2_TOTAL" 
+		cQuery += " FROM "+RetSqlName("SB1")+" A,"+RetSqlName("SD2")+" B,"+RetSqlName("SF4")+" C,"+RetSqlName("SA1")+" D" + cCond + cGrp + cOrde
+		
+		cQry   := ChangeQuery(cQuery)
+
+		dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+		TcSetField("TMP","D2_TOTAL","N",15,2)
+		TcSetField("TMP","D2_QUANT","N",15,2)
+
+Return
+
+***************************
+Static Function ValidPerg()
+***************************
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03        | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Do Cliente                  ?",   ""   ,  ""    , "mv_ch1" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SA1" , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "AtÈ o Cliente               ?",   ""   ,  ""    , "mv_ch2" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SA1" , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch3" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "AtÈ o Produto               ?",   ""   ,  ""    , "mv_ch4" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par04", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"05" , "Ano de Faturamento          ?",   ""   ,  ""    , "mv_ch5" , "C" ,   04   ,   0   ,   0   , "G" , "          "  , "mv_par05", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"06" , "Relacao em                  ?",   ""   ,  ""    , "mv_ch6" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par06", "Valor       " , "     " , "     " , "   " , "   " , "Quantidade   " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"07" , "Tipo do Relatorio           ?",   ""   ,  ""    , "mv_ch7" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par07", "Analitico   " , "     " , "     " , "   " , "   " , "Sintetico    " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

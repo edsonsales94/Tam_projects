@@ -1,0 +1,35 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_web_debug",
+			"request": "launch",
+			"name": "Smart Client Web Debug",
+			"program": "${command:AskForProgramName}",
+			"isMultiSession": true,
+			"cwb": "${workspaceFolder}",
+			"smartclienturl": "https://coelmaticsa157072.protheus.cloudtotvs.com.br:2329/webapp/",
+			"enableTableSync": true
+		}
+	],
+	"lastPrograms": [
+		{
+			"label": "SIGAADV"
+		},
+		{
+			"label": "U_teste"
+		},
+		{
+			"label": "SIGACFG"
+		},
+		{
+			"label": "SIGAMDI"
+		},
+		{
+			"args": [],
+			"label": "u_GVerbFer"
+		}
+	],
+	"lastProgramExecuted": "<cancel>",
+	"lastProgramArguments": []
+}

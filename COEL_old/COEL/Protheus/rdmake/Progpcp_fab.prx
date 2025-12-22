@@ -1,0 +1,441 @@
+#include "Protheus.ch"            
+#INCLUDE 'RWMAKE.CH'
+#INCLUDE 'TOPCONN.CH'
+#INCLUDE 'TBICONN.CH'
+#INCLUDE 'FONT.CH'
+#INCLUDE 'COLORS.CH'
+#DEFINE  ENTER CHR(13)+CHR(10)
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษอออออออออออออออัออออออออออออออออออออออออออออออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบ Programa      ณ MGFATA16                                       บ Data ณ 10/05/2010  บฑฑ
+ฑฑฬอออออออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบ Descricao     ณ Rotina de Programa็ao de PCP                                        บฑฑ
+ฑฑฬอออออออออออออออุออออออออออออออออออออออหอออออออออัออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ Desenvolvedor ณ Andre Rodrigues        บ Empresa ณ Oliminet/COEL                    บฑฑ
+ฑฑฬอออออออออออออออุออออออออออออหออออออออัสออออออหออฯออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ Linguagem     ณ eAdvpl     บ Versao ณ 8     บ Sistema ณ Microsiga                   บฑฑ
+ฑฑฬอออออออออออออออุออออออออออออสออออออออฯอออออออสอออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ Modulo(s)     ณ                                                                     บฑฑ
+ฑฑฬอออออออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบ Tabela(s)     ณ SC6                                                                 บฑฑ
+ฑฑศอออออออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/  
+User Function MGFATLPCP
+Local cNotas := ""          
+Local cQuery := ""
+Local aAreaAtu := GetArea()
+Local aButtons	:= {}
+Local nX			:= 0                                                                                                              
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Variaveis da MsNewGetDados()      ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+// Vetor responsavel pela montagem da aHeader
+Local aCpoGDa       	:= {"C6_NUM","C6_ITEM","C6_PRODUTO","C6_DESCRI","C6_QTDVEN","C6_X_EMIS","C6_ENTREG","C6_X_ENTRE","C6_X_LIPCP","C5_OS"}
+// Vetor com os campos que poderao ser alterados                                                                                
+Local aAlter       	:= {}         
+Local nSuperior    	:= 030 //C(015)           // Distancia entre a MsNewGetDados e o extremidade superior do objeto que a contem
+Local nEsquerda    	:= 002 //C(027)           // Distancia entre a MsNewGetDados e o extremidade esquerda do objeto que a contem
+Local nInferior    	:= 290 //250       )      // Distancia entre a MsNewGetDados e o extremidade inferior do objeto que a contem
+Local nDireita     	:= 650 //C(632)           // Distancia entre a MsNewGetDados e o extremidade direita  do objeto que a contem
+// Posicao do elemento do vetor aRotina que a MsNewGetDados usara como referencia  
+Local nOpc         	:= 2 //GD_INSERT+GD_DELETE+GD_UPDATE                                                                            
+Local cLinOk       	:= "AllwaysTrue"    // Funcao executada para validar o contexto da linha atual do aCols                  
+Local cTudoOk      	:= "AllwaysTrue"    // Funcao executada para validar o contexto geral da MsNewGetDados (todo aCols)      
+Local cIniCpos     	:= ""               // Nome dos campos do tipo caracter que utilizarao incremento automatico.            
+                                         // Este parametro deve ser no formato "+<nome do primeiro campo>+<nome do            
+                                         // segundo campo>+..."                                                               
+Local nFreeze      	:= 000              // Campos estaticos na GetDados.                                                               
+Local nMax         	:= 999              // Numero maximo de linhas permitidas. Valor padrao 99                           
+Local cFieldOk     	:= "u_mgf16vlc()"    // Funcao executada na validacao do campo                                           
+Local cSuperDel     := ""              // Funcao executada quando pressionada as teclas <Ctrl>+<Delete>                    
+Local cDelOk        := "AllwaysTrue"   // Funcao executada para validar a exclusao de uma linha do aCols                   
+// Objeto no qual a MsNewGetDados sera criada                                      
+Local oWnd          := NIL                                                                                                  
+Local aSize     	:= MsAdvSize( .F. )
+Private aHead       := {}               // Array a ser tratado internamente na MsNewGetDados como aHeader                    
+Private aCol        := {}               // Array a ser tratado internamente na MsNewGetDados como aCols                      
+Private aCols
+Private oDlg				// Dialog Principal
+Private _cFilOri  	:= ""       
+Private _cFilHan  	:= ""
+Private oGetDados1
+Private cPerg     	:= "MFAT16"           
+Private lVai		:= .f.
+Private aEstoque	:= {}
+Private aCores 		:= {}
+Private aLegenda 	:= {}
+
+
+aLegenda:= {	{ "BR_VERDE"	,'Acima de 15 dias'		},;
+                { "BR_VERMELHO"	,'Critico (Ate 7 dias)'	},;
+                { "BR_AMARELO"	,'Atencao (de 8 a 15 dias)'	}}
+                
+                
+xQuery	:= "select c6_filial,c6_num,c6_item,c6_produto,c6_descri,c6_qtdven,c6_x_emis,c6_entreg,c6_x_entre,c6_x_lipcp,sc6.r_e_c_n_o_ as controle"
+xQuery	+= " from "+retSqlName("SC6")+" sc6 "
+xQuery	+= " where c6_x_entre='  ' and sc6.d_e_l_e_t_=' ' and c6_filial = '"+xFilial("SC6")+"'"
+xQuery	+= " order by c6_num,c6_item"
+
+IF Select("QRYSD2") > 0
+	QRYSD2->( DbCloseArea() )
+Endif
+
+dbUseArea(.T., "TOPCONN", TCGenQry(,,xQuery), 'QRYSD2', .F., .T.)         
+
+AADD(aAlter,"C6_X_ENTRE")
+
+
+// LEGENDA
+Aadd(aHead,  {" ","LEGENDA", "@BMP",10,0,"","","C","","V","","","","V"})
+
+// Carrega aHead                                                                                                                
+DbSelectArea("SX3")                                                                                                             
+SX3->(DbSetOrder(2)) // Campo                                                                                                   
+For nX := 1 to Len(aCpoGDa)                                                                                                     
+	If SX3->(DbSeek(aCpoGDa[nX]))
+		Aadd(aHead,{ AllTrim(X3Titulo()),SX3->X3_CAMPO,SX3->X3_PICTURE,SX3->X3_TAMANHO,SX3->X3_DECIMAL,SX3->X3_VALID,SX3->X3_USADO,SX3->X3_TIPO,SX3->X3_F3,SX3->X3_CONTEXT,SX3->X3_CBOX,SX3->X3_RELACAO})
+		If alltrim(SX3->X3_CAMPO)=="C5_OS"
+			aHead[len(aHead)][1] := "controle"
+		Endif		
+	Endif                                                                                                                         
+Next nX                                                                                                                         
+
+DbSelectArea("QRYSD2")
+DbGoTop()
+While ! Eof() 
+	aAux := {}       
+	
+		cLegenda := ''
+
+	If StoD(QRYSD2->C6_ENTREG)-ddatabase <= 7
+		cLegenda := "BR_VERMELHO"
+
+	ElseIf StoD(QRYSD2->C6_ENTREG)-ddatabase >= 8 .And.  StoD(QRYSD2->C6_ENTREG)-ddatabase <= 15
+		cLegenda := "BR_AMARELO"
+
+	ElseIf StoD(QRYSD2->C6_ENTREG)-ddatabase >= 16
+		cLegenda := "BR_VERDE"
+
+	EndIf        
+	
+	Aadd(aAux, cLegenda ) 
+	                   
+	Aadd(aAux,QRYSD2->C6_NUM)
+	Aadd(aAux,QRYSD2->C6_ITEM)
+	Aadd(aAux,QRYSD2->C6_PRODUTO)
+	Aadd(aAux,QRYSD2->C6_DESCRI)
+	Aadd(aAux,QRYSD2->C6_QTDVEN)	
+	Aadd(aAux,stod(QRYSD2->C6_X_EMIS))
+	Aadd(aAux,stod(QRYSD2->C6_ENTREG))
+	Aadd(aAux,stod(QRYSD2->C6_X_ENTRE))        
+	Aadd(aAux,QRYSD2->C6_X_LIPCP)
+	Aadd(aAux,QRYSD2->controle)
+	Aadd(aAux,.F.)                      
+	Aadd(aCol,aAux)
+
+	DbSkip(+1)
+END
+
+IF Select("QRYSD2") > 0
+	QRYSD2->( DbCloseArea() )         
+Endif
+
+
+//aadd(aButtons,{"DBG06"		,{ || Processa({ || VerNota(oGetDados1:aCols)}) 	},"Recalculo"			,"Recalculo"})
+//aadd(aButtons,{"RELATORIO"	,{ || Processa({ || Emite()}) 	},"Gera Planilha","Planilha"})
+
+Aadd(aButtons,{ "Legenda"	,'BrwLegenda("Legenda Status","Status ",aLegenda)', 'Legenda', 'Legenda' })
+
+DEFINE MSDIALOG oDlg FROM aSize[7],0 TO aSize[6],aSize[5] TITLE "Programacao de PCP" OF oMainWnd PIXEL
+
+oGetDados1:= MsNewGetDados():New(nSuperior,nEsquerda,nInferior,nDireita,nOpc,cLinOk,cTudoOk,cIniCpos,aAlter,nFreeze,nMax,cFieldOk,cSuperDel,cDelOk,oWnd,aHead,aCol)
+
+ACTIVATE MSDIALOG oDlg CENTERED ON INIT EnchoiceBar(oDlg, {||lvai:=.t.,Vai(),oDlg:End()},{||oDlg:End()},,aButtons)
+
+RestArea( aAreaAtu )
+Return Nil   
+             
+
+/*/
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//ฑฑษอออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออปฑฑ
+//ฑฑบ Funo    ณ Finalizacao                                               บฑฑ
+//ฑฑฬอออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+//ฑฑบ Descrio ณ Processamento de gravacao da data fabrica                 บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function Vai()
+Processa({ || ProcPedidos() },"Programacao PCP..." ) 
+Return
+
+Static Function ProcPedidos()
+Local xY, x   
+
+Local nPosDatFab    := aScan( aHead ,{ |x| alltrim(x[2]) == "C6_X_ENTRE"})
+Local nPosLipcp     := aScan( aHead ,{ |x| alltrim(x[2]) == "C6_X_LIPCP"  })
+Local nPosContro	:= aScan( aHead ,{ |x| alltrim(x[2]) == "C5_OS"  })
+
+ProcRegua(len(aCol)+1)
+
+For x:=1 to len(aCol)
+	IncProc("Liberando pedidos para programacao...")
+	
+	xxLipcp := oGetDados1:aCols[x,nPosLipcp]
+	xxRecno	:= aCol[x,nPosContro]
+	xxDatEntreg  := "" 
+	xxDatFabrica := oGetDados1:aCols[x,nPosDatFab]  
+ /*	    
+    IF !Empty(xxLipcp)
+		DbSelectArea("SC6")
+		DbGoTo(xxRecno)
+			RecLock("SC6",.f.)
+			SC6->C6_X_LIPCP := xxLipcp
+			MsUnLock()
+	Endif	    
+*/	
+     
+	
+	IF !Empty(xxDatFabrica)
+		DbSelectArea("SC6")
+		DbGoTo(xxRecno)
+			// -- Guarda data de entrega anterior
+			xxDatEntreg  := SC6->C6_ENTREG
+			// -- Grava data da Fabrica
+			RecLock("SC6",.f.)
+			SC6->C6_X_ENTRE := xxDatEntreg  // Data original colocada por vendas
+			SC6->C6_ENTREG  := xxDatFabrica // Data indicada pelo PCP
+			SC6->C6_X_DT1   := xxDatFabrica // Primeira alteracao da data do PCP
+			MsUnLock()
+	Endif	
+Next
+Return
+
+/*
+/*/                                                                                                       
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//ฑฑษอออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออปฑฑ
+//ฑฑบ Funo    ณ ValidPerg                                                 บฑฑ
+//ฑฑฬอออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+//ฑฑบ Descrio ณ Verifica a existencia das perguntas criando-as caso seja  บฑฑ
+//ฑฑบ           ณ necessario (caso nao existam).                            บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function ValidPerg
+
+Local _sAlias := Alias()
+Local aRegs := {}
+//Local i,j
+
+dbSelectArea("SX1")
+dbSetOrder(1)
+cPerg := PADR(cPerg,6)
+
+//cria array com as perguntas do usuario, caso nao existam
+//Grupo/Ordem/Pergunta/Variavel/Tipo/Tamanho/Decimal/Presel/GSC/Valid/Var01/Def01/Cnt01/Var02/Def02/Cnt02/Var03/Def03/Cnt03/Var04/Def04/Cnt04/Var05/Def05/Cnt05
+aAdd(aRegs,{cPerg,"01","Produto            ?" ,"","","mv_ch1","C",tamsx3("B1_COD")[1]	,0,0 ,"G" ,"" ,"mv_par01","","","","","","","","","","","","","","","","","","","","","","","","","SB1",""})
+//aAdd(aRegs,{cPerg,"02","Multiplos de       ?" ,"","","mv_ch2","N",5							,0,0 ,"G" ,"" ,"mv_par02","","","","","","","","","","","","","","","","","","","","","","","","","",""})
+
+U_BuzzSx1(cPerg,aRegs)
+dbSelectArea(_sAlias)                                   
+Return
+*/
+/*/
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//ฑฑษอออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออปฑฑ
+//ฑฑบ Funo    ณ MGF16VLC                                                  บฑฑ
+//ฑฑฬอออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+//ฑฑบ Descrio ณ Validacao do campo digitado                               บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+//User Function mgf16vlc()
+//GetdRefresh()
+//Return(.T.)
+
+/*
+/*/
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//ฑฑษอออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออปฑฑ
+//ฑฑบ Funo    ณ Emite                                                     บฑฑ
+//ฑฑฬอออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+//ฑฑบ Descrio ณ Emite relatorio com o resultado da tela                   บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function Emite()
+
+local cDirDocs  	:= MsDocPath()
+Local cArquivo 	:= CriaTrab(,.F.)
+Local cPath			:= AllTrim(GetTempPath())
+Local oExcelApp
+Local nHandle
+Local cCrLf 		:= Chr(13) + Chr(10)
+Local nX,_ni
+local _cArq		:= ""
+Local kx
+nHandle := MsfCreate(cDirDocs+"\"+cArquivo+".CSV",0)
+
+If nHandle > 0
+	// Grava o cabecalho do arquivo
+	aEval(aHead, {|e, nX| fWrite(nHandle, e[1] + If(nX < Len(aHead), ";", "") ) } )
+	fWrite(nHandle, cCrLf ) // Pula linha
+	For kx:=1 to len(aCol)
+		For _ni := 1 to len(aHead)-1
+			xxConteudo := aCol[kx,_ni]
+		
+			_uValor := ""
+			if aHead[_ni,8] == "D" // Trata campos data
+				_uValor := dtoc(xxConteudo)
+			elseif aHead[_ni,8] == "N" // Trata campos numericos
+				_uValor := transform(xxConteudo,aHead[_ni,3])
+			elseif aHead[_ni,8] == "C" // Trata campos caracter
+				_uValor := xxConteudo
+			else
+				_uValor	:= xxConteudo
+			endif
+			if _ni <> len(aHead)
+				fWrite(nHandle, _uValor + ";" )
+			endif
+		next _ni
+		fWrite(nHandle, cCrLf )
+	Next
+
+	//-- Grava Linhas de Rodape
+	fWrite(nHandle, ";"+cCrLf )
+	xLinha := "Produto;"+cProduto
+	fWrite(nHandle, xLinha + ";" + cCrLf )
+	xLinha := "Estoque;"+str(nEstoque,17,2)
+	fWrite(nHandle, xLinha + ";" + cCrLf )
+	xLinha := "Qtd.Itens;"+str(nQtdPed,17,2)
+	fWrite(nHandle, xLinha + ";" + cCrLf )
+	xLinha := "Total Itens;"+str(nTotPed,17,2)
+	fWrite(nHandle, xLinha + ";" + cCrLf )
+	xLinha := "Total Enviar;"+str(nTotEnv,17,2)
+	fWrite(nHandle, xLinha + ";" + cCrLf )
+
+	fClose(nHandle)
+	CpyS2T( cDirDocs+"\"+cArquivo+".CSV" , cPath, .T. )
+	
+	If ! ApOleClient( 'MsExcel' )
+		MsgAlert( 'MsExcel nao instalado')
+		Return
+	EndIf
+	
+	oExcelApp := MsExcel():New()
+	oExcelApp:WorkBooks:Open( cPath+cArquivo+".CSV" ) // Abre uma planilha
+	oExcelApp:SetVisible(.T.)
+Else
+	MsgAlert("Falha na cria็ใo do arquivo")
+Endif
+
+Return
+
+
+Static Function SaldoEstoque()
+local x, mm
+For mm:=1 to len(aEstoque)
+	xxFilial		:= aEstoque[mm,1]
+	xxCodProd	:= aEstoque[mm,2]
+	xxLocal		:= aEstoque[mm,3]
+
+	//-- Soma de pedidos (SC9) e reservas de estoque (SC0) com lote
+	cQuery	:= "select 'a' as id,c9_lotectl as lotectl,c9_numlote as numlote,sum(sc9.c9_qtdlib) as soma"
+	cQuery	+= "  from "+retSqlName("SC9")+" sc9, "+retSqlName("SC6")+" sc6, "+retSqlName("SF4")+" sf4"
+	cQuery	+= " where sc9.c9_filial  = '"+xxFilial+"'"
+	cQuery	+= "   and sc9.c9_produto = '"+xxCodProd+"'"
+	cQuery	+= "   and sc9.c9_local   = '"+xxLocal+"'"
+	cQuery	+= "   and sc9.c9_nfiscal = ' '"
+	cQuery	+= "   and sc9.c9_blest   = ' '"
+	cQuery	+= "   and sc9.c9_lotectl <>' '"
+	cQuery	+= "   and sc9.d_e_l_e_t_ = ' '"
+	cQuery	+= "   and sc6.c6_filial=sc9.c9_filial and sc6.c6_num=sc9.c9_pedido and sc6.c6_item=sc9.c9_item and sc6.d_e_l_e_t_=' '"
+	cQuery	+= "   and sf4.f4_codigo=sc6.c6_tes and sf4.d_e_l_e_t_=' ' and sf4.f4_estoque='S'"
+	cQuery	+= " group by c9_lotectl,c9_numlote"
+	cQuery	+= " union "
+	cQuery 	+= "select 'b' as id,c0_lotectl as lotectl,c0_numlote as numlote,sum(c0_quant) as soma"
+	cQuery	+= "  from "+retSqlName("SC0")+" sc0"
+	cQuery	+= " where c0_filial  = '"+xxFilial+"'"
+	cQuery	+= "   and c0_produto = '"+xxCodProd+"'"
+	cQuery	+= "   and c0_local   = '"+xxLocal+"'"
+	cQuery	+= "   and c0_lotectl <>' '"
+	cQuery	+= "   and c0_quant   > 0"
+	cQuery	+= "   and d_e_l_e_t_ = ' '"
+	cQuery	+= " group by c0_lotectl,c0_numlote"
+	cQuery	+= " order by lotectl,numlote"
+	aQtdComLote := u_QryArr(cQuery)
+
+	//-- Acerto do SB8 - SALDOS POR LOTE
+	For x:=1 to len(aQtdComLote)
+		DbSelectArea("SB8")
+		DbSetOrder(5) //--B8_FILIAL+B8_PRODUTO+B8_LOTECTL+B8_NUMLOTE+DTOS(B8_DTVALID)
+		If DbSeek(xFilial("SB8")+xxCodProd+aQtdComLote[x,1]+aQtdComLote[x,2])
+			aQtdComLote[x,3] := iif(aQtdComLote[x,3]<0,0,aQtdComLote[x,3])
+			If SB8->B8_EMPENHO<>aQtdComLote[x,3]
+				RecLock("SB8",.f.)
+				SB8->B8_EMPENHO := aQtdComLote[x,3]
+				MsUnLock()
+			Endif
+		Endif
+	Next	
+	
+	//-- Soma de pedidos (SC9) e reservas de estoque (SC0) sem lote e mais os lotes (SB8)
+	cQuery	:= "select sum(soma) as soma from ("
+	cQuery	+= "select 'a' as id,sum(sc9.c9_qtdlib) as soma"
+	cQuery	+= "  from "+retSqlName("SC9")+" sc9, "+retSqlName("SC6")+" sc6, "+retSqlName("SF4")+" sf4"
+	cQuery	+= " where sc9.c9_filial = '"+xxFilial+"'"
+	cQuery	+= "   and sc9.c9_produto= '"+xxCodProd+"'"
+	cQuery	+= "   and sc9.c9_local  = '"+xxLocal+"'"
+	cQuery 	+= "   and sc9.c9_nfiscal= ' '"
+	cQuery	+= "   and sc9.c9_blest  = ' '"
+	cQuery	+= "   and sc9.c9_lotectl= ' '"
+	cQuery	+= "   and sc9.d_e_l_e_t_= ' '"
+	cQuery	+= "   and sc6.c6_filial=sc9.c9_filial and sc6.c6_num=sc9.c9_pedido and sc6.c6_item=sc9.c9_item and sc6.d_e_l_e_t_=' '"
+	cQuery	+= "   and sf4.f4_codigo=sc6.c6_tes and sf4.d_e_l_e_t_=' ' and sf4.f4_estoque='S'"
+	cQuery	+= " union "
+	cQuery	+= "select 'b' as id,sum(c0_quant) as soma"
+	cQuery	+= "  from "+retSqlName("SC0")+" sc0"
+	cQuery	+= " where c0_filial  = '"+xxFilial+"'"
+	cQuery	+= "   and c0_produto = '"+xxCodProd+"'"
+	cQuery	+= "   and c0_local   = '"+xxLocal+"'"
+	cQuery	+= "   and c0_lotectl = ' '"
+   cQuery	+= "   and c0_quant   > 0"
+	cQuery	+= "   and d_e_l_e_t_ = ' '"
+	cQuery	+= " union "
+	cQuery	+= "select 'c' as id,sum(b8_empenho) as soma"
+	cQuery	+= "  from "+retSqlName("SB8")+" sb8"
+	cQuery	+= " where b8_filial  =	'"+xxFilial+"'"
+	cQuery	+= "   and b8_produto = '"+xxCodProd+"'"
+	cQuery	+= "   and b8_local   = '"+xxLocal+"'"
+	cQuery	+= "   and d_e_l_e_t_ = ' '"
+	cQuery	+= ") tabela"
+	nQtdReserva := u_QryArr(cQuery,"V")
+	nQtdReserva	:= iif(nQtdReserva==nil,0,nQtdReserva)
+	nQtdReserva := iif(nQtdReserva<0,0,nQtdReserva)
+
+	//-- Acerto de SB2 - SALDOS FISICO E FINANCEIRO
+	DbSelectArea("SB2")
+	DbSetOrder(1) //B2_FILIAL+B2_COD+B2_LOCAL
+	If DbSeek(xxFilial+xxCodProd+xxLocal)
+		If SB2->B2_RESERVA <> nQtdReserva
+			RecLock("SB2",.f.)
+			SB2->B2_RESERVA := nQtdReserva
+			MsUnLock()
+		Endif'
+	Endif
+Next
+Return
+Return()*/

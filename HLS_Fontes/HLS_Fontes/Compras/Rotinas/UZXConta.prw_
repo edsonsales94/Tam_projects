@@ -1,0 +1,198 @@
+#INCLUDE "URZUM.CH"  
+/*/{protheus.doc}Uzxconta
+Função para chamada diferente de contas contábeis
+@author Afill
+@since 05/02/2014
+/*/
+//+-----------------------------------------------------------------------------------//
+//|Empresa...: Honda Lock
+//|Programa..: UZXConta
+//|Autor.....: Armando M. Urzum - armando@afill.com.br
+//|Data......: 05 de Fevereiro de 2014, 21:40
+//|Uso.......: Customização de Importação - SIGACOM   
+//|Versao....: Protheus 11    
+//|Descricao.: Função para chamada diferente de contas contábeis
+//|Observação:
+//+-----------------------------------------------------------------------------------//
+*------------------------------------------------* 
+User Function UZXConta(xTp)
+*------------------------------------------------* 
+
+Local cRet := ""       
+
+
+//Quando _nVaLVari>0 Variação Passiva - Despesa
+//Quando _nValVari<0 Variação Ativa   - Receita
+
+
+If Alltrim(SE2->E2_TIPO) == "PA" //--------------> ANALISA O TIPO DE TITULO
+	If xTp == "DEBITO"           //--------------> VERIFICA O PARAMETRO - DEBITO OU CREDITO NO QUAL CORRESPONDE O CAMPO NO CT5
+		cRet := Iif(_nValVari > 0,"001","") //---> VERIRICA SE O VALOR NO QUAL ESTÁ SENDO CALCULADO É POSITIVO (PASSIVO) OU NEGATIVO (ATIVO) PARA COLOCAR OCORRETAMENTE OS LANÇAMENTOS
+	ElseIf xTp == "CREDITO"
+		cRet := Iif(_nValVari > 0,"","")
+	EndIf
+ElseIf Alltrim(SE2->E2_XDOCFOR) <> "FINIMP"
+	dbSelectArea(cXADS)
+	&(cXADS)->(dbSetOrder(1))
+	If &(cXADS)->(dbSeek(xFilial(cXADS)+SE2->E2_NUM))
+		If Empty(&(cXADS)->(&(cXIniDS+"NUMDI")))                                 
+		//*****************************************************************************************//
+		//-INICIO-------> PARA CONTABILIZAÇÃO DE TITULOS QUE AINDA NÃO POSSUAM DI <---------------// 
+		//*****************************************************************************************//
+			If Alltrim(SE2->E2_TIPO) == "INV"   //--------------> VERIFICA SE É UMA INVOICE
+				If xTp == "DEBITO"              //--------------> VERIFICA O PARAMETRO - DEBITO OU CREDITO NO QUAL CORRESPONDE O CAMPO NO CT5
+					cRet := Iif(_nValVari > 0,"4503010042",SA2->A2_CONTA)//Iif(_nValVari > 0,SA2->A2_CONTA,"3807003") //---> VERIRICA SE O VALOR NO QUAL ESTÁ SENDO CALCULADO É POSSITIVO (PASSIVO) OU NEGATIVO (ATIVO) PARA COLOCAR OCORRETAMENTE OS LANÇAMENTOS
+				ElseIf xTp == "CREDITO"
+					cRet := Iif(_nValVari > 0,SA2->A2_CONTA,"3401040002")//Iif(_nValVari > 0,"3801002",SA2->A2_CONTA)
+				EndIf                                     
+		//*****************************************************************************************//
+		//-FIM----------> PARA CONTABILIZAÇÃO DE TITULOS QUE AINDA NÃO POSSUAM DI <---------------// 
+		//*****************************************************************************************//
+				
+			ElseIf Alltrim(SE2->E2_TIPO) == "NF"  //------------> VERIFICA SE É UM TITULO NF
+				If "SEGURO" $ Upper(SE2->E2_HIST) //------------> VERIFICA SE É SEGURO
+					If xTp == "DEBITO"
+						cRet := Iif(_nValVari > 0,"","")
+					ElseIf xTp == "CREDITO"
+						cRet := Iif(_nValVari > 0,"","")
+					EndIf
+				ElseIf "FRETE" $ Upper(SE2->E2_HIST) //---------> VERIFICA SE É SEGURO
+					If xTp == "DEBITO"
+						cRet := Iif(_nValVari > 0,"","")
+					ElseIf xTp == "CREDITO"
+						cRet := Iif(_nValVari > 0,"","")
+					EndIf
+				EndIf
+			EndIf
+		ElseIf !Empty(&(cXADS)->(&(cXIniDS+"NUMDI"))) 
+		//*****************************************************************************************//
+		//-INICIO-------> PARA CONTABILIZAÇÃO DE TITULOS QUE  POSSUAM DI <------	---------// 
+		//*****************************************************************************************//		
+			If Alltrim(SE2->E2_TIPO) == "INV"
+				If xTp == "DEBITO"
+					cRet := Iif(_nValVari > 0,"4503010042",SA2->A2_CONTA)//Iif(_nValVari > 0,SA2->A2_CONTA,"3.8.0.10.02")
+				ElseIf xTp == "CREDITO"
+					cRet := Iif(_nValVari > 0,SA2->A2_CONTA,"3401040002") //Iif(_nValVari > 0,"3.8.0.70.03",SA2->A2_CONTA)
+				EndIf      
+		//*****************************************************************************************//
+		//-FIM-------> PARA CONTABILIZAÇÃO DE TITULOS QUE  POSSUAM DI <---------------// 
+		//*****************************************************************************************//					
+			ElseIf Alltrim(SE2->E2_TIPO) == "NF"
+				If "SEGURO" $ Upper(SE2->E2_HIST)
+					If xTp == "DEBITO"
+						cRet := Iif(_nValVari > 0,"","")
+					ElseIf xTp == "CREDITO"
+						cRet := Iif(_nValVari > 0,"","")
+					EndIf
+				ElseIf "FRETE" $ Upper(SE2->E2_HIST)
+					If xTp == "DEBITO"
+						cRet := Iif(_nValVari > 0,"","")
+					ElseIf xTp == "CREDITO"
+						cRet := Iif(_nValVari > 0,"","")
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+ElseIf Alltrim(SE2->E2_XDOCFOR) == "FINIMP" //------------------> ANALISE PARA FINIMP
+	If Alltrim(SE2->E2_TIPO) == "FIP"
+		If xTp == "DEBITO"
+			cRet := Iif(_nValVari > 0,"","")
+		ElseIf xTp == "CREDITO"
+			cRet := Iif(_nValVari > 0,"","")
+		EndIf
+	ElseIf Alltrim(SE2->E2_TIPO) == "FIA"
+		If xTp == "DEBITO"
+			cRet := Iif(_nValVari > 0,"","")
+		ElseIf xTp == "CREDITO"
+			cRet := Iif(_nValVari > 0,"","")
+		EndIf
+	ElseIf Alltrim(SE2->E2_TIPO) == "RFI"
+		If xTp == "DEBITO"
+			cRet := Iif(_nValVari > 0,"","")
+		ElseIf xTp == "CREDITO"
+			cRet := Iif(_nValVari > 0,"","")
+		EndIf
+	ElseIf Alltrim(SE2->E2_TIPO) == "TX"
+		If xTp == "DEBITO"
+			cRet := Iif(_nValVari > 0,"","")
+		ElseIf xTp == "CREDITO"
+			cRet := Iif(_nValVari > 0,"","")
+		EndIf
+	ElseIf Alltrim(SE2->E2_TIPO) == "NF"
+		If xTp == "DEBITO"
+			cRet := Iif(_nValVari > 0,"","")
+		ElseIf xTp == "CREDITO"
+			cRet := Iif(_nValVari > 0,"","")
+		EndIf
+	ElseIf Alltrim(SE2->E2_TIPO) == "NDF"
+		If xTp == "DEBITO"
+			cRet := Iif(_nValVari > 0,"","")
+		ElseIf xTp == "CREDITO"
+			cRet := Iif(_nValVari > 0,"","")
+		EndIf
+	EndIf
+EndIf
+
+Return(cRet)  
+                           
+
+//+-----------------------------------------------------------------------------------//
+//|Funcao....: UZContXCTA()
+//|Autor.....: Armando M. Urzum - armando@afill.com.br
+//|Uso.......: Customização de Importação - Compras
+//|Versao....: Protheus - 10
+//|Descricao.: Função para a Chamada das descrições
+//|Observação: 
+//+-----------------------------------------------------------------------------------//
+*-----------------------------------------*
+User Function UZContXCTA()
+*-----------------------------------------*
+
+Local cRet   := ""
+Local cVarAt := "VAR.AT-"
+Local cVarPs := "VAR.PAS-"
+
+SA2->(dbSetOrder(1))
+SA2->(dbSeek(xFilial("SA2")+SE2->(E2_FORNECE+E2_LOJA)))
+
+If Alltrim(SE2->E2_TIPO) == "PA" //------------> PARA PA´S NÃO COMPENSADOS EM MOEDA ESTRANGEIRA
+	//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+	cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" REF PGTO ANT. - SOB NF. "+Alltrim(SE2->E2_NUM)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+ElseIf Alltrim(SE2->E2_XDOCFOR) <> "FINIMP"
+	dbSelectArea(cXADS)
+	&(cXADS)->(dbSetOrder(1))
+	If &(cXADS)->(dbSeek(xFilial(cXADS)+SE2->E2_NUM))
+		If Empty(&(cXADS)->(&(cXIniDS+"NUMDI")))  //--------> PARA CONTABILIZAÇÃO DE TITULOS QUE AINDA NÃO POSSUAM DI
+			If Alltrim(SE2->E2_TIPO) == "INV"
+				//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+				cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" INVOICE SEM DI - PROC: "+Alltrim(SE2->E2_NUM)+" - "+Alltrim(SE2->E2_HIST)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+			ElseIf Alltrim(SE2->E2_TIPO) == "NF"
+				If "SEGURO" $ Upper(SE2->E2_HIST)
+			    	//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+			    	cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" SEGURO SEM DI - PROC: "+Alltrim(SE2->E2_NUM)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+			 	ElseIf "FRETE" $ Upper(SE2->E2_HIST)
+			    	//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+			    	cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" FRETE SEM DI  - PROC: "+Alltrim(SE2->E2_NUM)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+			  	EndIf
+			EndIf
+		ElseIf !Empty(&(cXADS)->(&(cXIniDS+"NUMDI"))) //--------> PARA CONTABILIZAÇÃO DE TITULOS QUE POSSUAM DI
+			If Alltrim(SE2->E2_TIPO) == "INV" 
+				//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+				cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" INVOICE COM DI - PROC: "+Alltrim(SE2->E2_NUM)+" - "+Alltrim(SE2->E2_HIST)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+			ElseIf Alltrim(SE2->E2_TIPO) == "NF"
+				If "SEGURO" $ Upper(SE2->E2_HIST)
+			    	//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+			    	cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" SEGURO COM DI - PROC: "+Alltrim(SE2->E2_NUM)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+			 	ElseIf "FRETE" $ Upper(SE2->E2_HIST)
+			    	//------------> Iif(_nValVari > 0,cVarPs,cVarAt) = CASO A VARIAÇÃO FOR MAIOR QUE ZERO, LEVA A DESCRIÇÃO DE PASSIVA, SE NÃO, LEVA COMO ATIVA
+			    	cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+" FRETE COM DI - PROC: "+Alltrim(SE2->E2_NUM)+" - "+ALLTRIM(SA2->A2_NREDUZ)
+			  	EndIf
+			EndIf
+		EndIf
+	EndIf
+ElseIf Alltrim(SE2->E2_XDOCFOR) == "FINIMP"
+	cRet := Iif(_nValVari > 0,cVarPs,cVarAt)+Alltrim(SE2->E2_HIST)+"-"+Alltrim(SE2->E2_XREFIMP)
+EndIf
+
+Return(cRet)

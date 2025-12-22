@@ -1,0 +1,135 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_debug",
+			"request": "launch",
+			"name": "TOTVS Language Debug",
+			"program": "${command:AskForProgramName}",
+			"cwb": "${workspaceFolder}",
+			"smartclientBin": "C:\\AA\\smartclient\\SmartClient.exe",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			"enableMultiThread": true,
+			"enableProfile": false,
+			"isAccessibilityMode": false,
+			"doNotShowSplash": false,
+			"language": "",
+			"ignoreFiles": true
+		},
+		{
+			"type": "totvs_language_debug",
+			"request": "launch",
+			"name": "Remote Debug",
+			"program": "${command:AskForProgramName}",
+			"cwb": "${workspaceFolder}",
+			"smartclientBin": "T:\\bin\\Smartclient\\SmartClient.exe",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			"enableMultiThread": true,
+			"enableProfile": false,
+			"isAccessibilityMode": false,
+			"doNotShowSplash": false,
+			"language": "",
+			"ignoreFiles": true
+		}
+	],
+	"lastPrograms": [
+		{
+			"args": [],
+			"label": "SIGAMDI",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "U_AAFATP13",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "SIGAFAT",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "SIGALOJA",
+			"description": ""
+		},
+		{
+			"args": [
+				"001"
+			],
+			"label": "SIGALOJA",
+			"description": "001"
+		},
+		{
+			"args": [
+				"016"
+			],
+			"label": "SIGALOJA",
+			"description": "016"
+		},
+		{
+			"args": [],
+			"label": "SIGAPCP",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "SIGAEST",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "SIGAFIN",
+			"description": ""
+		},
+		{
+			"label": "u_AAMNTR01",
+			"description": "<nil>"
+		},
+		{
+			"label": "u_AAMNTR1X",
+			"description": "<nil>"
+		},
+		{
+			"args": [
+				" <",
+				"nil",
+				">"
+			],
+			"label": "u_AAMNTR01",
+			"description": " < nil >"
+		},
+		{
+			"args": [],
+			"label": "U_AAMNTR2X",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "u_AAMNTR02",
+			"description": ""
+		},
+		{
+			"label": "SIGAMDI",
+			"description": "<nil>"
+		},
+		{
+			"args": [],
+			"label": "u_mwc_invent",
+			"description": ""
+		},
+		{
+			"label": "u_myPost"
+		},
+		{
+			"label": "U_AAPONAPI"
+		},
+		{
+			"label": "SIGACFG"
+		}
+	],
+	"lastProgramExecuted": "SIGACFG",
+	"lastProgramArguments": []
+}

@@ -1,0 +1,30 @@
+////
+////P.E. para alterar o tipo da op de Firme para Prevista (Geracao de OP por Vendas)
+////
+#Include "rwmake.ch"
+
+User Function MTA650I() 
+
+Local nSaldo
+Local _aArea := GetArea()
+Local lResp  := .T.
+
+IF ( SC2->C2_TPOP=="F".AND.!EMPTY(SC2->C2_PEDIDO).AND.!EMPTY(SC2->C2_ITEMPV) )
+	/*
+	nSaldo := ( SC6->C6_QTDVEN - SC6->C6_QTDENT )
+	
+	IF ( SC2->C2_QUANT < nSaldo )
+	
+		lResp := MsgBox("Qtde. da OP menor que o Saldo do Pedido de Venda. Confirma essa qtde.? Se Não, a qtde. será alterada para o Saldo do Pedido.","Escolha a opção","YESNO")
+	
+	ENDIF
+	*/
+	RecLock("SC2",.F.) 
+	SC2->C2_TPOP := "P"
+	MsUnlock()
+	
+ENDIF
+
+RestArea(_aArea)
+
+Return     

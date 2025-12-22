@@ -1,0 +1,343 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 03/09/02
+#IFNDEF WINDOWS
+    #DEFINE PSAY SAY
+#ENDIF
+
+User Function Cfat87r()        // incluido pelo assistente de conversao do AP6 IDE em 03/09/02
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP6 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("WNREL,CDESC1,CDESC2,CDESC3,CSTRING,LEND")
+SetPrvt("TAMANHO,LIMITE,TITULO,ARETURN,NOMEPROG,NLASTKEY")
+SetPrvt("ADRIVER,CBCONT,CPERG,NLIN,M_PAG,_NQUANT")
+SetPrvt("_NVALOR,AESTRU1,_CTEMP1,_CINDSD11,_CCHASD11,_FLAGT")
+SetPrvt("CABEC1,CABEC2,_FLAG,NPAG,_DDTDIG,AREGS")
+SetPrvt("I,J,")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ CFAT87R  ³ Autor ³Adilson M Takeshima    ³ Data ³25/04/2001³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Relacao de Entradas de Produtos por TES/data Digitacao     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Coel Controles Eletricos Ltda                              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³            ATUALIZACOES SOFRIDAS DESDE A CONSTRUCAO INICIAL           ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   Analista   ³  Data  ³             Motivo da Alteracao               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³              ³        ³                                               ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+/*/
+#IFNDEF WINDOWS
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 03/09/02 ==>     #DEFINE PSAY SAY
+#ENDIF
+*---------------------------------------------------------------------------*
+* Variaveis Utilizadas no Relatorio                                         *
+*---------------------------------------------------------------------------*
+
+wnrel     := "CFAT87R"
+cDesc1    := "Relacao de Entradas"
+cDesc2    := " "
+cDesc3    := " "
+cString   := "SD1"
+lEnd      := .F.
+tamanho   := "M"
+limite    := 132
+titulo    := "Relacao Detalhada de Entradas"
+aReturn   := { "Zebrado", 1,"Administracao", 2, 2, 1, "",0 }
+nomeprog  := "CFAT87R"
+nLastKey  := 0
+aDriver   := ReadDriver()
+cbCont    := 00
+cPerg     := "FAT87R"
+nLin      := 7
+m_pag     := 1
+_nQuant   := { 0,0}
+_nValor   := { 0,0}
+*---------------------------------------------------------------------------*
+* Variaveis Utilizadas para Parametros                                      *
+*                                                                           *
+* mv_par01  ----> Da   Data de Digitacao                                    *
+* mv_par02  ----> Ate  Data de Digitacao                                    *
+* mv_par03  ----> Tes de Entrada                                            *
+*                                                                           *
+*---------------------------------------------------------------------------*
+* Arquivo Temporario                                                        *
+*---------------------------------------------------------------------------*
+
+aEstru1 :={}
+AADD(aEstru1,{"DTDIGIT" ,"D",08,0})
+AADD(aEstru1,{"EMISSAO" ,"D",08,0})
+AADD(aEstru1,{"NOTA"    ,"C",06,0})
+AADD(aEstru1,{"SERIE"   ,"C",01,0})
+AADD(aEstru1,{"TES"     ,"C",03,0})
+AADD(aEstru1,{"TIPO"    ,"C",04,0})
+AADD(aEstru1,{"PRODUTO" ,"C",15,0})
+AADD(aEstru1,{"ITEM"    ,"C",02,0})
+AADD(aEstru1,{"DESCRI"  ,"C",30,0})
+AADD(aEstru1,{"QUANT"   ,"N",11,2})
+AADD(aEstru1,{"VALOR"   ,"N",12,2})
+AADD(aEstru1,{"CLIFOR"  ,"C",06,0})
+AADD(aEstru1,{"LOJA"    ,"C",02,0})
+AADD(aEstru1,{"NOMECF"  ,"C",30,0})
+
+_cTemp1 := CriaTrab( aEstru1, .T. )  
+//dbUseArea(.T.,__cRdd,_cTemp1,"TRB",IF(.T. .OR. .F., !.F., NIL), .F. )
+dbUseArea(.T.,,_cTemp1,"TRB", NIL, .F. )
+*---------------------------------------------------------------------------*
+
+ValidPerg()     //----> Atualiza o arquivo de perguntas SX1
+
+Pergunte(cPerg,.F.)
+
+wnrel := SetPrint(cString,wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.)
+
+If nLastKey == 27
+	Set Filter To
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+	Set Filter to
+	Return
+Endif
+*---------------------------------------------------------------------------*
+* Arquivos e Indices Utilizados                                             *
+*---------------------------------------------------------------------------*
+Processa({||RunProc()},"Filtrando Dados ...")// Substituido pelo assistente de conversao do AP6 IDE em 03/09/02 ==> Processa({||Execute(RunProc)},"Filtrando Dados ...")
+Return
+
+// Substituido pelo assistente de conversao do AP6 IDE em 03/09/02 ==> Function RunProc
+Static Function RunProc()
+
+DbSelectArea("SD1")         //----> Itens das Notas de Entradas
+_cIndSD11 := CriaTrab(Nil,.f.)
+_cChaSD11 := "SD1->D1_FILIAL+DTOS(SD1->D1_DTDIGIT)+SD1->D1_FORNECE"
+
+IndRegua("SD1",_cIndSD11,_cChaSD11,,,"Selecionando Registros SD1 (Indice Temp) ...")
+ProcRegua(RecCount())
+
+DbSeek(xFilial("SD1")+Dtos(mv_par01),.t.)
+
+Do While !Eof() .AND. Dtos(SD1->D1_DTDIGIT) <= Dtos(mv_par02)
+    IncProc("Selecionando Dados da NOTA: "+SD1->D1_DOC)
+
+   If !SD1->D1_TES $ AllTrim(mv_par03)
+         dbSkip()
+         Loop
+   EndIf
+
+        DbSelectArea("TRB")
+        RecLock("TRB",.t.)
+
+          TRB->DTDIGIT  :=      SD1->D1_DTDIGIT
+          TRB->EMISSAO  :=      SD1->D1_EMISSAO
+          TRB->NOTA     :=      SD1->D1_DOC
+          TRB->SERIE    :=      SD1->D1_SERIE
+          TRB->TES      :=      SD1->D1_TES 
+          If      SD1->D1_TIPO == "N"
+                  TRB->TIPO := "NORM"
+                  _flagt := 1
+          Elseif  SD1->D1_TIPO == "B"
+                  TRB->TIPO := "BENF"
+                  _flagt := 2
+          Elseif  SD1->D1_TIPO == "C"
+                  TRB->TIPO := "COMP"
+                  _flagt := 1
+          Elseif  SD1->D1_TIPO == "D"
+                  TRB->TIPO := "DEVL"
+                  _flagt := 2
+          Elseif  SD1->D1_TIPO == "P"
+                  TRB->TIPO := "CIPI"
+                  _flagt := 1
+          Elseif  SD1->D1_TIPO == "I"
+                  TRB->TIPO := "CICM"
+                  _flagt := 1
+          Endif
+          TRB->PRODUTO  :=      SD1->D1_COD
+          TRB->ITEM     :=      SD1->D1_ITEM
+          TRB->DESCRI   :=      Posicione("SB1",1,xFilial("SB1")+SD1->D1_COD,"B1_DESC")            
+          TRB->QUANT    :=      SD1->D1_QUANT            
+          TRB->VALOR    :=      SD1->D1_TOTAL + SD1->D1_VALIPI - SD1->D1_VALDESC           
+          TRB->CLIFOR   :=      SD1->D1_FORNECE                
+          TRB->LOJA     :=      SD1->D1_LOJA                
+          If      _flagt == 1
+                  TRB->NOMECF := Posicione("SA2",1,xFilial("SA2")+SD1->D1_FORNECE + SD1->D1_LOJA,"A2_NOME")
+           Else
+                  TRB->NOMECF := Posicione("SA1",1,xFilial("SA1")+SD1->D1_FORNECE + SD1->D1_LOJA,"A1_NOME")
+          Endif
+
+
+        MsUnLock()
+
+        DbSelectArea("SD1")
+        DbSkip()
+EndDo
+*---------------------------------------------------------------------------*
+* Impressao do Relatorio                                                    *
+*---------------------------------------------------------------------------*
+
+#IFDEF WINDOWS
+    RptStatus({|| Imprime()},titulo)// Substituido pelo assistente de conversao do AP6 IDE em 03/09/02 ==>     RptStatus({|| Execute(Imprime)},titulo)
+#ELSE
+    Imprime()
+#ENDIF
+
+
+Return(nil)        // incluido pelo assistente de conversao do AP6 IDE em 03/09/02
+
+// Substituido pelo assistente de conversao do AP6 IDE em 03/09/02 ==> Function Imprime
+Static Function Imprime()
+
+          //0         1         2         3         4         5         6         7         8         9        10         11  11
+          //0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567                 
+cabec1  := "PRODUTO  DESCRICAO                      QUANTIDADE  VALOR+IPI DT.EMISS NR.NFE SER TES TIPO CLIENTE   NOME DO CLIENTE "
+          //99999999 123456789012345678901234567890 999.999,99 999.999,99 99/99/99 123456 XXX 999 XXXX 123456-12 1234567890123456789
+
+cabec2  := ""
+titulo  := " RELACAO DETALHADA DE ENTRADAS POR DATA DE DIGITACAO " 
+
+_flag := 0
+nLin := 7
+nPag := 1
+
+DbSelectArea("TRB")
+DbGoTop()
+Setregua(Lastrec())
+@ 00,00 Psay AvalImp(limite)
+cabec(titulo,cabec1,cabec2,nomeprog,tamanho,15)
+Do While !Eof()
+Incregua()
+
+   If  _flag == 0
+       _dDtdig := TRB->DTDIGIT
+       _flag := 1
+   Endif
+
+   If  _dDtdig <> TRB->DTDIGIT
+       Totaldia()
+   Endif
+
+   @nLin,  00 PSAY TRB->PRODUTO
+   @ nLin, 10 PSAY TRB->DESCRI
+   @nLin,  41 PSAY TRB->QUANT        Picture "@E 999,999.99"
+   _nQuant[1] := _nQuant[1] + TRB->QUANT
+   _nQuant[2] := _nQuant[2] + TRB->QUANT
+   @nLin,  52 PSAY TRB->VALOR        Picture "@E 999,999.99" 
+   _nValor[1] := _nValor[1] + TRB->VALOR
+   _nValor[2] := _nValor[2] + TRB->VALOR
+   @nLin,  63 PSAY TRB->EMISSAO   
+   @nLin,  72 PSAY TRB->NOTA  
+   @nLin,  79 PSAY TRB->SERIE
+   @nLin,  83 PSAY TRB->TES
+   @nLin,  87 PSAY TRB->TIPO
+   @nLin,  92 PSAY TRB->CLIFOR    
+   @nLin,  98 PSAY "-"
+   @nLin,  99 PSAY TRB->LOJA   
+   @nLin,  102 PSAY TRB->NOMECF 
+   nLin := nLin + 1
+
+   If nLin > 56
+      @ nLin, 000 Psay Replicate("-",87)+"Continua na Proxima Pagina----"
+      cabec(titulo,cabec1,cabec2,nomeprog,tamanho,15)
+      nLin := 7
+   Endif
+
+    DbSkip()
+
+Enddo
+
+If nLin > 59
+   cabec(titulo,cabec1,cabec2,nomeprog,tamanho,15)
+   nLin := 7
+Endif
+@ nLin, 000 Psay Replicate("-",limite)
+nLin := nLin + 1
+@nLin,  01 PSAY " TOTAL DO DIA -> "+DTOC(_dDtdig)
+@nLin,  41 PSAY _nQuant[1]        Picture "@E 999,999.99"
+@nLin,  52 PSAY _nValor[1]        Picture "@E 999,999.99"
+nLin := nLin + 1
+@ nLin, 000 Psay Replicate("-",limite)
+nLin := nLin + 1
+@nLin,  01 PSAY " TOTAL NO PERIODO -> "+DTOC(MV_PAR01)+" A "+DTOC(MV_PAR02)
+@nLin,  41 PSAY _nQuant[2]       Picture "@E 999,999.99"
+@nLin,  52 PSAY _nValor[2]       Picture "@E 999,999.99"
+
+Roda(cbCont,"Pedidos",tamanho)
+
+Set Device to Screen
+
+If aReturn[5] == 1 
+	Set Printer TO
+    dbCommitAll()
+    OurSpool(wnrel)
+Endif
+
+DbCloseArea("TRB")
+Ferase(_cTemp1+".dbf")
+Ferase(_cTemp1+".idx")
+Ferase(_cTemp1+".mem")
+
+MS_FLUSH()
+
+Return
+
+*---------------------------------------------------------------------------*
+* Fim do Programa                                                           *
+*---------------------------------------------------------------------------*
+// Substituido pelo assistente de conversao do AP6 IDE em 03/09/02 ==> Function Totaldia
+Static Function Totaldia()
+         nLin := nLin + 1
+         @ nLin, 000 Psay Replicate("-",limite)
+         nLin := nLin + 1
+         @nLin,  01 PSAY " TOTAL DO DIA -> "+DTOC(_dDtdig)
+         @nLin,  41 PSAY _nQuant[1]        Picture "@E 999,999.99"
+         @nLin,  52 PSAY _nValor[1]        Picture "@E 999,999.99"
+         _nQuant[1] := 0
+         _nValor[1] := 0
+         nLin := nLin + 1
+         @ nLin, 000 Psay Replicate("-",limite)
+         nLin := nLin + 1
+         _dDtdig := TRB->DTDIGIT
+Return
+
+
+// Substituido pelo assistente de conversao do AP6 IDE em 03/09/02 ==> Function ValidPerg
+Static Function ValidPerg()
+
+DbSelectArea("SX1")
+DbSetOrder(1)
+If !DbSeek(cPerg)
+    aRegs := {}
+    aadd(aRegs,{cPerg,'01','Dta Incial Digitacao ? ','mv_ch1','D',08, 0, 0,'G', '', 'mv_par01','','','','','','','','','','','','','','',''})
+    aadd(aRegs,{cPerg,'02','Dta Final  Digitacao ? ','mv_ch2','D',08, 0, 0,'G', '', 'mv_par02','','','','','','','','','','','','','','',''})
+    aadd(aRegs,{cPerg,'03','Contem os Tes        ? ','mv_ch3','C',30, 0, 0,'G', '', 'mv_par03','','','','','','','','','','','','','','',''})
+
+    For i:=1 to len(aRegs)
+        Dbseek(cPerg+strzero(i,2))
+        If found() == .f.
+            RecLock("SX1",.t.)
+            For j:=1 to fcount()
+                FieldPut(j,aRegs[i,j])
+            Next
+            MsUnLock()
+        EndIf
+    Next
+EndIf
+
+
+Return(nil)        // incluido pelo assistente de conversao do AP6 IDE em 03/09/02
+
+

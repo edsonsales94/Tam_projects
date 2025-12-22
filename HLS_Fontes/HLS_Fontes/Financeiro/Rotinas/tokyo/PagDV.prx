@@ -1,0 +1,32 @@
+#include "rwmake.ch"  
+
+/*/{Protheus.doc} PagDV
+
+Retorna o Dígito Verificador conforme o Código de Barras ou Linha Digitável.
+
+@type function
+@author Honda Lock
+@since 01/11/2017
+
+@return Caracter, Digito verificador.
+
+/*/
+
+//////////////////////////////////////////////////////////////////////////////////////
+//                              													//
+//  Retorna o Dígito Verificador conforme o Código de Barras ou Linha Digitável.	//
+//                              													//
+//////////////////////////////////////////////////////////////////////////////////////
+
+User Function PagDV()
+
+// Declaração das Variáveis.
+Local _cDV	:= ""
+
+If !Empty(SE2->E2_CODBAR)
+	_cDV 	:= Substr(SE2->E2_CODBAR,5,1)
+Else
+	_cDV	:= Substr(SE2->E2_ZZIPTE,33,1)
+EndIf
+
+Return(_cDV)

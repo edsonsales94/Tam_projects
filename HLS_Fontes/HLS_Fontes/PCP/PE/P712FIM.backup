@@ -1,0 +1,247 @@
+#include "totvs.ch"
+
+static lFieldHWB := HWB->( FieldPos("HWB_XBKNEC") > 0 )
+static lFieldHWC := HWC->( FieldPos("HWC_XBKNEC") > 0 )
+
+/*/{Protheus.doc} P712FIM
+	pe para substituir o calculo de geracao de necessidade padrao do MRP Memoria 
+	pelo calculo customizado do cliente
+	@author  ivan.caproni
+	@since	 07/10/2023
+	@version 1.0
+	@type    function
+/*/
+user function P712FIM
+    local lConcluiu	:= ParamixB[1]
+    local cTicket	:= ParamixB[3]
+	local lEnable	:= GetMV("ES_ENBNMRP",,.T.)
+	if lConcluiu .and. lEnable
+		MsgRun("Processando novas quantidades ...",,{|| ProcNewQt(cTicket) })
+	endif
+return
+/*/{Protheus.doc} ProcNewQt
+	processamento principal
+	@author  ivan.caproni
+	@since	 07/10/2023
+	@version 1.0
+	@type    function
+/*/
+static function ProcNewQt(cTicket)
+	local cProdPai	as character
+	local cProdFil	as character
+	local cTipo		as character
+	local cTmp		:= "__DTTMP__"
+	local nIndice	as numeric
+	local nQtEmb	as numeric
+	local nInteiro	as numeric
+	local nParcial	as numeric
+	local nRegs		as numeric
+	local nMeses	as numeric
+	local nSaldo	as numeric
+	local nSumFilh	as numeric
+	local nSomaPM	as numeric // soma plano mestre
+	local nNewNec	as numeric // nova necessidade
+	local nSomaOPSC	as numeric // soma das necessidades que gerarao SC/PC e OP
+	local dDataDe	as date
+	local dDataAte	as date
+	local aSB1		as array
+	local aAux		as array
+	local aAreas	:= {}
+	
+	aEval({"SB1","HWB","HWC"},{|x| aAdd(aAreas,(x)->( GetArea() )) })
+	
+	HWB->( dbSetOrder(1) )
+	
+	if HWB->( dbSeek(xFilial()+cTicket) )
+		while HWB->( ! Eof() .and. HWB_FILIAL+HWB_TICKET == xFilial()+cTicket )
+			cProdFil := HWB->HWB_PRODUT
+
+			aSB1 := GetAdvfVal("SB1",{"B1_XINDICE","B1_QE","B1_TIPO"},xFilial("SB1")+cProdFil,1,{0,0,""})
+			nIndice := aSB1[1]
+			nQtEmb	:= aSB1[2]
+			cTipo	:= aSB1[3]
+			
+			if nIndice > 0 .and. ! cTipo $ "PA|"
+				aAux := GetProdPai()
+				cProdPai := aAux[1]
+				nSumFilh := aAux[2]
+			
+				nInteiro := Int(nIndice) // quantidade de meses a 100%
+				nParcial := nIndice - nInteiro // percentual do ultimo mes
+				nMeses	 := nInteiro+Iif(nParcial>0,1,0)
+				
+				dDataDe := FirstDay(MonthSum(HWB->HWB_DATA,1))
+				dDataAte := LastDay(MonthSum(HWB->HWB_DATA,nMeses))
+
+				If Select(cTmp) > 0 ; (cTmp)->( dbClosearea() ) ; endif
+				BeginSql alias cTmp
+					SELECT MONTH(T4J_DATA) T4J_DATA, T4J_QUANT, MAX(T4J_REV) T4J_REV
+					FROM %table:T4J%
+					WHERE
+						T4J_FILIAL=%xFilial:T4J%
+						AND T4J_DATA BETWEEN %Exp:dDataDe% AND %Exp:dDataAte%
+						AND T4J_PROD=%Exp:cProdPai%
+						//AND T4J_ORIGEM='1' // 1=Plano Mestre
+						AND %notDel%
+					GROUP BY MONTH(T4J_DATA), T4J_QUANT
+					ORDER BY 1
+				EndSql
+				
+				Count to nRegs
+				
+				// -----------------------------------------------------------------------
+				/* verificar tratamento para quando tiver cadastro de plano mestre
+				faltando para algum mes, oq fazer? Pq neste caso dara diferenca
+				da forma como eu fiz */
+				
+				/* se tiver que mudar, sugestao eh criar array com os meses que serao calculados
+				e ir verificando neste array se o mes da query consta nesse array, se constar faz a conta
+				se nao constar eh zero*/
+				
+				if nRegs != nMeses
+					(cTmp)->( dbClosearea() ) ; HWB->( dbSkip() ) ; loop
+				endif
+				// -----------------------------------------------------------------------
+				
+				(cTmp)->( dbGotop() ) ; nSaldo := nIndice ; nSomaPM := 0
+				
+				while (cTmp)->( ! Eof() .and. nSaldo > 0 )
+					if nSaldo >= 1 // faz os inteiros
+						nSomaPM += (cTmp)->T4J_QUANT
+					elseif nSaldo > 0 // faz o ultimo mes
+						nSomaPM += (cTmp)->T4J_QUANT * nParcial
+					endif
+					(cTmp)->( dbSkip() ) ; nSaldo --
+				end
+				
+				(cTmp)->( dbClosearea() )
+
+				nNewNec := nSomaPM
+				
+				// verifica se eh multiplo da qtd por embalagem
+				// se a quantidade por embalagem no cadastro estiver preenchido
+				if nQtEmb > 0 .and. Mod(nNewNec,nQtEmb) != 0
+					nNewNec := nQtEmb * ( Int(nNewNec/nQtEmb)+1 ) // arredondo para cima de acordo com a embalagem
+				endif
+				
+				// Begin Transaction
+					nSomaOPSC := 0
+					ProcHWC(cTicket,cProdFil,nNewNec,@nSomaOPSC,nSumFilh)
+					
+					Reclock("HWB",.F.)
+					if lFieldHWB // se o campos existir, faco um backup do que o padrao calculou
+						HWB->HWB_XBKNEC := HWB->HWB_QTNECE
+					endif
+					HWB->HWB_QTNECE := nSomaOPSC
+					HWB->( MsUnlock() )
+
+				// End Transaction
+			endif
+			HWB->( dbSkip() )
+		end
+	endif
+	aEval(aAreas,{|x| (x[1])->( RestArea(x) ) })
+return
+/*/{Protheus.doc} ProcHWC
+	processa a tabela HWC, que eh o detalhamento do MRP
+	@author  ivan.caproni
+	@since	 07/10/2023
+	@version 1.0
+	@type    function
+/*/
+static function ProcHWC(cTicket,cProduto,nNewNec,nSomaOPSC,nSumFilh)
+	local cTmp2 := "__PRTMP__"
+	local aSCPC	:= {}
+	local nInd	as numeric
+	
+	If Select(cTmp2) > 0 ; (cTmp2)->( dbClosearea() ) ; endif
+	
+	BeginSql alias cTmp2
+		SELECT R_E_C_N_O_ REGHWC
+		FROM %table:HWC%
+		WHERE
+			HWC_FILIAL=%xFilial:HWC%
+			AND HWC_TICKET=%Exp:cTicket%
+			AND HWC_PRODUT=%Exp:cProduto%
+			AND HWC_DATA=%Exp:HWB->HWB_DATA%
+			AND %notDel%
+	EndSql
+	
+	while (cTmp2)->( ! Eof() )
+		HWC->( dbGoto((cTmp2)->REGHWC) )
+		if HWC->HWC_TDCERP == "1" // OP
+			// somente soma as OPs no total, pois estas nao sofrerao alteracoes
+			nSomaOPSC += HWC->HWC_QTNECE
+		else // SC/PC
+			aAdd(aSCPC,{(cTmp2)->REGHWC,HWC->HWC_QTNECE,0})
+		endif
+		(cTmp2)->( dbSkip() )
+	end
+	
+	(cTmp2)->( dbClosearea() )
+	
+	for nInd := 1 to Len(aSCPC)
+		// quanto essa necessidade representa frente ao total na HWB (em %)
+		// este total ainda eh o anterior dado pelo sistema (padrao)
+		// divide a necessidade da linha na HWC pelo total necessario na HWB pela soma de todos os itens na HWB dos demais filhos
+		aSCPC[nInd][3] := aSCPC[nInd][2] / HWB->HWB_QTNECE / nSumFilh
+		
+		HWC->( dbGoto(aSCPC[nInd][1]) )
+		
+		Reclock("HWC",.F.)
+		if lFieldHWC // se o campos existir, faco um backup do que o padrao calculou
+			HWC->HWC_XBKNEC := HWC->HWC_QTNECE
+		endif
+		HWC->HWC_QTNECE := aSCPC[nInd][3] * nNewNec
+		HWC->( MsUnlock() )
+		
+		// depois de alterada, acrescento a necessidade ao total que sera colocado na HWB
+		nSomaOPSC += HWC->HWC_QTNECE
+	next nInd
+return
+
+static function GetProdPai()
+	local cTmp as character
+	local cPai as character
+	local nSum as numeric
+
+	cTmp :=  GetNextAlias()
+	BeginSql alias cTmp
+		SELECT PAI.HWC_PRODUT PROD_PAI
+		FROM %table:HWC% FILHO
+		JOIN %table:HWC% PAI
+			ON  PAI.HWC_FILIAL = FILHO.HWC_FILIAL
+			AND PAI.HWC_TICKET = FILHO.HWC_TICKET
+			AND PAI.HWC_DOCFIL = FILHO.HWC_DOCPAI
+			AND PAI.%notDel%
+		WHERE	FILHO.HWC_FILIAL = %exp:HWB->HWB_FILIAL%
+			AND FILHO.HWC_TICKET = %exp:HWB->HWB_TICKET%
+			AND FILHO.HWC_PRODUT = %exp:HWB->HWB_PRODUT%
+			AND FILHO.HWC_DATA	 = %exp:HWB->HWB_DATA%
+			AND FILHO.HWC_IDOPC	 = %exp:HWB->HWB_IDOPC%
+			AND FILHO.%notDel%
+	EndSql
+	
+	cPai := (cTmp)->PROD_PAI
+	if Select(cTmp) > 0 ; (cTmp)->( dbClosearea() ) ; endif
+
+	cTmp :=  GetNextAlias()
+	BeginSql alias cTmp
+		SELECT SUM(FILHO.HWC_QTNECE) SOMA_FILHO
+		FROM %table:HWC% FILHO
+		JOIN %table:HWC% PAI
+			ON  PAI.HWC_FILIAL = FILHO.HWC_FILIAL
+			AND PAI.HWC_TICKET = FILHO.HWC_TICKET
+			AND PAI.HWC_DOCFIL = FILHO.HWC_DOCPAI
+			AND PAI.HWC_PRODUT = %exp:cPai%
+			AND PAI.%notDel%
+		WHERE	FILHO.HWC_FILIAL = %exp:HWB->HWB_FILIAL%
+			AND FILHO.HWC_TICKET = %exp:HWB->HWB_TICKET%
+			AND FILHO.HWC_DATA	 = %exp:HWB->HWB_DATA%
+			AND FILHO.HWC_IDOPC	 = %exp:HWB->HWB_IDOPC%
+			AND FILHO.%notDel%
+	EndSql
+
+	nSum := (cTmp)->SOMA_FILHO
+	if Select(cTmp) > 0 ; (cTmp)->( dbClosearea() ) ; endif
+return {cPai,nSum}

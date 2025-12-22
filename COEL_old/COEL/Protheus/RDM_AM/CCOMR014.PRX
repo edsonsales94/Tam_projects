@@ -1,0 +1,492 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³ CCOMR014 ³ Autor ³ Carlos Nina           ³ Data ³ 12/07/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relacao resumida das N.Fiscais de Entrada                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ´±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 17/10/01
+
+User Function CCOMR014()       // incluido pelo assistente de conversao do AP5 IDE em 17/10/01
+
+Private lPrint
+Private oReport
+Private aTempor
+Private lPersonal := .F.
+Private cPerg     := "CCOMR014  "
+
+ValidPerg()
+
+Pergunte(cPerg,.F.)
+
+If FindFunction("TRepInUse") .And. TRepInUse()
+	lPersonal := .T.
+	oReport   := ReportDef()
+	If !Empty(oReport:uParam)
+		Pergunte(oReport:uParam,.F.)
+	EndIf
+	oReport:PrintDialog()
+   IF ( lPrint )
+		cFile := RTRIM(oReport:cFile)
+      IF ( RIGHT(cFile,3)="xml" )
+	   	cxFile := STRTRAN(cFile,"xml","xls")
+   	   IF ( File(cxFile) )
+      		fErase(cxFile)
+            inkey(5)
+         ENDIF
+		   fRename( cFile , cxFile)
+      ELSE
+      	cxFile := cFile
+      ENDIF
+      MsgAlert("** Arquivo gerado com sucesso em: "+cxFile)
+   ENDIF
+
+Else
+	RCP014R3()
+EndIf
+
+//IF ( lPrint )
+//	dbSelectArea("TRB")
+//	USE
+//ENDIF
+
+Return
+
+Static Function ReportDef()
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Criacao do componente de impressao                                      ³
+		//³                                                                        ³
+		//³TReport():New                                                           ³
+		//³ExpC1 : Nome do relatorio                                               ³
+		//³ExpC2 : Titulo                                                          ³
+		//³ExpC3 : Pergunte                                                        ³
+		//³ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao  ³
+		//³ExpC5 : Descricao                                                       ³
+		//³                                                                        ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		Local oParam
+		Local oTotais
+	   Local oSection
+	   Local cPerg	:= "CCOMR014  "
+	   Local cPict := PesqPict("SB2","B2_VATU1",18)
+	   //TRCell():New(oSection,"CEL"		,"",/*Titulo*/,/*Picture*/,/*Tamanho*/,/*lPixel*/,/*{|| Code block }*/)
+
+      cCabec  := "ENTRADA DE N.FISCAIS P/CONFERENCIA"
+	   oReport := TReport():New("CCOMR014",cCabec,cPerg, {|oReport| ReportPrint(oReport)},"Resumo das entradas de Notas Fiscais p/conferencia.")
+		oReport:SetTotalInLine(.F.)
+		oReport:SetLandScape()
+
+	   oParam := TRSection():New(oReport,"Parametros")
+	   TRCell():New(oParam,"PARAM1"    ,"","PARAM1",,40)
+	   TRCell():New(oParam,"PARAM2"    ,"","")
+	   TRCell():New(oParam,"PARAM3"    ,"","PARAM3",,20)
+	   TRCell():New(oParam,"PARAM4"    ,"","")
+	   TRCell():New(oParam,"PARAM5"    ,"","")
+	   TRCell():New(oParam,"PARAM6"    ,"","")
+	   TRCell():New(oParam,"PARAM7"    ,"","")
+	   TRCell():New(oParam,"PARAM8"    ,"","")
+	   TRCell():New(oParam,"PARAM9"    ,"","")
+	   TRCell():New(oParam,"PARAMA"    ,"","")
+	   TRCell():New(oParam,"PARAMB"    ,"","")
+	   TRCell():New(oParam,"PARAMC"    ,"","")
+	   TRCell():New(oParam,"PARAMD"    ,"","")
+	   TRCell():New(oParam,"PARAME"    ,"","")
+	   TRCell():New(oParam,"PARAMF"    ,"","")
+	   TRCell():New(oParam,"PARAMG"    ,"","")
+	   TRCell():New(oParam,"PARAMH"    ,"","")
+	   TRCell():New(oParam,"PARAMI"    ,"","")
+      *
+	   oSection := TRSection():New(oParam,"NF de Entrada")
+	   TRCell():New(oSection,"DTENTR"  ,"","DT.ENTRADA")
+	   TRCell():New(oSection,"TIPO"    ,"","TP")
+	   TRCell():New(oSection,"NFISCAL" ,"","N.FISCAL")
+	   TRCell():New(oSection,"SERIE"   ,"","SERIE")
+	   TRCell():New(oSection,"ESPECIE" ,"","ESPECIE")
+	   TRCell():New(oSection,"DTEMIS"  ,"","DT.EMISSAO")
+	   TRCell():New(oSection,"DTVENC"  ,"","DT.VENCTO")
+	   TRCell():New(oSection,"TES"	  ,"","TES")
+	   TRCell():New(oSection,"CFOP"	  ,"","CFOP")
+	   TRCell():New(oSection,"TEXTO"	  ,"","NATUREZA")
+	   TRCell():New(oSection,"VLRNOTA" ,"","VLR.NOTA")
+	   TRCell():New(oSection,"VLRICMS" ,"","VLR.ICMS")
+	   TRCell():New(oSection,"VLRIPI"  ,"","VLR.IPI")
+	   TRCell():New(oSection,"VLRDESC" ,"","VLR.DESC")
+	   TRCell():New(oSection,"VLRDESP" ,"","VLR.DESP")
+	   TRCell():New(oSection,"VLRPIS"  ,"","PIS/COF/CSLL")
+	   TRCell():New(oSection,"FORCLI"  ,"","FORNECEDOR/CLIENTE")
+	   TRCell():New(oSection,"USUARIO" ,"","USUARIO")
+
+		oSection:SetColSpace(0)
+      oParam:SetColSpace(0)
+		//oTotais:SetColSpace(0)
+
+Return(oReport)
+
+Static Function ReportPrint(oReport)
+   Local oParam    := oReport:Section(1)
+	Local oSection  := oReport:Section(1):Section(1)
+	//Local oTotais	 := oReport:Section(2):Section(1)
+   Private nDecs := 2
+   Private nSize := 15
+
+	lPrint := Proc_RCP014()
+
+	IF ( !lPrint )
+      Return
+	ENDIF
+
+	cParam1  := "CCPR014-ENTRADA N.FISCAL P/CONFERENCIA"
+	cParam3  := IIF(mv_par03==1,"(P/DT.ENTRADA)","(P/DT.DIGITACAO)")
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Inicio da impressao do fluxo do relatorio                               ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	//oTotais:Cell("TXTTOTAL"):SetTitle("** TOTAL GERAL..............")
+	oReport:NoUserFilter()  // Desabilita a aplicacao do filtro do usuario no filtro/query das secoes
+   oParam:Init()
+	oParam:SetTotalText("")
+   oParam:SetHeaderPage()
+	oParam:SetTotalInLine(.T.)
+	oSection:Init()
+   oSection:SetHeaderPage()
+	oSection:SetTotalInLine(.T.)
+	oReport:SetMeter(LEN(aTempor))
+	oParam:Cell("PARAM1"):SetTitle(cParam1)
+	oParam:Cell("PARAM3"):SetTitle(cParam3)
+   *
+   iw := 1
+	Do While !oReport:Cancel() .And. iw <= LEN(aTempor)
+		oReport:IncMeter()
+		If oReport:Cancel()
+			Exit
+	 	EndIf
+      nDespesa := ( aTempor[iw,17] + aTempor[iw,18] + aTempor[iw,19] )
+      nPis     := ( aTempor[iw,20] + aTempor[iw,21] + aTempor[iw,22] )
+		oSection:Cell("DTENTR"):SetValue(aTempor[iw,5])
+		oSection:Cell("TIPO"):SetValue(aTempor[iw,1])
+		oSection:Cell("NFISCAL"):SetValue(aTempor[iw,2])
+		oSection:Cell("SERIE"):SetValue(aTempor[iw,3])
+		oSection:Cell("ESPECIE"):SetValue(aTempor[iw,8])
+		oSection:Cell("DTEMIS"):SetValue(aTempor[iw,4])
+		oSection:Cell("DTVENC"):SetValue(aTempor[iw,23])
+		oSection:Cell("TES"):SetValue(aTempor[iw,9])
+		oSection:Cell("CFOP"):SetValue(aTempor[iw,10])
+		oSection:Cell("TEXTO"):SetValue(aTempor[iw,11])
+		oSection:Cell("VLRNOTA"):SetValue( aTempor[iw,13] )
+		oSection:Cell("VLRICMS"):SetValue( aTempor[iw,14] )
+		oSection:Cell("VLRIPI"):SetValue( aTempor[iw,15] )
+		oSection:Cell("VLRDESC"):SetValue( aTempor[iw,16] )
+		oSection:Cell("VLRDESP"):SetValue( nDespesa )
+		oSection:Cell("VLRPIS"):SetValue( nPis )
+		oSection:Cell("FORCLI"):SetValue( aTempor[iw,24] )
+		oSection:Cell("USUARIO"):SetValue( aTempor[iw,25] )
+	   oSection:PrintLine()
+      iw++
+   ENDDO
+	oSection:Finish()
+   oParam:Finish()
+
+RETURN NIL
+
+**************************
+Static Function RCP014R3()
+**************************
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SF1"
+titulo    := OemToAnsi("RELAÇÃO DE N.FISCAL DE ENTRADA P/CONFERENCIA")
+cDesc1    := OemToAnsi("Relacao resumida das N.Fiscais de Entrada p/conferencia.")
+cDesc2    := OemToAnsi("")
+cDesc3    := OemToAnsi("")
+cResp     := "N"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aReturn   := { "Especial", 1,"Materiais", 1, 2, 1, "",1 }
+nomeprog  := "CCOMR014"
+nLastKey  := 0
+wnrel     := "CCOMR014"
+//pergunte(cPerg,.F.)
+wnrel    := SetPrint(cString,wnrel,cPerg,@Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+//aDriver  := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+	Return
+Endif
+SetDefault(aReturn,cString)
+If LastKey() == 27 .OR. nLastKey == 27
+	Return
+Endif
+
+lPrint := Proc_RCP014()
+
+IF ( lPrint )
+	RptStatus({|lEnd| Imprimir(@lEnd,wnRel,titulo,tamanho,cString)},titulo)
+ELSE
+	If aReturn[5] == 1
+   	dbcommitAll()
+	   ourspool(wnrel)
+	Endif
+	MS_FLUSH()
+ENDIF
+
+Return
+
+//////////////////////////////////////////////////
+Static Function Proc_RCP014()
+//////////////////////////////////////////////////
+Local dDatFech := GETMV("MV_ULMES")
+Local dDatIni  := IIF(mv_par03==1 , mv_par01 , ( dDatFech + 1 ) )
+Local dDatFin  := IIF(mv_par03==1 , mv_par02 , MsDate() )
+
+///
+///Monta a query para extrair os dados da Nota Fiscal
+///
+cQry := "SELECT * "
+cQry += "FROM "+RetSqlName("SF1")+" "
+cQry += "WHERE D_E_L_E_T_ = ' ' "
+cQry += "AND   F1_FILIAL = '"+xFilial("SF1")+"' "
+cQry += "AND   F1_DTDIGIT BETWEEN '"+DTOS(dDatIni)+"' AND '"+DTOS(dDatFin)+"' "
+cQry += "ORDER BY F1_DTDIGIT,F1_VALMERC,F1_FORNECE,F1_LOJA,F1_DOC,F1_SERIE "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+TcSetField("TMP","F1_VALMERC","N",15,2)
+TcSetField("TMP","F1_VALBRUT","N",15,2)
+TcSetField("TMP","F1_DESPESA","N",15,2)
+TcSetField("TMP","F1_DESCONT","N",15,2)
+TcSetField("TMP","F1_SEGURO","N",15,2)
+TcSetField("TMP","F1_FRETE","N",15,2)
+TcSetField("TMP","F1_BASEICM","N",15,2)
+TcSetField("TMP","F1_VALICM","N",15,2)
+TcSetField("TMP","F1_VALIPI","N",15,2)
+TcSetField("TMP","F1_BASIMP4","N",15,2)
+TcSetField("TMP","F1_BASIMP5","N",15,2)
+TcSetField("TMP","F1_BASIMP6","N",15,2)
+TcSetField("TMP","F1_VALIMP4","N",15,2)
+TcSetField("TMP","F1_VALIMP5","N",15,2)
+TcSetField("TMP","F1_VALIMP6","N",15,2)
+TcSetField("TMP","F1_DTDIGIT","D",08,0)
+TcSetField("TMP","F1_EMISSAO","D",08,0)
+
+aTempor := {}
+
+dbSelectArea("SA1")
+dbSetOrder(1)
+*
+dbSelectArea("SA2")
+dbSetOrder(1)
+*
+dbSelectArea("SF4")
+dbSetOrder(1)
+*
+dbSelectArea("TMP")
+dbGoTop()
+DO WHILE !EOF()
+   ///
+   ///Extrai data de inclusao no Log de Registro (_USERLGI ou _USERGI)
+   ///Retorna um Array com:
+   ///   - Status = Deletado / Ativo
+   ///   - Usuario de Inclusao
+   ///   - Usuario de Alteracao
+   ///   - Data de Inclusao
+   ///   - Data de Alteracao
+   ///
+   aLogR := U_CLerLog("SF1")
+	
+	////Ver FWLeUserlg()
+	////para obter as informações de inclusão - Tipo: 1=Nome do usuario; 2=Data
+	////cUserI := FWLeUserlg("A1_USERLGI")
+	////cDataI := FWLeUserlg("A1_USERLGI", 2)
+	////para obter as informações de alteração
+	////cUserA := FWLeUserlg("A1_USERLGA")
+	////cDataA := FWLeUserlg("A1_USERLGA", 2)
+	
+   IF ( mv_par03 == 1 )
+      //aLogR := { " " , " " , " " , TMP->F1_DTDIGIT , TMP->F1_DTDIGIT }
+      aLogR[4] := TMP->F1_DTDIGIT
+      aLogR[5] := TMP->F1_DTDIGIT
+   ENDIF
+   IF ( aLogR[4] >= mv_par01 .AND. aLogR[4] <= mv_par02 )
+      dbSelectArea("SD1")
+      dbSetOrder(3)
+      dbSeek(xFilial("SD1")+DTOS(TMP->F1_EMISSAO)+TMP->F1_DOC+TMP->F1_SERIE+TMP->F1_FORNECE+TMP->F1_LOJA,.T.)
+      *
+      SF4->(dbSeek(xFilial("SF4")+SD1->D1_TES))
+      *
+		IF ( TMP->F1_TIPO $ "BD" )
+         SA1->(dbSeek(xFilial("SA1")+TMP->F1_FORNECE+TMP->F1_LOJA))
+         cRazSoc := "C"+TMP->F1_FORNECE+" "+SA1->A1_NREDUZ
+      ELSE
+         SA2->(dbSeek(xFilial("SA2")+TMP->F1_FORNECE+TMP->F1_LOJA))
+         cRazSoc := "F"+TMP->F1_FORNECE+" "+SA2->A2_NREDUZ
+      ENDIF
+
+      dVencRea := Space(8)
+
+      IF ( SF4->F4_DUPLIC = "S" )
+         IF ( TMP->F1_TIPO == "D" )
+	         dbSelectArea("SE1")
+   	      dbSetOrder(2)
+      	   dbSeek(xFilial("SE1")+TMP->F1_FORNECE+TMP->F1_LOJA+TMP->F1_SERIE+TMP->F1_DOC,.T.)
+         	DO WHILE !EOF().AND.E1_FILIAL==xFilial("SE1").AND.(E1_CLIENTE+E1_LOJA+E1_PREFIXO+E1_NUM)==TMP->(F1_FORNECE+F1_LOJA+F1_SERIE+F1_DOC)
+            	IF ( SE1->E1_EMISSAO == TMP->F1_EMISSAO )
+               	dVencRea := IIF(EMPTY(dVencRea) , DTOC(SE1->E1_VENCREA) , "DIVERSOS" )
+	            ENDIF
+   	         dbSkip()
+      	   ENDDO
+         ELSEIF ( TMP->F1_TIPO $ "NC" )
+	         dbSelectArea("SE2")
+   	      dbSetOrder(6)
+      	   dbSeek(xFilial("SE2")+TMP->F1_FORNECE+TMP->F1_LOJA+TMP->F1_SERIE+TMP->F1_DOC,.T.)
+         	DO WHILE !EOF().AND.E2_FILIAL==xFilial("SE2").AND.(E2_FORNECE+E2_LOJA+E2_PREFIXO+E2_NUM)==TMP->(F1_FORNECE+F1_LOJA+F1_SERIE+F1_DOC)
+            	IF ( SE2->E2_TIPO == "NF ".AND.SE2->E2_EMISSAO == TMP->F1_EMISSAO )
+               	dVencRea := IIF(EMPTY(dVencRea) , DTOC(SE2->E2_VENCREA) , "DIVERSOS" )
+	            ENDIF
+   	         dbSkip()
+      	   ENDDO
+         ENDIF
+      ENDIF
+      AADD( aTempor , { TMP->F1_TIPO    , ;
+                        TMP->F1_DOC     , ;
+                        TMP->F1_SERIE   , ;
+                        TMP->F1_EMISSAO , ;
+                        TMP->F1_DTDIGIT , ;
+                        TMP->F1_FORNECE , ;
+                        TMP->F1_LOJA    , ;
+                        TMP->F1_ESPECIE , ;
+                        SD1->D1_TES     , ;
+                        SD1->D1_CF      , ;
+                        SF4->F4_TEXTO   , ;
+                        TMP->F1_VALBRUT , ;
+                        TMP->F1_VALMERC , ;
+                        TMP->F1_VALICM  , ;
+                        TMP->F1_VALIPI  , ;
+                        TMP->F1_DESCONT , ;
+                        TMP->F1_SEGURO  , ;
+                        TMP->F1_FRETE   , ;
+                        TMP->F1_DESPESA , ;
+                        TMP->F1_VALIMP4 , ;
+                        TMP->F1_VALIMP5 , ;
+                        TMP->F1_VALIMP6 , ;
+                        dVencRea        , ;
+                        cRazSoc         , ;
+								aLogR[2] } )
+   ENDIF
+   dbSelectArea("TMP")
+   dbSkip()
+ENDDO
+TMP->(dbCloseArea())
+
+Return( LEN(aTempor) > 0 )
+
+////////////////////////////////////////////////////////////////
+Static Function Imprimir(lEnd,wnRel,titulo,tamanho,cString)
+////////////////////////////////////////////////////////////////
+LOCAL   cRodaTxt := "N.FISCAL"
+Local   i  		  := 0
+PRIVATE nTipo    := 0
+PRIVATE cabec1
+PRIVATE nCntImpr := 0
+PRIVATE cabec2   := ""
+PRIVATE Li       := 80
+PRIVATE m_pag    := 0
+
+SetRegua(LEN(aTempor))
+iw     := 1
+titulo := titulo + ' - '+DTOC(mv_par01)+" a "+DTOC(mv_par02) + IIF(mv_par03==1 , " (DATA DE ENTRADA)" , " (DATA DIGITACAO)" )
+//SetPrc(0,0)
+//@ 00,000 PSay &(aDriver[5])
+cabec1 := 'DT.ENTRADA  TP N.FISCAL       ESPECIE  DT.EMISSAO  DT.VENCTO  TES/CFOP.......................       VLR.NOTA     VLR.ICMS      VLR.IPI     VLR.DESC     VLR.DESP  PIS/COF/CSL  FORNECEDOR/CLIENTE...........  USUARIO.......'
+****       99/99/99    x  999999999/999  xxxx     99/99/99    99/99/99   999 9999 - x------------------x  999999,999.99 99999.999,99 99999,999.99 99999,999.99 99999,999.99 99999,999.99  x-9999   x------------------x
+****       0---------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130-------140-------150-------160-------170-------180-------190-------200-------210-------220
+****       01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123
+DO WHILE iw<=LEN(aTempor)
+   dEntrada := aTempor[iw,5]
+   lBreak   := .T.
+	DO WHILE iw<=LEN(aTempor).AND.dEntrada==aTempor[iw,5]
+	   IncRegua()
+		If lEnd
+			@ PROW()+1,001 PSAY "CANCELADO PELO OPERADOR"
+			lContinua := .F.
+			Exit
+		EndIf
+      IF ( Li > 56 )
+			Cabec(titulo,cabec1,cabec2,nomeprog,Tamanho,nTipo)
+         lBreak := .T.
+  	   ENDIF
+      IF ( lBreak )
+  	      @ Li,000 PSay dEntrada
+     	   lBreak := .F.
+      ENDIF
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Adiciona 1 ao contador de registros impressos         ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		nCntImpr++
+
+      nDespesa := ( aTempor[iw,17] + aTempor[iw,18] + aTempor[iw,19] )
+  	   nPis     := ( aTempor[iw,20] + aTempor[iw,21] + aTempor[iw,22] )
+     	@ Li,012 PSay aTempor[iw,1]
+      @ Li,015 PSay RTRIM(aTempor[iw,2])+"/"+aTempor[iw,3]
+      @ Li,030 PSay aTempor[iw,8]
+      @ Li,039 PSay aTempor[iw,4]
+      @ Li,051 PSay aTempor[iw,23]
+      @ Li,062 PSay aTempor[iw,9]+"/"+aTempor[iw,10]+"- "+aTempor[iw,11]
+  	   @ Li,095 PSay aTempor[iw,13]         Picture "@E 999999,999.99"
+     	@ Li,109 PSay aTempor[iw,14]         Picture "@E 99999,999.99"
+     	@ Li,122 PSay aTempor[iw,15]         Picture "@E 99999,999.99"
+     	@ Li,135 PSay aTempor[iw,16]         Picture "@E 99999,999.99"
+     	@ Li,148 PSay nDespesa               Picture "@E 99999,999.99"
+     	@ Li,161 PSay nPis                   Picture "@E 99999,999.99"
+      @ Li,175 PSay aTempor[iw,24]
+      @ Li,206 PSay LEFT(aTempor[iw,25],14)
+      Li++
+  	   iw++
+   ENDDO
+ENDDO
+If li != 80
+	Roda(nCntImpr,cRodaTxt,Tamanho)
+EndIf
+If aReturn[5] == 1
+	Set Printer To
+   dbcommitAll()
+   ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return
+
+//////////////////////////////////////////////////
+Static Function ValidPerg()
+//////////////////////////////////////////////////
+Local _sAlias := Alias()
+
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Do Periodo                  ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Até o Periodo               ?",   ""   ,  ""    , "mv_ch2" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Considera                   ?",   ""   ,  ""    , "mv_ch3" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par03", "Dt.Entrada  " , "     " , "     " , "   " , "   " , "Dt.Digitacao " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+
+Return

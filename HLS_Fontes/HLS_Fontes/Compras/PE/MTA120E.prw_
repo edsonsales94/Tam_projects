@@ -1,0 +1,23 @@
+#INCLUDE "URZUM.CH" 
+/*/{protheus.doc}mta120e
+PE para validação na exclusão do Pedido de compras
+@author aFill Tecnologia
+@since 20/02/2008
+/*/
+//+-----------------------------------------------------------------------------------//
+//|Empresa...: aFill Tecnologia
+//|Funcao....: U_MTA120E()
+//|Autor.....: aFill Tecnologia - suporte@afill.com.br
+//|Data......: 20 de Fevereiro de 2008, 08:00
+//|Uso.......: SIGACOM   
+//|Versao....: Protheus - 10
+//|Descricao.: PE para validação na exclusão do Pedido
+//|Observação: 
+//+-----------------------------------------------------------------------------------//
+*-----------------------------------------*
+User Function MTA120E()
+*-----------------------------------------*
+
+lRet := Iif(!IsBlind(),U_UZPCVIMP("EXC",PARAMIXB[1]),.T.)
+
+Return(lRet)

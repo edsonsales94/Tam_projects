@@ -1,0 +1,1124 @@
+#INCLUDE "FINR500X.CH"
+#INCLUDE "PROTHEUS.CH"
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FINR500  ³ Autor ³ Daniel Tadashi Batori ³ Data ³ 10.07.06 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatorio de Liquidacoes Financeiras                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe e ³ FINR500(void)                                              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User Function FinR500X()
+Local oReport
+CriaSx1()
+
+FINR500R3() // Executa versão anterior do fonte
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ ReportDef³ Autor ³ Daniel Batori         ³ Data ³ 10.07.06 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Definicao do layout do Relatorio									  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe   ³ ReportDef(void)                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function ReportDef()
+Local oReport  
+Local oSection1
+Local oSection11
+Local aTam1, aTam2, aTam3, nTamLiq
+Local aTamCHQ := {}
+Local nTamCHQ := 0
+
+oReport := TReport():New("FINR500X",STR0003,"FIN500X",;
+{|oReport| ReportPrint(oReport)},STR0001+STR0002)
+
+Pergunte(PAdr("FIN500X",Len(SX1->X1_GRUPO)), .F.)
+
+aTam1 := TamSX3("E1_NUMLIQ")
+aTam2 := TamSX3("E1_CLIENTE")
+aTam3 := TamSX3("E1_LOJA")
+nTamLiq :=	LEN(STR0007) + aTam1[1] + aTam2[1] + aTam3[1] + 15
+
+nTamCHQ := 2 // considerar os 2 tracos
+aTamCHQ := TamSX3("E1_BCOCHQ")
+nTamCHQ += aTamCHQ[1]
+aTamCHQ := TamSX3("E1_AGECHQ")
+nTamCHQ += aTamCHQ[1]
+aTamCHQ := TamSX3("E1_CTACHQ")
+nTamCHQ += aTamCHQ[1]
+
+oSection1 := TRSection():New(oReport,STR0025,{"Trb"},)
+TRCell():New(oSection1,"LIQUIDA" ,,STR0025,,nTamLiq,.F.,)  //definido por SetBlock
+oSection1:SetHeaderSection(.F.)
+
+nTamStat := Max(Len(STR0008),Len(STR0009))
+
+oSection11 := TRSection():New(oSection1,STR0027,{"Trb"},) // "Titulos Liquidados"
+TRCell():New(oSection11,"E1_PREFIXO" ,"SE1",STR0012,,,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"E1_NUM" ,"SE1",STR0013,,,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"E1_PARCELA" ,"SE1",STR0014,,,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"E1_TIPO" ,"SE1",STR0015,,,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"E1_EMISSAO" ,"SE1",STR0016,,,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"E1_EMITCHQ" ,"SE1",STR0017,,,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"VALOR",,STR0018,"@E 9,999,999,999.99",16,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"JUROS",,STR0019,"@E 9,999,999.99",12,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"DESCONTOS",,STR0020,"@E 9,999,999.99",12,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"E1_BCOCHQ" ,"SE1",STR0021+"-"+STR0022+"-"+STR0023,,nTamCHQ,.F.,)  //definido por SetBlock
+TRCell():New(oSection11,"STATUS" ,,STR0024,,nTamStat,.F.,)  //definido por SetBlock
+
+	
+Return oReport                                                                              
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ReportPrint³ Autor ³Daniel Batori          ³ Data ³10.07.06	³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³A funcao estatica ReportDef devera ser criada para todos os  ³±±
+±±³          ³relatorios que poderao ser agendados pelo usuario.           ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³Nenhum                                                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ExpO1: Objeto Report do Relatório                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao efetuada                          ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                             ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function ReportPrint(oReport)
+Local oSection1  := oReport:Section(1)
+Local oSection11 := oReport:Section(1):Section(1)
+Local cAlias1 := GetNextAlias()
+Local cAlias2 := GetNextAlias()
+Local cAlias3 := GetNextAlias()
+Local cWhere := ""
+Local aCampos:={},aTam:={}
+Local cNomeArq
+Local	cCondE5, cIndexSE5, cChaveSE5, nIndex, cCondE1
+Local nTaxa		:= 1
+Local nValor	:= 0 
+
+#IFDEF TOP
+	cWhere := " AND E5_DOCUMEN >= '"+ PADR(mv_par01,TamSx3("E5_DOCUMEN")[1]) + "' "
+	cWhere += " AND E5_DOCUMEN <= '"+ PADR(mv_par02,TamSx3("E5_DOCUMEN")[1]) + "' "
+	cWhere += " AND E5_DOCUMEN <> '"+ Space(TamSx3("E5_DOCUMEN")[1]) + "'"
+	cWhere := "%" + cWhere + "%"
+
+	//baixado
+	BeginSql Alias cAlias1
+		//column E1_VENCREA as Date
+		SELECT SE5.*
+		FROM %table:SE5% SE5
+		WHERE E5_FILIAL = %xFilial:SE5% AND
+				E5_CLIFOR >= %exp:mv_par03% AND
+				E5_CLIFOR <= %exp:mv_par04% AND
+				E5_MOTBX = 'LIQ' AND 
+				E5_SITUACA <> 'C' AND
+				E5_TIPODOC = 'BA' AND 
+				SE5.%NotDel%
+				%Exp:cWhere%
+	EndSQL
+
+	cWhere := " AND E1_NUMLIQ <> '"+ Space(TamSx3("E1_NUMLIQ")[1]) + "'"
+	cWhere := "%" + cWhere + "%"		
+	//gerado SE1
+	BeginSql Alias cAlias2
+		column E1_EMISSAO as Date	
+		SELECT SE1.* 
+		FROM %table:SE1% SE1
+		WHERE E1_FILIAL = %xFilial:SE1% AND
+				E1_CLIENTE >= %exp:mv_par03% AND
+				E1_CLIENTE <= %exp:mv_par04% AND
+				E1_NUMLIQ >=  %exp:mv_par01% AND 
+				E1_NUMLIQ <= %exp:mv_par02% AND 
+				(E1_BCOCHQ <> ' ' OR E1_TIPO = 'NCC') AND 
+				SE1.%NotDel%
+				%Exp:cWhere%
+	EndSQL	
+	
+	cWhere := " AND E2_NUMLIQ <> '"+ Space(TamSx3("E2_NUMLIQ")[1]) + "'"
+	cWhere := "%" + cWhere + "%"		
+	//gerado SE2
+	BeginSql Alias cAlias3
+		column E2_EMISSAO as Date	
+		SELECT SE2.* 
+		FROM %table:SE2% SE2
+		WHERE E2_FILIAL = %xFilial:SE2% AND
+				E2_FORNECE >= %exp:mv_par06% AND
+				E2_FORNECE <= %exp:mv_par07% AND
+				E2_NUMLIQ >=  %exp:mv_par01% AND 
+				E2_NUMLIQ <= %exp:mv_par02% AND 
+				(E2_BCOCHQ <> ' ' OR E2_TIPO = 'NCC') AND 
+				SE2.%NotDel%
+				%Exp:cWhere%
+	EndSQL	
+	
+#ELSE
+
+	cAlias2 := "SE1"
+	dbSelectArea(cAlias2)
+	cCondE1	:='E1_FILIAL=="'+xFilial("SE1")+'".and.'
+	cCondE1	+='E1_NUMLIQ>="'+mv_par01+'".And.'
+	cCondE1	+='E1_NUMLIQ<="'+mv_par02+'".And.'
+	cCondE1	+='E1_CLIENTE>="'+mv_par03+'".And.'
+	cCondE1	+='E1_CLIENTE<="'+mv_par04+'".and.'
+	cCondE1	+='E1_NUMLIQ<>"'+ Space(TamSx3("E1_NUMLIQ")[1])+'".and.'
+	cCondE1	+='(E1_BCOCHQ<>" " .Or. E1_TIPO == "NCC") '
+	cIndex	:= CriaTrab(nil,.f.)
+	cChave	:= IndexKey()
+	IndRegua(cAlias2,cIndex,cChave,,cCondE1,STR0006) //"Selecionando Registros..."
+	nIndex := RetIndex(cAlias2)
+	DbSelectArea(cAlias2)
+	DbSetIndex(cIndex+OrdBagExt())
+	DbSetOrder(nIndex+1)
+	DbSeek(xFilial(cAlias2))
+	
+	
+	cAlias2 := "SE2"
+	dbSelectArea(cAlias3)
+	cCondE2	:='E2_FILIAL=="'+xFilial("SE2")+'".and.'
+	cCondE2	+='E2_NUMLIQ>="'+mv_par01+'".And.'
+	cCondE2	+='E2_NUMLIQ<="'+mv_par02+'".And.'
+	cCondE2	+='E2_FORNECE>="'+mv_par06+'".And.'
+	cCondE2	+='E2_FORNECE<="'+mv_par07+'".and.'
+	cCondE2	+='E2_NUMLIQ<>"'+ Space(TamSx3("E2_NUMLIQ")[1])+'".and.'
+	cCondE2	+='(E2_BCOCHQ<>" " .Or. E2_TIPO == "NCC") '
+	cIndexE2	:= CriaTrab(nil,.f.)
+	cChaveE2	:= IndexKey()
+	IndRegua(cAlias3,cIndexE2,cChave,,cCondE2,STR0006) //"Selecionando Registros..."
+	nIndexE2 := RetIndex(cAlias3)
+	DbSelectArea(cAlias3)
+	DbSetIndex(cIndexE2+OrdBagExt())
+	DbSetOrder(nIndexE2+1)
+	DbSeek(xFilial(cAlias3))
+	
+	
+	cAlias1 := "SE5"
+	dbSeLectArea(cAlias1)
+	dbSetOrder(10)
+	cCondE5 := "E5_FILIAL=='"+xFilial("SE5")+"'.AND."
+	cCondE5 += "E5_CLIFOR>='"+ mv_par03 + "'.AND."
+	cCondE5 += "E5_CLIFOR<='"+ mv_par04 + "'.AND."
+	cCondE5 += "E5_DOCUMEN>='"+ PADR(mv_par01,TamSx3("E5_DOCUMEN")[1]) + "'.AND."
+	cCondE5 += "E5_DOCUMEN<='"+ PADR(mv_par02,TamSx3("E5_DOCUMEN")[1]) + "'.AND."
+	cCondE5 += "E5_DOCUMEN<>'"+ Space(TamSx3("E5_DOCUMEN")[1]) + "'.AND."
+	cCondE5 += "E5_MOTBX=='LIQ'.and."
+	cCondE5 += "E5_TIPODOC == 'BA'.and."
+	cCondE5 += "E5_SITUACA<>'C'"
+	cIndexSE5 :=  CriaTrab(nil,.f.)
+	cChaveSE5 := IndexKey()
+	IndRegua(cAlias1,cIndexSE5,cChaveSE5,,cCondE5,STR0006) //"Selecionando Registros..."
+	nIndex := RetIndex(cAlias1)
+	DbSelectArea(cAlias1)
+	DbSetIndex(cIndexSE5+OrdBagExt())
+	DbSetOrder(nIndex+1)
+	DbSeek(xFilial(cAlias1))
+
+#ENDIF
+
+aTam:=TamSX3("E1_CLIENTE")
+AADD(aCampos,{"CLIENTE" ,"C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_LOJA")
+AADD(aCampos,{"LOJA"   ,"C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_NUMLIQ")
+AADD(aCampos,{"NUMLIQ" ,"C",aTam[1],aTam[2]})
+AADD(aCampos,{"PREFIXO","C",3,0})
+aTam:=TamSX3("E1_NUM")
+AADD(aCampos,{"NUMTIT" ,"C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_PARCELA")
+AADD(aCampos,{"PARCELA","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_TIPO")
+AADD(aCampos,{"TIPO"   ,"C",aTam[1],aTam[2]})
+AADD(aCampos,{"MOEDA"  ,"N",2,0})
+aTam:=TamSX3("E1_EMISSAO")
+AADD(aCampos,{"EMISSAO","D",aTam[1],aTam[2]})
+AADD(aCampos,{"EMITENTE","C",40,0})
+AADD(aCampos,{"VALOR"  ,"N",18,2})
+AADD(aCampos,{"JUROS"  ,"N",18,2})
+AADD(aCampos,{"DESCONT","N",18,2})
+aTam:=TamSX3("E1_BCOCHQ")
+AADD(aCampos,{"BANCO","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_AGECHQ")
+AADD(aCampos,{"AGENCIA","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_CTACHQ")
+AADD(aCampos,{"CONTA","C",aTam[1],aTam[2]})
+AADD(aCampos,{"BG"     ,"C", 1,0}) // Baixado ou Gerado
+AADD(aCampos,{"CART"   ,"C", 1,0}) // Tipo Carteira
+
+cNomeArq:=CriaTrab(aCampos)
+dbUseArea( .T.,, cNomeArq, "Trb", .F., .F. )
+IndRegua("Trb",cNomeArq,"CART+NUMLIQ+BG+PREFIXO+NUMTIT+PARCELA+TIPO",,,STR0006) //"Selecionando Registros..."
+
+
+// Titulos Gerados na liquidacao - SE1
+If mv_par05 != 2
+	While (cAlias2)->(!Eof())
+		If MV_PAR08 <> 1
+			DbSelectArea( "SM2" )
+			SM2->( DbSetOrder( 1 ) )
+			If SM2->( DbSeek( DtoS( IIf( MV_PAR08 == 2, DDATABASE, (cAlias2)->E1_EMISSAO ) ) ) )
+				If FieldPos( "M2_MOEDA" + MV_PAR09 ) > 0
+					nTaxa := SM2->&( "M2_MOEDA" + MV_PAR09 )
+				EndIf
+			EndIf
+		EndIf
+
+		DBSelectArea("Trb")
+		RecLock("Trb",.T.)
+		Trb->CLIENTE	:= (cAlias2)->E1_CLIENTE
+		Trb->LOJA		:= (cAlias2)->E1_LOJA	 
+		Trb->NUMLIQ		:= (cAlias2)->E1_NUMLIQ	
+		Trb->PREFIXO	:= (cAlias2)->E1_PREFIXO
+		Trb->NUMTIT		:= (cAlias2)->E1_NUM
+		Trb->PARCELA	:= (cAlias2)->E1_PARCELA
+		Trb->TIPO		:= (cAlias2)->E1_TIPO
+		Trb->EMISSAO	:= (cAlias2)->E1_EMISSAO
+		Trb->VALOR		:= (cAlias2)->E1_VALOR * nTaxa
+		Trb->JUROS		:= (cAlias2)->E1_ACRESC
+		Trb->BANCO		:= (cAlias2)->E1_BCOCHQ
+		Trb->AGENCIA	:= (cAlias2)->E1_AGECHQ
+		Trb->CONTA		:= (cAlias2)->E1_CTACHQ
+		Trb->EMITENTE 	:= Substr((cAlias2)->E1_EMITCHQ,1,40)
+		Trb->BG			:= "G"	// Gerado
+		CART        := "R"
+		MsUnlock()
+		(cAlias2)->(dbSkip())
+	Enddo
+Endif	
+
+// Titulos Gerados na liquidacao - SE2
+If mv_par05 != 2
+	While (cAlias3)->(!Eof())
+		If MV_PAR08 <> 1
+			DbSelectArea( "SM2" )
+			SM2->( DbSetOrder( 1 ) )
+			If SM2->( DbSeek( DtoS( IIf( MV_PAR08 == 2, DDATABASE, (cAlias3)->E2_EMISSAO ) ) ) )
+				If FieldPos( "M2_MOEDA" + MV_PAR09 ) > 0
+					nTaxa := SM2->&( "M2_MOEDA" + MV_PAR09 )
+				EndIf
+			EndIf
+		EndIf
+
+		DBSelectArea("Trb")
+		RecLock("Trb",.T.)
+		Trb->CLIENTE	:= (cAlias3)->E2_FORNECE
+		Trb->LOJA		:= (cAlias3)->E2_LOJA	 
+		Trb->NUMLIQ		:= (cAlias3)->E2_NUMLIQ	
+		Trb->PREFIXO	:= (cAlias3)->E2_PREFIXO
+		Trb->NUMTIT		:= (cAlias3)->E2_NUM
+		Trb->PARCELA	:= (cAlias3)->E2_PARCELA
+		Trb->TIPO		:= (cAlias3)->E2_TIPO
+		Trb->EMISSAO	:= (cAlias3)->E2_EMISSAO
+		Trb->VALOR		:= (cAlias3)->E2_VALOR * nTaxa
+		Trb->JUROS		:= (cAlias3)->E2_ACRESC
+		Trb->BANCO		:= (cAlias3)->E2_BCOCHQ
+		Trb->AGENCIA	:= (cAlias3)->E2_AGECHQ
+		Trb->CONTA		:= (cAlias3)->E2_CTACHQ
+		Trb->EMITENTE 	:= SPACE(40)
+		Trb->BG			:= "G"	// Gerado 
+		CART        := "P"
+		MsUnlock()
+		(cAlias3)->(dbSkip())
+	Enddo
+Endif	
+
+// Titulos Baixados na liquidacao
+If mv_par05 != 3
+	While (cAlias1)->(!Eof())
+		If MV_PAR08 <> 1
+			DbSelectArea( "SM2" )
+			SM2->( DbSetOrder( 1 ) )
+			If SM2->( DbSeek( IIf( MV_PAR08 == 2, DtoS( DDATABASE ), (cAlias1)->E5_DATA ) ) )
+				If FieldPos( "M2_MOEDA" + MV_PAR09 ) > 0
+					nTaxa := SM2->&( "M2_MOEDA" + MV_PAR09 )
+				EndIf
+			EndIf
+		EndIf
+
+		SE1->(dbSetOrder(1))
+		SE1->(MsSeek(xFilial("SE1")+(cAlias1)->(E5_PREFIXO+E5_NUMERO+E5_PARCELA+E5_TIPO)))
+
+		//nValor := SE1->E1_VALOR - SE1->E1_JUROS + SE1->E1_DESCONT 
+		nValor := (cAlias1)->E5_VALOR - (cAlias1)->E5_VLJUROS + (cAlias1)->E5_VLDESCO
+
+		DBSelectArea("Trb")
+		RecLock("Trb",.T.)
+		Trb->CLIENTE	:= (cAlias1)->E5_CLIFOR
+		Trb->LOJA		:= (cAlias1)->E5_LOJA	 
+		Trb->NUMLIQ		:= Substr((cAlias1)->E5_DOCUMEN,1,6)	
+		Trb->PREFIXO	:= (cAlias1)->E5_PREFIXO
+		Trb->NUMTIT		:= (cAlias1)->E5_NUMERO
+		Trb->PARCELA	:= (cAlias1)->E5_PARCELA
+		Trb->TIPO		:= (cAlias1)->E5_TIPO
+		Trb->EMISSAO	:= SE1->E1_EMISSAO
+		Trb->VALOR		:= nValor * nTaxa
+		Trb->JUROS		:= (cAlias1)->E5_VLJUROS
+		Trb->DESCONT	:= (cAlias1)->E5_VLDESCO       
+		Trb->EMITENTE 	:= SUBSTR(SE1->E1_EMITCHQ,1,40)
+		Trb->BG			:= "B"	// Baixado
+		CART        := Alltrim((cAlias1)->E5_RECPAG)
+		MsUnlock()
+		(cAlias1)->(dbSkip())
+	Enddo
+Endif		
+
+oSection1:Cell("LIQUIDA"):SetBlock( {|| STR0007 + Trb->NUMLIQ + "-" + Trb->CLIENTE + "-" + Trb->LOJA + " - " + If(TRB->CART == "P",STR0028,STR0029) })
+
+oSection11:Cell("E1_PREFIXO"):SetBlock(	{|| Trb->PREFIXO })
+oSection11:Cell("E1_NUM"):SetBlock(			{|| Trb->NUMTIT })
+oSection11:Cell("E1_PARCELA"):SetBlock(	{|| Trb->PARCELA })
+oSection11:Cell("E1_TIPO"):SetBlock(		{|| Trb->TIPO })
+oSection11:Cell("E1_EMISSAO"):SetBlock(	{|| Trb->EMISSAO })
+oSection11:Cell("E1_EMITCHQ"):SetBlock(	{|| Trb->EMITENTE })
+oSection11:Cell("VALOR"):SetBlock(			{|| Trb->VALOR })
+oSection11:Cell("JUROS"):SetBlock(			{|| Trb->JUROS })
+oSection11:Cell("DESCONTOS"):SetBlock(		{|| Trb->DESCONT })
+oSection11:Cell("E1_BCOCHQ"):SetBlock(		{|| If (Empty(Trb->(BANCO+AGENCIA+CONTA))," ", Trb->BANCO+"-"+Trb->AGENCIA+"-"+Trb->CONTA) })
+oSection11:Cell("STATUS"):SetBlock(			{|| If(Trb->BG == "B",STR0008,STR0009) })
+
+//Faz o alinhamento do cabecalho das celulas
+oSection11:Cell("E1_PREFIXO"):SetHeaderAlign("CENTER")
+oSection11:Cell("E1_NUM" 	):SetHeaderAlign("CENTER")
+oSection11:Cell("E1_PARCELA"):SetHeaderAlign("CENTER")
+oSection11:Cell("E1_TIPO"	):SetHeaderAlign("CENTER")
+oSection11:Cell("E1_EMISSAO"):SetHeaderAlign("CENTER")
+oSection11:Cell("E1_EMITCHQ"):SetHeaderAlign("CENTER")
+oSection11:Cell("VALOR"		):SetHeaderAlign("RIGHT")
+oSection11:Cell("JUROS" 	):SetHeaderAlign("RIGHT")
+oSection11:Cell("DESCONTOS"	):SetHeaderAlign("RIGHT")
+oSection11:Cell("E1_BCOCHQ"	):SetHeaderAlign("RIGHT")
+oSection11:Cell("STATUS" 	):SetHeaderAlign("RIGHT")
+
+oSection11:SetHeaderPage(.T.)
+
+oSection11:SetParentFilter({|cParam| Trb->(NUMLIQ+CLIENTE+LOJA) == cParam},{|| Trb->(NUMLIQ+CLIENTE+LOJA)})
+
+TRFunction():New(oSection11:Cell("VALOR")		,"T_VAL" ,"SUM",,STR0010,,{|| If(Trb->BG=="B",Trb->VALOR,0) },.T.,.F.)
+TRFunction():New(oSection11:Cell("JUROS")		,"T_JUR" ,"SUM",,STR0010,,,.T.,.F.)
+TRFunction():New(oSection11:Cell("DESCONTOS"),"T_DESC" ,"SUM",,STR0010,,,.T.,.F.)
+
+oSection11:SetTotalInLine(.F.)
+oSection11:SetTotalText(STR0010) // Totais
+oSection1:Print()
+
+Trb->(dbCloseArea())
+Ferase(cNomeArq+GetDBExtension())	// Elimina arquivos de Trabalho
+Ferase(cNomeArq+OrdBagExt())			// Elimina arquivos de Trabalho
+
+#IFNDEF TOP
+	dbSelectArea("SE1")
+	dbClearFil()
+	RetIndex( "SE1" )
+	If !Empty(cIndex)
+		FErase (cIndex+OrdBagExt())
+	Endif
+	dbSetOrder(1)
+
+	dbSelectArea("SE2")
+	dbClearFil()
+	RetIndex( "SE2" )
+	If !Empty(cIndexE2)
+		FErase (cIndexE2+OrdBagExt())
+	Endif
+	dbSetOrder(1)
+
+	dbSelectArea("SE5")
+	dbClearFil()
+	RetIndex( "SE5" )
+	If !Empty(cIndex)
+		FErase (cIndexSE5+OrdBagExt())
+	Endif
+	dbSetOrder(1)
+#ENDIF
+
+Return
+      
+
+
+
+
+
+
+
+/*
+---------------------------------------------------------- RELEASE 3 ---------------------------------------------
+*/
+
+
+
+
+
+
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FINR500R3³ Autor ³ Mauricio Pequim Jr    ³ Data ³ 29.04.02 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatorio de Liquidacoes Financeiras                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe e ³ FINR500R3(void)                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function FinR500R3()
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+LOCAL cDesc1 := STR0001 //"Este relatorio ir  imprimir o extrato de Liquidacoes "
+LOCAL cDesc2 := STR0002 //"Financeiras. "
+LOCAL cDesc3 := ""
+LOCAL wnrel
+LOCAL cString:="SE1"
+LOCAL Tamanho := "G"
+
+PRIVATE titulo :=STR0003 //"Liquidacoes Financeiras"
+PRIVATE cabec1
+PRIVATE cabec2
+PRIVATE aReturn := {STR0004, 1,STR0005 , 2, 2, 1, "",1 }  //"Zebrado"###"Administracao" //"Zebrado"###"Administracao"
+PRIVATE nomeprog:= "FINR500X"
+PRIVATE aLinha  := { },nLastKey := 0
+PRIVATE cPerg   := "FIN500X"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte(Padr("FIN500X",Len(SX1->X1_GRUPO)),.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                        ³
+//³ mv_par01            // Liquidacao De                        ³
+//³ mv_par02            // Liquidacao Ate                       ³
+//³ mv_par03            // Cliente de                           ³
+//³ mv_par04            // Cliente Ate                          ³
+//³ mv_par05            // Todos/Liquidados/Gerados             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Envia controle para a funcao SETPRINT                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+wnrel := "FINR500"            //Nome Default do relatorio em Disco
+wnrel := SetPrint(cString,wnrel,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.F.,"",.T.,Tamanho,"",.F.)
+
+If nLastKey == 27
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+	Return
+Endif
+
+RptStatus({|lEnd| Fa500Imp(@lEnd,wnRel,cString)},titulo)
+Return
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FA500Imp ³ Autor ³ Mauricio Pequim Jr    ³ Data ³ 29.04.02 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relatorio de Liquidacoes Financeiras                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe e ³ FA500Imp(lEnd,wnRel,cString)                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ lEnd    - A‡Æo do Codeblock                                ³±±
+±±³          ³ wnRel   - T¡tulo do relat¢rio                              ³±±
+±±³          ³ cString - Mensagem                                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function FA500Imp(lEnd,wnRel,cString)
+
+LOCAL CbCont,CbTxt
+LOCAL tamanho:="G"
+LOCAL aCampos:={},aTam:={}
+LOCAL lFirst := .T.
+LOCAL nTotJur := 0
+LOCAL nTotDes := 0
+LOCAL cNumLiq := Space(6)
+Local cChave
+Local nTaxa		:= 1					// Taxa de Conversao
+Local nValor	:= 0
+
+#IFDEF TOP
+	Local nI := 0
+   Local cQuery
+	Local nLaco := 0
+	Local aStru		:= SE1->(dbStruct())
+	Local aStruSE2	:= SE2->(dbStruct())
+	Local aStruSE5	:= SE5->(dbStruct())
+#ELSE
+	Local cCondE1
+	Local cCondE2
+#ENDIF
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para Impressao do Cabecalho e Rodape    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+cbtxt    := SPACE(10)
+cbcont   := 0
+li       := 80
+m_pag  := 1
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Definicao dos cabecalhos                                     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+titulo := STR0003 //"Liquidacoes Financeiras"
+cabec1 := STR0011  //"PRF NUMERO                PC  TIPO EMISSAO     EMITENTE                                          VALOR        JUROS    DESCONTOS  BANCO-AGENCIA-CONTA                STATUS"
+//			  123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+//                  10        20        30        40        50        60        70        80        90        100       110       120       130       140       150
+
+cabec2 :=""         
+m_pag := 1
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Gera arquivo de Trabalho                                     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aTam:=TamSX3("E1_CLIENTE")
+AADD(aCampos,{"CLIENTE" ,"C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_LOJA")
+AADD(aCampos,{"LOJA"   ,"C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_NUMLIQ")
+AADD(aCampos,{"NUMLIQ" ,"C",aTam[1],aTam[2]})
+AADD(aCampos,{"PREFIXO","C",3,0})
+aTam:=TamSX3("E1_NUM")
+AADD(aCampos,{"NUMTIT" ,"C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_PARCELA")
+AADD(aCampos,{"PARCELA","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_TIPO")
+AADD(aCampos,{"TIPO"   ,"C",aTam[1],aTam[2]})
+AADD(aCampos,{"MOEDA"  ,"N",2,0})
+aTam:=TamSX3("E1_EMISSAO")
+AADD(aCampos,{"EMISSAO","D",aTam[1],aTam[2]})
+AADD(aCampos,{"EMITENTE","C",40,0})
+AADD(aCampos,{"VALOR"  ,"N",18,2})
+AADD(aCampos,{"JUROS"  ,"N",18,2})
+AADD(aCampos,{"DESCONT","N",18,2})
+aTam:=TamSX3("E1_BCOCHQ")
+AADD(aCampos,{"BANCO","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_AGECHQ")
+AADD(aCampos,{"AGENCIA","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_CTACHQ")
+AADD(aCampos,{"CONTA","C",aTam[1],aTam[2]})
+AADD(aCampos,{"BG"     ,"C", 1,0}) // Baixado ou Gerado
+AADD(aCampos,{"CART"   ,"C", 1,0}) // Tipo Carteira
+aTam:=TamSX3("E1_NUMLIQ")
+aTam:=TamSX3("E1_VEND1")
+AADD(aCampos,{"VENDEDOR","C",aTam[1],aTam[2]})
+aTam:=TamSX3("E1_BAIXA")
+AADD(aCampos,{"BAIXA","D",aTam[1],aTam[2]})
+
+cNomeArq:=CriaTrab(aCampos)
+dbUseArea( .T., __cRDDNTTS, cNomeArq, "TRBLIQ", if(.F. .Or. .F., !.F., NIL), .F. )
+IndRegua("TRBLIQ",cNomeArq,"CART+NUMLIQ+BG+PREFIXO+NUMTIT+PARCELA+TIPO",,,STR0006) //"Selecionando Registros..."
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Localiza e grava titulos a receber dentro dos parametros     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+ChkFile("SE1",.F.,"NEWSE1")
+dbSelectArea("SE1")
+dbSetOrder(2)
+#IFDEF TOP
+	//Filtra SE5 - Geradores (Baixados por Liquidação)
+	dbSelectArea("SE5")
+	dbSetOrder(10)
+	cQuery := " SELECT * FROM " +RetSqlName("SE5")+" SE5,"+RetSqlName("SE1")+" SE1 WHERE"
+	cQuery += " E5_FILIAL = '"+xFilial("SE5")+"' AND "
+	cQuery += " E5_CLIFOR >= '"+ mv_par03 + "' AND "
+	cQuery += " E5_CLIFOR <= '"+ mv_par04 + "' AND "
+	cQuery += " E5_DOCUMEN >= '"+ PADR(mv_par01,TamSx3("E5_DOCUMEN")[1]) + "' AND "
+	cQuery += " E5_DOCUMEN <= '"+ PADR(mv_par02,TamSx3("E5_DOCUMEN")[1]) + "' AND "
+	cQuery += " E5_DOCUMEN <> '"+ Space(TamSx3("E5_DOCUMEN")[1]) + "' AND "
+	cQuery += " E5_DATA >= '"+DTOS(MV_PAR10)+"' AND E5_DATA <= '"+DTOS(MV_PAR11)+"' AND "	
+	cQuery += " E5_MOTBX = 'LIQ' AND "
+	cQuery += " E5_SITUACA<>'C' AND "
+	cQuery += " E5_TIPODOC = 'BA' AND "	
+	cQuery += " SE5.D_E_L_E_T_ <> '*' AND "
+	cQuery += " E1_FILIAL = E5_FILIAL AND E5_NUMERO = E1_NUM AND E5_PREFIXO = E1_PREFIXO AND E5_PARCELA = E1_PARCELA AND "
+	cQuery += " E1_EMISSAO >= '"+DTOS(MV_PAR12)+"' AND E1_EMISSAO <= '"+DTOS(MV_PAR13)+"' AND " 
+	cQuery += " E1_VEND1 >= '"+MV_PAR14+"' AND E1_VEND1 <= '"+MV_PAR15+"' AND "
+	cQuery += " SE1.D_E_L_E_T_ <> '*' "
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Montagem da ordem para Informix                                 ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If UPPER(TcGetDB()) == "INFORMIX"
+		cChave := ""
+		For nLaco:=1 To FCount()
+			If AllTrim(FieldName(nLaco)) $ ".E5_FILIAL.E5_DOCUMEN"
+				cChave += (StrZero(nLaco,2)+",")
+			EndIf
+		Next
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Descarta a ultima virgula da ordem gerada                       ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		cChave := SubStr(cChave,1,Len(cChave)-1)
+	Else
+		cChave := SqlOrder(IndexKey())
+	EndIf
+	cQuery += " ORDER BY E1_VEND1" //+ cChave
+	cQuery := ChangeQuery(cQuery)
+	dbSelectArea("SE5")
+	SE5->(dbCloseArea())
+	dbSelectArea("SA1")
+	dbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), 'SE5', .F., .T.)
+	For ni := 1 to Len(aStruSE5)
+		If aStruSE5[ni,2] != 'C'
+			TCSetField('SE5', aStruSE5[ni,1], aStruSE5[ni,2],aStruSE5[ni,3],aStruSE5[ni,4])
+		Endif
+	Next
+
+	//Filtra SE1 - Gerados
+	dbSelectArea("SE1")
+	dbSetOrder(2)
+	cQuery := " SELECT SE1.* FROM " +RetSqlName("SE1")+" SE1 WHERE"
+	cQuery += " E1_FILIAL = '"+xFilial("SE1")+"' AND "
+	cQuery += " E1_CLIENTE >= '"+ mv_par03 + "' AND "
+	cQuery += " E1_CLIENTE <= '"+ mv_par04 + "' AND "
+	cQuery += " E1_NUMLIQ>= '"+ mv_par01 + "' AND "
+	cQuery += " E1_NUMLIQ<= '"+ mv_par02 + "' AND "
+	cQuery += " E1_NUMLIQ<> '"+ Space(TamSx3("E1_NUMLIQ")[1]) + "' AND "
+	cQuery += " (E1_BCOCHQ<>' ' OR E1_TIPO = 'NCC') AND "                      
+	cQuery += " SE1.D_E_L_E_T_ <> '*' "		
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Montagem da ordem para Informix                                 ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If UPPER(TcGetDB()) == "INFORMIX"
+		cChave := ""
+		For nLaco:=1 To FCount()
+			If AllTrim(FieldName(nLaco)) $ ".E1_FILIAL.E1_PREFIXO.E1_NUM.E1_PARCELA.E1_TIPO."
+				cChave += (StrZero(nLaco,2)+",")
+			EndIf
+		Next
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Descarta a ultima virgula da ordem gerada                       ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		cChave := SubStr(cChave,1,Len(cChave)-1)
+	Else
+		cChave := SqlOrder(IndexKey())
+	EndIf
+	cQuery += " ORDER BY E1_VEND1 " //+ cChave
+	cQuery := ChangeQuery(cQuery)
+	dbSelectArea("SE1")
+	SE1->(dbCloseArea())
+	dbSelectArea("SA1")
+	dbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), 'SE1', .F., .T.)
+	For ni := 1 to Len(aStru)
+		If aStru[ni,2] != 'C'
+			TCSetField('SE1', aStru[ni,1], aStru[ni,2],aStru[ni,3],aStru[ni,4])
+		Endif
+	Next
+ 
+ 
+#ELSE
+	dbSelectArea("SE1")
+	cCondE1	:='E1_FILIAL=="'+xFilial("SE1")+'".and.'
+	cCondE1	+='E1_NUMLIQ>="'+mv_par01+'".And.'
+	cCondE1	+='E1_NUMLIQ<="'+mv_par02+'".And.'
+	cCondE1	+='E1_CLIENTE>="'+mv_par03+'".And.'
+	cCondE1	+='E1_CLIENTE<="'+mv_par04+'".and.'
+	cCondE1	+='E1_NUMLIQ<>"'+ Space(TamSx3("E1_NUMLIQ")[1])+'".and.'
+	cCondE1	+='(E1_BCOCHQ<>" " .Or. E1_TIPO == "NCC") '
+	cIndex	:= CriaTrab(nil,.f.)
+	cChave	:= IndexKey()
+	IndRegua("SE1",cIndex,cChave,,cCondE1,STR0006) //"Selecionando Registros..."
+	nIndex := RetIndex("SE1")
+	DbSelectArea("SE1")
+	DbSetIndex(cIndex+OrdBagExt())
+	DbSetOrder(nIndex+1)
+	DbSeek(xFilial("SE1"))
+	DbGoTop()
+
+	
+	dbSelectArea("SE2")
+	cCondE2	:='E2_FILIAL=="'+xFilial("SE2")+'".and.'
+	cCondE2	+='E2_NUMLIQ>="'+mv_par01+'".And.'
+	cCondE2	+='E2_NUMLIQ<="'+mv_par02+'".And.'
+	cCondE2	+='E2_FORNECE>="'+mv_par06+'".And.'
+	cCondE2	+='E2_FORNECE<="'+mv_par07+'".and.'
+	cCondE2	+='E2_NUMLIQ<>"'+ Space(TamSx3("E2_NUMLIQ")[1])+'".and.'
+	cCondE2	+='(E2_BCOCHQ<>" " .Or. E2_TIPO == "NCC") '
+	cIndexE2:= CriaTrab(nil,.f.)
+	cChaveE2:= IndexKey()
+	IndRegua("SE2",cIndexE2,cChaveE2,,cCondE2,STR0006) //"Selecionando Registros..."
+	nIndex := RetIndex("SE2")
+	DbSelectArea("SE2")
+	DbSetIndex(cIndexE2+OrdBagExt())
+	DbSetOrder(nIndexE2+1)
+	DbSeek(xFilial("SE2"))
+	DbGoTop()
+
+
+	dbSeLectArea("SE5")
+	dbSetOrder(10)
+	cCondE5 := "E5_FILIAL=='"+xFilial("SE5")+"'.AND."
+	cCondE5 += "E5_CLIFOR>='"+ mv_par03 + "'.AND."
+	cCondE5 += "E5_CLIFOR<='"+ mv_par04 + "'.AND."
+	cCondE5 += "E5_DOCUMEN>='"+ PADR(mv_par01,TamSx3("E5_DOCUMEN")[1]) + "'.AND."
+	cCondE5 += "E5_DOCUMEN<='"+ PADR(mv_par02,TamSx3("E5_DOCUMEN")[1]) + "'.AND."
+	cCondE5 += "E5_DOCUMEN<>'"+ Space(TamSx3("E5_DOCUMEN")[1]) + "'.AND."
+	cCondE5 += "E5_MOTBX=='LIQ'.and."
+	cCondE5 += "E5_TIPODOC == 'BA'.and."
+	cCondE5 += "E5_SITUACA<>'C'"
+	cIndexSE5 :=  CriaTrab(nil,.f.)
+	cChaveSE5 := IndexKey()
+	IndRegua("SE5",cIndexSE5,cChaveSE5,,cCondE5,STR0006) //"Selecionando Registros..."
+	nIndex := RetIndex("SE5")
+	DbSelectArea("SE5")
+	DbSetIndex(cIndexSE5+OrdBagExt())
+	DbSetOrder(nIndex+1)
+	DbSeek(xFilial("SE5"))
+	DbGoTop()
+
+#ENDIF
+
+If mv_par05 != 2
+	dbSelectArea("SE1")	
+	While !SE1->(Eof())               
+	
+		If MV_PAR08 <> 1
+			DbSelectArea( "SM2" )
+			SM2->( DbSetOrder( 1 ) )
+			If SM2->( DbSeek( DtoS( IIf( MV_PAR08 == 2, DDATABASE, SE1->E1_EMISSAO ) ) ) )
+				If FieldPos( "M2_MOEDA" + MV_PAR09 ) > 0
+					nTaxa := SM2->&( "M2_MOEDA" + MV_PAR09 )
+				EndIf
+			EndIf
+		EndIf
+
+		// Titulos Gerados na liquidacao
+		DBSelectArea("TRBLIQ")
+		RecLock("TRBLIQ",.T.)
+		CLIENTE		:= SE1->E1_CLIENTE
+		LOJA		:= SE1->E1_LOJA	 
+		NUMLIQ		:= SE1->E1_NUMLIQ	
+		PREFIXO		:= SE1->E1_PREFIXO
+		NUMTIT		:= SE1->E1_NUM
+		PARCELA		:= SE1->E1_PARCELA
+		TIPO		:= SE1->E1_TIPO
+		EMISSAO		:= SE1->E1_EMISSAO
+		VALOR		:= SE1->E1_VALOR * nTaxa
+		JUROS		:= SE1->E1_ACRESC
+		BANCO		:= SE1->E1_BCOCHQ
+		AGENCIA		:= SE1->E1_AGECHQ
+		CONTA		:= SE1->E1_CTACHQ
+		EMITENTE 	:= Substr(SE1->E1_EMITCHQ,1,40)
+		BG			:= "G"	// Gerado
+		CART        := "R"        
+		VENDEDOR    := SE1->E1_VEND1
+		BAIXA       := SE1->E1_BAIXA
+		MsUnlock()
+		SE1->(dbSkip())
+	Enddo
+Endif	
+
+// Titulos Baixados na liquidacao
+If mv_par05 != 3
+	dbSelectArea("SE5")
+	While SE5->(!Eof())
+		If MV_PAR08 <> 1
+			DbSelectArea( "SM2" )
+			SM2->( DbSetOrder( 1 ) )
+			If SM2->( DbSeek( DtoS( IIf( MV_PAR08 == 2, DDATABASE, SE5->E5_DATA ) ) ) )
+				If FieldPos( "M2_MOEDA" + MV_PAR09 ) > 0
+					nTaxa := SM2->&( "M2_MOEDA" + MV_PAR09 )
+				EndIf
+			EndIf
+		EndIf
+
+
+		NEWSE1->(dbSetOrder(1))
+		NEWSE1->(MsSeek(xFilial("SE1")+SE5->(E5_PREFIXO+E5_NUMERO+E5_PARCELA+E5_TIPO)))
+
+		//nValor := NEWSE1->E1_VALOR - NEWSE1->E1_JUROS + NEWSE1->E1_DESCONT
+		nValor := SE5->E5_VALOR - SE5->E5_VLJUROS + SE5->E5_VLDESCO
+
+		DBSelectArea("TRBLIQ")
+		RecLock("TRBLIQ",.T.)
+		CLIENTE		:= SE5->E5_CLIFOR
+		LOJA		:= SE5->E5_LOJA	 
+		NUMLIQ		:= Substr(SE5->E5_DOCUMEN,1,6)	
+		PREFIXO		:= SE5->E5_PREFIXO
+		NUMTIT		:= SE5->E5_NUMERO
+		PARCELA		:= SE5->E5_PARCELA
+		TIPO		:= SE5->E5_TIPO
+		EMISSAO		:= NEWSE1->E1_EMISSAO
+		VALOR		:= nValor * nTaxa
+		JUROS		:= SE5->E5_VLJUROS
+		DESCONT		:= SE5->E5_VLDESCO       
+		EMITENTE 	:= SUBSTR(NEWSE1->E1_EMITCHQ,1,40)
+		BG			:= "B"	// Baixado
+		CART        := Alltrim(SE5->E5_RECPAG)
+		VENDEDOR    := NEWSE1->E1_VEND1
+		BAIXA       := NEWSE1->E1_BAIXA		
+		
+		MsUnlock()
+		SE5->(dbSkip())
+	Enddo
+Endif		
+
+
+dbSelectArea("TRBLIQ")
+dbGoTop()
+While !Eof()
+	cNumLiq := TRBLIQ->NUMLIQ
+	cCliente := TRBLIQ->CLIENTE+"-"+TRBLIQ->LOJA 
+	cCarteira := If(TRBLIQ->CART == "P",STR0028,STR0029) //A Pagar//A Receber
+	lFirst := .T.
+	nTotLiq := 0
+	nTotJur := 0
+	nTotDes := 0
+
+	While !Eof() .and. 	cNumLiq == TRBLIQ->NUMLIQ
+			
+			SA3->(dbSetOrder(1))
+			SA3->(MsSeek(xFilial("SA3")+TRBLIQ->VENDEDOR))
+	
+			If Li >= 58                                                                                              
+				Cabec(Titulo,Cabec1,Cabec2,NomeProg,Tamanho,Iif(aReturn[4]==1,15,18))                               
+				Li := Prow()+1
+			EndIf
+			IF lFirst
+				@Li,001	PSAY STR0007 + NUMLIQ + " - "+ cCliente + " - "+ cCarteira  //"LIQUIDACAO : "
+				lFirst := .F.
+				Li+=2
+			Endif
+			If !Empty(BANCO+AGENCIA+CONTA)
+				cBanco := BANCO+"-"+AGENCIA+"-"+CONTA
+			Else
+				cBanco := " "
+			Endif
+			@Li,001	PSAY PREFIXO
+			@Li,005	PSAY NUMTIT
+			@Li,027	PSAY PARCELA
+			@Li,032	PSAY TIPO
+			@Li,036	PSAY DTOC(EMISSAO)
+			@Li,048	PSAY EMITENTE
+			@Li,089	PSAY VALOR	Picture "@e 9,999,999,999.99"
+			@Li,106	PSAY JUROS	Picture "@e 9,999,999.99"
+			@Li,119	PSAY DESCONT Picture "@e 9,999,999.99"
+			@Li,132	PSAY cBanco
+			@Li,167	PSAY IIF(BG == "B",STR0008,STR0009)		 //"Baixado"###"Gerado"
+			@LI,178 PSAY VENDEDOR+"-"+SA3->A3_NREDUZ
+			@li,205 PSAY DTOC(BAIXA)
+			
+			If mv_par05 == 3  // Gerados
+				nTotLiq +=	IIF(BG == "G",VALOR,0)
+			Else
+				nTotLiq +=	IIF(BG == "B",VALOR,0)
+			Endif                                 
+			
+			nTotJur +=	JUROS
+			nTotDes +=	DESCONT
+			Li++
+			
+		dbSelectArea("TRBLIQ")	
+		dbSkip()
+	Enddo
+	Li++
+	If Li > 58                                                                                              
+		Cabec(Titulo,Cabec1,Cabec2,NomeProg,Tamanho,Iif(aReturn[4]==1,15,18))                               
+		Li := Prow()+1
+	EndIf
+	@Li,001	PSAY STR0010 //"Totais "
+	@Li,089	PSAY nTotLiq	Picture "@e 9,999,999,999.99"
+	@Li,106	PSAY nTotJur	Picture "@e 9,999,999.99"
+	@Li,119	PSAY nTotDes	Picture "@e 9,999,999.99"
+	Li++
+	@Li,001	PSAY __PrtThinLine()
+	Li+=2
+Enddo	
+dbSelectArea("TRBLIQ")
+Use
+Ferase(cNomeArq+GetDBExtension())         // Elimina arquivos de Trabalho
+Ferase(cNomeArq+OrdBagExt())    // Elimina arquivos de Trabalho
+
+If Select("NEWSE1") > 0
+	dbSelectArea("NEWSE1")
+	dbClearFil()
+	dbCloseArea()
+Endif
+
+#IFDEF TOP
+	dbSelectArea("SE1")
+	dbCloseArea()
+	ChKFile("SE1")
+	dbSelectArea("SE1")
+	dbSetOrder(1)
+	
+	dbSelectArea("SE2")
+	dbCloseArea()
+	ChKFile("SE2")
+	dbSelectArea("SE2")
+	dbSetOrder(1)
+	
+	dbSelectArea("SE5")
+	dbCloseArea()
+	ChKFile("SE5")
+	dbSelectArea("SE5")
+	dbSetOrder(1)
+#ELSE	
+	dbSelectArea("SE1")
+	dbClearFil()
+	RetIndex( "SE1" )
+	If !Empty(cIndex)
+		FErase (cIndex+OrdBagExt())
+	Endif
+	dbSetOrder(1)
+	
+	dbSelectArea("SE2")
+	dbClearFil()
+	RetIndex( "SE2" )
+	If !Empty(cIndexE2)
+		FErase (cIndexE2+OrdBagExt())
+	Endif
+	dbSetOrder(1)
+
+	dbSelectArea("SE5")
+	dbClearFil()
+	RetIndex( "SE5" )
+	If !Empty(cIndex)
+		FErase (cIndex+OrdBagExt())
+	Endif
+	dbSetOrder(1)
+#ENDIF
+
+If aReturn[5] = 1
+	Set Printer TO
+	dbCommitAll()
+	Ourspool(wnrel)
+Endif
+MS_FLUSH()
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o	 ³CriaSX1   ³ Autor ³ Marcelo Celi Marques  ³ Data ³ 02/10/08³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡„o ³Atualiza perguntas no SX1                              	  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe	 ³CriaSX1() 												  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso		 ³FINR500()     											  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function CriaSx1()
+
+Local aArea:=GetArea()
+Local aHelpPor:={}
+Local aHelpEsp:={}
+Local aHelpIng:={}
+
+Aadd(aHelpPor,"Selecione o código inicial do intervalo" )
+Aadd(aHelpPor,"de códigos de fornecedores a serem "		)
+Aadd(aHelpPor,"considerados na geração do relatório."	)
+Aadd(aHelpPor,"Tecla [F3] disponível para consulta ao"	)
+Aadd(aHelpPor,"cadastro de fornecedores"				)
+PutSx1("FIN500X","06","Do Fornecedor ?","¿De Proveedor ?","From Supplier ?","mv_ch6",;
+	"C",TamSx3('A2_COD')[1],0,0,"G","","SA2","001","","mv_par06"," "," "," "," ",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+aHelpPor:={}
+Aadd(aHelpPor,"Selecione o código final do intervalo" )
+Aadd(aHelpPor,"de códigos de fornecedores a serem "		)
+Aadd(aHelpPor,"considerados na geração do relatório."	)
+Aadd(aHelpPor,"Tecla [F3] disponível para consulta ao"	)
+Aadd(aHelpPor,"cadastro de fornecedores"				)
+PutSx1("FIN500X","07","Ate o Fornecedor ?","¿A Proveedor ?","To Supplier ?","mv_ch7",;
+	"C",TamSx3('A2_COD')[1],0,0,"G","","SA2","001","","mv_par07"," "," "," ","ZZZZZZ",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+// Converter Moeda? (Sim/Nao)
+aHelpPor := {}
+PutSx1("FIN500X","08","Converter Moeda?","","","mv_ch8",;
+	"N",1,0,0,"C","","","","","mv_par08","Nao Converter","Nao Converter","Nao Converter","",;
+	"Dt.Referencia","Dt.Referencia","Dt.Referencia","Dt.Movimentacao","Dt.Movimentacao","Dt.Movimentacao", ""," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+aHelpPor:={}
+PutSx1("FIN500X","09","Moeda?","Moeda?","Moeda?","mv_ch9",;
+	"C",TamSx3('E2_MOEDA')[1],0,0,"G","","","","","mv_par09"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+aHelpPor:={}                                           
+Aadd(aHelpPor,"Data da Baixa por Liquidação" )
+PutSx1("FIN500X","10","Da Baixa?","Da Baixa?","Da Baixa?","mv_chA",;
+	"D",8,0,0,"G","","","","","mv_par10"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+aHelpPor:={}                               
+Aadd(aHelpPor,"Data da Baixa por Liquidação" )   
+PutSx1("FIN500X","11","Ate a Baixa?","Ate a Baixa?","Ate a Baixa?","mv_chB",;
+	"D",8,0,0,"G","","","","","mv_par11"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+aHelpPor:={}                                  
+Aadd(aHelpPor,"Data da Emissão do Título" )
+PutSx1("FIN500X","12","Da Emissão?","Da Emissão?","Da Emissão?","mv_chC",;
+	"D",8,0,0,"G","","","","","mv_par12"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+aHelpPor:={}                                  
+Aadd(aHelpPor,"Data da Emissão do Título" )
+PutSx1("FIN500X","13","Ate a Emissão?","Ate a Emissão?","Ate a Emissão?","mv_chD",;
+	"D",8,0,0,"G","","","","","mv_par13"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+Aadd(aHelpPor,"Código do Vendedor" )
+PutSx1("FIN500X","14","Do Vendedor","","","mv_chE",;
+	"C",6,0,0,"G","","SA3","","","mv_par14"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+Aadd(aHelpPor,"Código do Vendedor" )
+PutSx1("FIN500X","15","Ate o Vendedor","","","mv_chF",;
+	"C",6,0,0,"G","","SA3","","","mv_par15"," "," "," ","",;
+	" "," "," "," "," "," ", " "," "," "," "," "," ",;
+	aHelpPor,aHelpEsp,aHelpIng)
+
+RestArea(aArea)
+Return                                       

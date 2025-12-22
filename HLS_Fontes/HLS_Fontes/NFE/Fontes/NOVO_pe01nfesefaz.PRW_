@@ -1,0 +1,229 @@
+#include "totvs.ch"
+
+User Function PE01NFESEFAZ()
+
+	Local nX
+	Local aRet 			:= PARAMIXB
+	Local aProd         := aRet[1]
+	Local cMensCli		:= aRet[2]
+	Local cMensCliAtu	:= cMensCli
+	Local aNota			:= aRet[5]
+
+	Local nPos		:= 0
+	Local aNFDev	:= {}
+	Local cMensAux	:= ""
+	Local aRetImp	:= {}
+
+	Local aAreaAtu	:= GetArea()
+	Local aAreaSD2	:= SD2->(GetArea())
+	Local aAreaSC6	:= SC6->(GetArea())
+	Local gh		:= 0
+
+	If aNota[4] == "1" // NF saida
+
+		cMensCli := ""
+
+		Posicione("SD2",3,FwXFilial("SD2") + SF2->(F2_DOC + F2_SERIE),"")
+
+		While SD2->(D2_FILIAL + D2_DOC + D2_SERIE) == SF2->(F2_FILIAL + F2_DOC + F2_SERIE)
+
+			Posicione("SC6", 1, FwXFilial("SC6") + SD2->(D2_PEDIDO + D2_ITEMPV), "")
+
+			If !Empty(SC6->C6_NFFATUR)
+				nPos := aScan(aNFDev,{|X|X[1]==SC6->C6_NFFATUR+SC6->C6_NFSERIE+SD2->D2_CLIENTE+SD2->D2_LOJA})
+				If nPos == 0
+					aAdd(aNFDev, {SC6->C6_NFFATUR+SC6->C6_NFSERIE+SD2->D2_CLIENTE+SD2->D2_LOJA, CtoD("")/*EMISSAO*/, 0/*TOTAL*/, "F"})
+				EndIf
+			EndIf
+
+			If !AllTrim(SD2->D2_PEDIDO) $ cMensCli
+				If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
+					cMensCli += " "
+				EndIf
+				cMensCli += "Pedido de Venda: " + AllTrim(SD2->D2_PEDIDO)
+			EndIf
+
+			// AJUSTE NA DESCRIÇAO PARA O CLIENTE 000099
+			_cCliente := SF2->F2_CLIENTE
+			_cLoja := SF2->F2_LOJA
+
+			// colocar a NF de Origem junto a descrição para o cliente 000099
+			if _cCliente == '000099' .and. aNota[4] == "1" // NF saida
+				For nX := 1 to Len(aProd)
+					DbSelectArea('SD1')
+					DbSetOrder(1)//D1_FILIAL+D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA+D1_COD+D1_ITEM
+
+					if MsSeek(xFilial('SD2')+SD2->D2_NFORI+SD2->D2_SERIORI+_cCliente+_cLoja+aProd[nX][2]+SD2->D2_ITEMORI)
+						cDescProd :=AllTrim(aProd[nX][2])+' - '+AllTrim(aProd[nX,4])+' - NFE/1/'+cValToChar(val(SD1->D1_DOC)) + ' DE ' + Dtoc(SD1->D1_EMISSAO)
+						aProd[nX,4] := cDescProd
+					endif
+				next
+			endif
+
+			SD2->(dbSkip())
+		EndDo
+
+		cMensCli += Space(01)+CarregaMSG("S",SF2->F2_DOC,SF2->F2_SERIE,SF2->F2_CLIENTE,SF2->F2_LOJA,aNFDev)
+
+	Else // NF de Entrada
+
+		cMensCli := ""
+		aRetImp  := U_UZMsgNF(SF1->F1_HAWB)
+		If ValType(aRetImp) == "A"
+			For gh := 1 To Len(aRetImp)
+				cMensCli += aRetImp[gh]
+			Next
+		EndIf
+
+		cMensAux := ""
+
+		&& 1o. Mensagens com informações da NF Importação:
+		If !Empty(SF1->F1_ZZMANI)
+			cMensAux += " MANIFESTO: "+Alltrim(SF1->F1_ZZMANI)
+		Endif
+
+		If !Empty(SF1->F1_ZZINVO)
+			cMensAux += " INVOICE: "+Alltrim(SF1->F1_ZZINVO)
+		Endif
+
+		If !Empty(SF1->F1_ZZDI)
+			cMensAux += " D.I.: "+Alltrim(SF1->F1_ZZDI)+" - "+DTOC(SF1->F1_ZZDTDI)
+		Endif
+
+		If !Empty(SF1->F1_ZZDES)
+			cMensAux += " DESEMBARQUE: "+Alltrim(SF1->F1_ZZDES)
+		Endif
+
+		If !Empty(SF1->F1_ZZUFDES)
+			cMensAux += "/"+Alltrim(SF1->F1_ZZUFDES)
+		Endif
+
+		If !Empty(SF1->F1_ZZDATA)
+			cMensAux += " EM: "+DTOC(SF1->F1_ZZDATA)
+		Endif
+
+		If SF1->F1_ZZSISCO <> 0
+			cMensAux += " TX SISCOMEX: "+Alltrim(Transform(SF1->F1_ZZSISCO, "@E 999,999,999.9999"))
+		Endif
+
+		If SF1->F1_ZZPIS <> 0
+			cMensAux += " PIS/PASEP: "+Alltrim(Transform(SF1->F1_ZZPIS, "@E 999,999,999.9999"))
+		Endif
+
+		If SF1->F1_ZZCOF <> 0
+			cMensAux += " COFINS: "+Alltrim(Transform(SF1->F1_ZZCOF, "@E 999,999,999.9999"))
+		Endif
+
+		If SF1->F1_ZZII <> 0
+			cMensAux += " I.I.: "+Alltrim(Transform(SF1->F1_ZZII, "@E 999,999,999.9999"))
+		Endif
+
+		If SF1->F1_ZZUSS <> 0
+			cMensAux += " TX DOLAR U$$: "+Alltrim(Transform(SF1->F1_ZZUSS, "@E 999,999,999.9999"))
+		Endif
+
+		If !Empty(SF1->F1_MENNOTA)				//add Luciano Lamberti em 19-03-2019 para notas de importação
+			cMensAux += DTOC(SF1->F1_MENNOTA)
+		Endif
+
+		SZZ->(dbseek(xFilial("SZZ") + "E" + SF1->F1_DOC + SF1->F1_SERIE + SF1->F1_FORNECE + SF1->F1_LOJA))
+		Do While 	SZZ->(!Eof()) .and. SZZ->ZZ_FILIAL == xFilial("SZZ")  .and.;
+				SZZ->ZZ_TIPODOC == "E" .and.;
+				SZZ->ZZ_DOC    == SF1->F1_DOC     .and. SZZ->ZZ_SERIE  == SF1->F1_SERIE   .and.;
+				SZZ->ZZ_CLIFOR == SF1->F1_FORNECE .and. SZZ->ZZ_LOJA 	 == SF1->F1_LOJA
+
+			cMensAux += Alltrim(SZZ->ZZ_TXTMENS)
+			SZZ->(dbskip())
+		Enddo
+
+		cMensAux := Upper(Alltrim(cMensAux)) + " "
+
+		If !Empty(cMensAux)
+			cMensCli += cMensAux
+		Endif
+
+	Endif
+
+	//aRet[2] := cMensCli + IIf(!Empty(cMensCli), " - ", "") + cMensCliAtu
+	aRet[1] := aProd
+	aRet[2] := cMensCli
+
+	RestArea(aAreaSD2)
+	RestArea(aAreaSC6)
+	RestArea(aAreaAtu)
+
+Return aRet
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³CarregaMSGºAutor  ³ Leandro Camacari  º Data ³  13/03/2013  º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescricao ³ Funcao que carrega mensagens personalizadas.               º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ MP10 Release 1.2                                           º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function CarregaMSG(cTipo,cDoc,cSerie,cCliente,cLoja,aNFDev)
+
+	Local	aArea		:=			GetArea()
+	Local	aAreaSZZ	:=	SZZ->(	GetArea())
+	Local	aMenPad1	:=	{}
+	Local	cMenPad2	:=	""
+	Local	nTMens		:=	0
+	Local	nPosicao	:=	0
+	Local	cMens		:=	""
+	Local	nContador	:=	0
+	Local	nTamF2DOC	:=	Len(CriaVar("F2_DOC",.f.))
+	Local	cTipoAnt	:=	""
+
+	SZZ->(DbSetOrder(1))	//	ZZ_FILIAL+ZZ_TIPODOC+ZZ_DOC+ZZ_SERIE+ZZ_CLIFOR+ZZ_LOJA+ZZ_CODMENS+ZZ_SEQMENS
+	SZZ->(DbSeek(xFilial("SZZ")+cTipo+cDoc+cSerie+cCliente+cLoja))
+
+	Do While !SZZ->(Eof()) .And.	SZZ->ZZ_TIPODOC	==	cTipo		.And.;
+			SZZ->ZZ_DOC		==	cDoc		.And.;
+			SZZ->ZZ_SERIE	==	cSerie		.And.;
+			SZZ->ZZ_CLIFOR	==	cCliente	.And.;
+			SZZ->ZZ_LOJA	==	cLoja
+
+		nPosicao	:=	aScan(aMenPad1,SZZ->ZZ_CODMENS+SZZ->ZZ_SEQMENS)
+		If nPosicao == 0
+			cMens	:=	AllTrim(SZZ->ZZ_TXTMENS)
+			If !Empty(cMens)
+				aAdd(aMenPad1,SZZ->ZZ_CODMENS+SZZ->ZZ_SEQMENS)
+				cMenPad2	+=	cMens+Space(01)
+			EndIf
+		EndIf
+
+		SZZ->(DbSkip())
+	EndDo
+	aSort(aNFDev,,, { |x,y| y[4]+y[1] > x[4]+x[1]} )
+	If !Empty(aNFDev)
+		For nContador := 1 to len(aNFDev)
+			If !Empty(cMenPad2)
+				cMenPad2	+=	Space(01)
+			EndIf
+			If cTipoAnt <> aNFDev[nContador,4]
+				If aNFDev[nContador,4] == "B"
+					cMenPad2 += "RETORNO DA NF "
+				ElseIf aNFDev[nContador,4] == "D"
+					cMenPad2 += "DEVOLUCAO DA NF "
+				ElseIf aNFDev[nContador,4] == "N"
+					cMenPad2 += "MERC. REC. P/ INDUSTR. QUE RET. INDUSTRIALIZADOS  REF. S/ NFS "
+				ElseIf aNFDev[nContador,4] == "F"
+					cMenPad2 += "REF NF DE VENDAS "
+				EndIf
+			EndIf
+			cMenPad2 += AllTrim(SubStr(	aNFDev[nContador,1],1,nTamF2DOC))+"/"+AllTrim(SubStr(aNFDev[nContador,1],nTamF2DOC+1,3));
+				//					 +	IIf(!Empty(	aNFDev[nContador,2])," DE "+Dtoc(aNFDev[nContador,2]),"")
+			cTipoAnt	:=	aNFDev[nContador,4]
+		Next nContador
+	EndIf
+
+	RestArea(aAreaSZZ)
+	RestArea(aArea)
+
+Return(cMenPad2)

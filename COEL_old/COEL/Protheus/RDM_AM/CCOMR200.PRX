@@ -1,0 +1,148 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CCOMR200 ³ Autor ³ Carlos Nina           ³ Data ³ 11/09/14 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Divergencia de PC x D.I                                    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Entrada de D.I                                             ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+#include "rwmake.ch"
+#include "topconn.ch"
+
+User Function CCOMR200()
+
+nOrdem    := 0
+tamanho   := "M"
+limite    := 132
+cString   := "SD1"
+titulo    := OemToAnsi("DIVERGENCIA DE PC x D.I")
+cDesc1    := OemToAnsi("Emite uma listagem de divergencia dos Pedidos de Compra amarrados na")
+cDesc2    := OemToAnsi("Nota Fiscal de Importação - D.I.")
+cDesc3    := OemToAnsi("**NOTA: SALDO PC = 0,00, INDICA PRODUTO DO PC DIVERGENTE DA NOTA.")
+cResp     := "C"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aOrd      := {}
+aReturn   := { "Especial", 1,"Materiais", 1, 2, 1, "",1 }
+nomeprog  := "CCOMR200"
+nLastKey  := 0
+cPerg     := "CCOMR200  "
+wnrel     := "CCOMR200"
+Tabmes    :='JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+
+ValidPerg()
+
+pergunte(cPerg,.F.)
+
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+   Return
+Endif
+SetDefault(aReturn,cString)
+
+RptStatus({||Imprimir()})
+Return
+
+***************************
+Static Function Imprimir()
+***************************
+Local cQry
+
+cQry := "SELECT D1_DOC,D1_ITEM,D1_COD,D1_QUANT,D1_LOCAL,D1_PEDIDO,D1_ITEMPC,C7_QUANT,C7_QUJE,C7_CONAPRO FROM "+RetSqlName("SD1")+" D1"
+cQry += " LEFT JOIN "+RetSqlName("SC7")+" C7 ON (C7.D_E_L_E_T_ = ' ' AND C7_FILIAL = '"+xFilial("SC7")+"' AND C7_NUM = D1_PEDIDO AND C7_ITEM = D1_ITEMPC AND C7_PRODUTO = D1_COD)"
+cQry += " WHERE D1.D_E_L_E_T_ = ' '"
+cQry += " AND D1_FILIAL  = '"+xFilial("SD1")+"'"
+cQry += " AND D1_EMISSAO = '"+DTOS(mv_par01)+"'"
+cQry += " AND D1_DOC = '"+mv_par02+"'"
+cQry += " AND D1_SERIE = '"+mv_par03+"'"
+cQry += " AND D1_FORNECE = '"+mv_par04+"'"
+cQry += " AND D1_LOJA = '"+mv_par05+"'"
+cQry += " AND D1_TES  = ' '"
+cQry += " ORDER BY D1_ITEM "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+
+LIN5  := "N.FISCAL   ITEM  CODIGO DO PRODUTO           DESCRICAO...............................  LOCAL  QTDE. D.I    SALDO PC  PEDIDO      OBS"
+******    xxxxxxxxx  xxxx  x-------------------------x x--------------------------------------x  zz   xxxxxxxx.xx xxxxxxxx.xx  xxxxxx/xxxx   
+******              1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220       23
+******    012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+*
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+nLin := 99
+SetPrc(0,0)
+@ 00,000 PSay &(aDriver[3])
+
+dbSelectArea("TRB")
+dbGoTop()
+SetRegua(LastRec())
+DO WHILE !EOF()
+   IncRegua()
+	IF ( nLin > 61 )
+		m_pag := 1
+		@ 00,000 PSAY LIN5
+		@ 01,000 PSAY repl("=",limite)
+		nLin := 1
+	ENDIF
+	nLin++
+	
+	SB1->(dbSeek(xFilial("SB1")+TRB->D1_COD))
+	
+	@ nLin,000 PSAY TRB->D1_DOC   
+	@ nLin,011 PSAY TRB->D1_ITEM
+	@ nLin,017 PSAY LEFT(TRB->D1_COD,27)
+	@ nLin,045 PSAY LEFT(SB1->B1_DESC,40)
+	@ nLin,087 PSAY TRB->D1_LOCAL
+	@ nLin,092 PSAY TRANSF(TRB->D1_QUANT,"@E 99999999.99")
+	@ nLin,104 PSAY TRANSF((TRB->C7_QUANT - TRB->C7_QUJE),"@E 99999999.99")
+	@ nLin,117 PSAY TRB->D1_PEDIDO+"/"+TRB->D1_ITEMPC
+	@ nLin,129 PSAY IIF(TRB->C7_CONAPRO=="B" , "BLQ" , "" )
+   dbSkip()
+ENDDO
+TRB->(dbCloseArea())
+
+If aReturn[5] == 1
+   dbcommitAll()
+   ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return
+
+////////////////////////////////////////////////////////////////////////////////////
+Static Function ValidPerg()
+////////////////////////////////////////////////////////////////////////////////////
+Local _sAlias := Alias()
+
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                          | perspa                          | pereng                           | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01     | DefSPA1 | DefEng1 | CNT01 | var02 | Def02   | DefSPA2 | DefEng2 | CNT02 | var03 | Def03 | DefSPA3 | DefEng3 | CNT03 | var04 | Def04    | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3     | PYME | GRPSX5 | HELP | PICTURE
+   aAdd(aRegs,{ cPerg,"01" , "Data de Emissão              ?","Data de Emissão              ?" , "Data de Emissão              ?" , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"02" , "Nota Fiscal                  ?","Nota Fiscal                  ?" , "Nota Fiscal                  ?" , "mv_ch2" , "C" ,   09   ,   0   ,   0   , "G" , "          "  , "mv_par02", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"03" , "Série                        ?","Série                        ?" , "Série                        ?" , "mv_ch3" , "C" ,   03   ,   0   ,   0   , "G" , "          "  , "mv_par03", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"04" , "Fornecedor                   ?","Fornecedor                   ?" , "Fornecedor                   ?" , "mv_ch4" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par04", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SA2 " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"05" , "Loja                         ?","Loja                         ?" , "Loja                         ?" , "mv_ch5" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par05", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "    " , " "  , "    " , "  " , "        "   })
+   For i:=1 to Len(aRegs)
+  	   If !DbSeek(cPerg+aRegs[i,2])
+	  	  RecLock("SX1",.T.)
+		   For j:=1 to FCount()
+		  	  If j <= Len(aRegs[i])
+				 FieldPut(j,aRegs[i,j])
+			  Endif
+		   Next
+		  MsUnlock()
+	   Endif
+   Next
+   dbSelectArea(_sAlias)
+
+Return

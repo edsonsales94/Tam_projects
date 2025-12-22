@@ -1,0 +1,333 @@
+/*/
+‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±⁄ƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¬ƒƒƒƒƒƒ¬ƒƒƒƒƒƒƒƒƒƒø±±
+±±≥Funáao    ≥ CESTR88B ≥ Autor ≥ Carlos Nina           ≥ Data ≥ 28/12/12 ≥±±
+±±√ƒƒƒƒƒƒƒƒƒƒ≈ƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒ¥±±
+±±≥Descriáao ≥ Diferenca de Inventario                                    ≥±±
+±±√ƒƒƒƒƒƒƒƒƒƒ≈ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¥±±
+±±≥ Uso      ≥ Materiais                                                  ≥±±
+±±¿ƒƒƒƒƒƒƒƒƒƒ¡ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+#include "rwmake.ch"
+#include "topconn.ch"
+
+User Function CESTR88B()
+
+SetPrvt("NORDEM,TAMANHO,LIMITE,CSTRING,TITULO,CDESC1,MV_PAR01,MV_PAR02,MV_PAR03")
+SetPrvt("CDESC2,CDESC3,CRESP,NDOCANT,DDATANT,LCONTINUA,MV_PAR04,MV_PAR05,MV_PAR06")
+SetPrvt("LIMPRIME1,LIMPRIME2,AORD,ARETURN,NOMEPROG,NLASTKEY,MV_PAR07,MV_PAR08")
+SetPrvt("CPERG,WNREL,CBTXT,CBCONT,NLINNOT,M_PAG,MV_PAR09,NCTD")
+SetPrvt("LIN01,LIN02,LIN03,LIN04,LIN05,LIN06,LIN07,LIN08,LIN09,LIN10,LIN11,LIN12")
+SetPrvt("CCOD1,CCOD2,CCOD3,CFIC1,CFIC2,CFIC3,CDESC1,CDESC2,CDESC3")
+SetPrvt("CUM1,CUM2,CUM3,CTIP1,CTIP2,CTIP3,CLOC1,CLOC2,CLOC3,CCLI1,CCLI2,CCLI3")
+
+nOrdem    := 0
+tamanho   := "M"
+limite    := 133
+cString   := "SZP"
+titulo    := OemToAnsi("LISTAGEM DA DIFEREN«A DE INVENTARIO")
+cDesc1    := OemToAnsi("Emite uma listagem das diferenÁas da contagem de inventario.")
+cDesc2    := OemToAnsi("Gera a listagem em Excel.")
+cDesc3    := OemToAnsi("")
+cResp     := "C"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aOrd      := {}
+aReturn   := { "Especial", 1,"Materiais", 1, 2, 1, "",1 }
+nomeprog  := "ESTR88B"
+nLastKey  := 0
+cPerg     := "CESTR88B  "
+wnrel     := "ESTR88B"
+Tabmes    :='JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+
+ValidPerg(cPerg)
+
+pergunte(cPerg,.F.)
+
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+   Return
+Endif
+SetDefault(aReturn,cString)
+
+RptStatus({||Imprimir()})
+
+Return
+
+***************************
+Static Function Imprimir()
+***************************
+Local oExcelApp
+Local nContagem
+Local cQry,cData,cLinDet,cCond1,cCond2,cCond3,cOrder,cGroup
+Local aRows,aProds
+Local cContagem  := IIF(mv_par02==1,"1a.Contagem",IIF(mv_par02==2,"2a.Contagem","3a.Contagem"))
+Local nX         := 0
+Local nRecords   := 0
+Local nRecMPG    := nRecPIG := nRecPAG := 0
+Local nRecMPC    := nRecPIC := nRecPAC := 0
+Local oExcel     := FWMSEXCEL():New()
+Local cWorkSheet := "CONFERENCIA"
+Local cRelato    := "CESTR88B"
+
+SET CENTURY ON
+cData := DTOC(mv_par01)
+SET CENTURY OFF
+
+cLinDet := "D I F E R E N « A     D E     I N V E N T A R I O: REF. "+cData+" - "+cContagem
+
+oExcel:AddworkSheet(cWorkSheet)
+oExcel:AddTable (cWorkSheet,cLinDet)
+oExcel:AddColumn(cWorkSheet,cLinDet,"FICHA",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"PRODUTO",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"DESCRI«√O",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"CTG",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"U.M.",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"1a.CONTAGEM",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet,"2a.CONTAGEM",3,2)                                      ///Codigo de formataÁ„o  [2] - ( 1-General,2-Number,3-Monet·rio,4-DateTime )
+oExcel:AddColumn(cWorkSheet,cLinDet,"3a.CONTAGEM",3,2)                                      ///Alinhamento da coluna [3] - ( 1-Left,2-Center,3-Right )
+oExcel:AddColumn(cWorkSheet,cLinDet,"SDO.ESTOQUE",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet,"CST.MEDIO",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet,"LOCALIZACAO",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"OBSERVA«AO",1,1)
+********************************************************************
+
+cQry  := "SELECT B1_TIPO,COUNT(*) CTD FROM "+RetSqlName("SZP")+" ZP,"+RetSqlName("SB1")+" B1"
+
+cCond1 := " WHERE ZP.D_E_L_E_T_ <> '*'"
+cCond1 += " AND   ZP_FILIAL  = '"  + xFilial("SZP") + "'"
+cCond1 += " AND   ZP_DATA    = '"  + DTOS(mv_par01)+"'"
+cCond1 += " AND   ZP_COD     BETWEEN '" + mv_par05 +"' AND '" + mv_par06 + "'"
+cCond1 += " AND   ZP_LOCAL   BETWEEN '" + mv_par03 +"' AND '" + mv_par04 + "'"
+cCond1 += " AND   ZP_FICHA   BETWEEN '" + mv_par07 +"' AND '" + mv_par08 + "'"
+cCond1 += " AND   ZP_CANCEL  <> 'S'"
+
+cCond2 := " AND   ZP_CONTAG  =  '"+STR(mv_par02,1)+"'"
+
+cCond3 := " AND B1.D_E_L_E_T_ = ' ' AND B1_FILIAL = '"+xFilial("SB1")+"' AND B1_COD = ZP_COD"
+
+cGroup := " GROUP BY B1_TIPO"
+
+cOrder := " ORDER BY ZP_LOCAL, ZP_COD, ZP_LOCALIZ "
+
+////
+////Leitura geral
+////
+cQry += cCond1
+cQry += cCond3
+cQry += cGroup
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+
+dbSelectArea("TRB")
+dbGoTop()
+DO WHILE !EOF()
+	nRecords += TRB->CTD
+	nRecMPG  := IIF(TRB->B1_TIPO=="MP" , ( nRecMPG + TRB->CTD ) , nRecMPG )
+	nRecPIG  := IIF(TRB->B1_TIPO=="PI" , ( nRecPIG + TRB->CTD ) , nRecPIG )
+	nRecPAG  := IIF(TRB->B1_TIPO=="PA" , ( nRecPAG + TRB->CTD ) , nRecPAG )
+	dbSkip()
+ENDDO
+	
+TRB->(dbCloseArea())
+
+IF ( nRecords = 0 )
+	MsgStop("Ainda n„o foi processado a "+cContagem,"AtenÁ„o")
+	oExcel:DeActivate()
+	oExcelApp:Destroy()                                                           //Encerra o processo do gerenciador de tarefas
+	Return
+ENDIF
+
+Inkey(2)
+
+////
+////Leitura dos itens contados
+////
+
+cQry  := "SELECT B1_TIPO,COUNT(*) CTD FROM "+RetSqlName("SZP")+" ZP,"+RetSqlName("SB1")+" B1"
+
+cQry += cCond1
+cQry += cCond2
+cQry += cCond3
+cQry += cGroup
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+
+dbSelectArea("TRB")
+dbGoTop()
+DO WHILE !EOF()
+	nRecMPC := IIF(TRB->B1_TIPO=="MP" , ( nRecMPC + TRB->CTD ) , nRecMPC )
+	nRecPIC := IIF(TRB->B1_TIPO=="PI" , ( nRecPIC + TRB->CTD ) , nRecPIC )
+	nRecPAC := IIF(TRB->B1_TIPO=="PA" , ( nRecPAC + TRB->CTD ) , nRecPAC )
+	dbSkip()
+ENDDO
+	
+TRB->(dbCloseArea())
+
+Inkey(2)
+
+////
+////Impressao
+////
+cQry := "SELECT B1_TIPO,B1_UM,* FROM "+RetSqlName("SZP")+" ZP,"+RetSqlName("SB1")+" B1"
+cQry += cCond1
+cQry += cCond2
+cQry += cCond3
+cQry += IIF(mv_par09==1,"",IIF(mv_par09==2," AND B1_TIPO = 'PA' ",IIF(mv_par09==3," AND B1_TIPO = 'PI' "," AND B1_TIPO = 'MP' ")))
+cQry += cOrder
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+
+///aEval(SZP->(dbStruct()),{|x| If(x[2]!="C" , TcSetField("TRB",x[1],x[2],x[3],x[4]),Nil)})
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+dbSelectArea("SB2")
+dbSetOrder(1)
+
+dbSelectArea("TRB")
+dbGoTop()
+SetRegua(nRecords)
+DO WHILE !EOF()
+   IncRegua()
+   IF LastKey()==27
+      lContinua := .F.
+      Exit
+   ENDIF
+	
+   SB2->(dbSeek(xFilial("SB2")+TRB->ZP_COD+TRB->ZP_LOCAL))
+
+	aSalAtu := CalcEst(TRB->ZP_COD,TRB->ZP_LOCAL,(mv_par01+1))
+	nQatu   := aSalAtu[1]
+	
+	aProds    := {}
+   nContagem := 0
+   TBLOCAL   := TRB->ZP_LOCAL
+	TBCOD     := TRB->ZP_COD
+   DO WHILE !EOF().AND.ZP_LOCAL==TBLOCAL.AND.ZP_COD==TBCOD
+		nContagem += TRB->ZP_RESULT
+	   nCont2    := IIF(TRB->ZP_CONTAG == "1" , 0 , TRB->ZP_CONT2 )
+	   nCont3    := IIF(TRB->ZP_CONTAG $ "12" , 0 , TRB->ZP_CONT3 )
+		AADD(aProds , { TRANSF(TRB->ZP_FICHA,"@R 99999-9") , ;    ///1
+							 TRB->ZP_COD           , ;                 ///2
+							 LEFT(TRB->ZP_DESC,60) , ;                 ///3
+							 TRB->ZP_CONTAG        , ;                 ///4
+							 TRB->B1_UM            , ;                 ///5
+							 TRB->ZP_CONT1         , ;                 ///6
+							 nCont2                , ;                 ///7
+							 nCont3                , ;                 ///8
+							 TRB->ZP_LOCALIZ       , ;                 ///9
+							 TRB->ZP_CONTAG        , ;                 ///10
+							 nQAtu                 , ;                 ///11
+							 SB2->B2_CMFIM1        , ;                 ///12
+							 TRB->ZP_RESULT } )
+		dbSkip()
+	ENDDO
+	nX := 1
+	DO WHILE nX <= LEN(aProds)
+		nW      := nX
+		xCodigo := aProds[nX,2]
+		nQuant  := nCont1 := nCont2 := nCont3 := 0
+		DO WHILE nX <= LEN(aProds).AND.aProds[nX,2]==xCodigo
+			nQuant += aProds[nX,13]
+			nCont1 += aProds[nX,6]
+			nCont2 += aProds[nX,7]
+			nCont3 += aProds[nX,8]
+			nX++
+		ENDDO
+      IF ( mv_par02 == 1 )
+         cObsv := IIF(nQuant <> nQAtu , "NECESSITA 2a.CONTAGEM","OK")
+      ELSEIF ( mv_par02 == 2 )
+         cObsv := IIF(nCont1 <> nCont2 .AND. nQAtu <> nQuant , "NECESSITA 3a.CONTAGEM" , "OK" )
+      ELSE
+         cObsv := IIF(nCont2 <> nCont3 .AND. nQAtu <> nQuant , "NECESSITA DE AUDITORIA","OK" )
+      ENDIF
+		IF ( cObsv <> "OK" )
+			nX := nW
+			DO WHILE nX <= LEN(aProds).AND.aProds[nX,2]==xCodigo
+			   aRows := { aProds[nX,1]  , ;
+							  aProds[nX,2]  , ;
+							  aProds[nX,3]  , ;
+							  aProds[nX,4]  , ;
+							  aProds[nX,5]  , ;
+							  aProds[nX,6]  , ;
+							  aProds[nX,7]  , ;
+							  aProds[nX,8]  , ;
+							  aProds[nX,11] , ;
+							  aProds[nX,12] , ;
+							  aProds[nX,9]  , ;
+							  cObsv  }
+							
+			   oExcel:AddRow(cWorkSheet,cLinDet,aRows)
+			  
+			   nX++
+			
+			ENDDO
+							
+		ENDIF					
+		
+   ENDDO
+	
+ENDDO
+
+TRB->(dbCloseArea())
+
+oExcel:Activate()
+oExcel:GetXMLFile("C:\RELATO\"+cRelato)
+oExcel:DeActivate()
+
+///
+///Abre o Excel
+///
+
+If ! ApOleClient( 'MsExcel' )                                                 //Verifica se o Excel esta instalado
+	MsgStop( 'MsExcel nao instalado' )
+	Return
+EndIf
+
+oExcelApp := MsExcel():New()                                                  // Cria um objeto para o uso do Excel
+oExcelApp:WorkBooks:Open("C:\Relato\"+cRelato)               						// Atribui ‡ propriedade WorkBooks do Excel
+oExcelApp:SetVisible(.T.)                                                     // Abre o Excel com o arquivo criado exibido na Primeira planilha.
+oExcelApp:Destroy()                                                           //Encerra o processo do gerenciador de tarefas
+
+MS_FLUSH()
+
+Return
+
+/////////////////////////////
+Static Function ValidPerg(cPerg)
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                          | perspa                          | pereng                           | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01     | DefSPA1 | DefEng1 | CNT01 | var02 | Def02   | DefSPA2 | DefEng2 | CNT02 | var03 | Def03   | DefSPA3 | DefEng3 | CNT03 | var04 | Def04    | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3   | PYME | GRPSX5 | HELP | PICTURE
+   aAdd(aRegs,{ cPerg,"01" , "Data Inventario              ?","Data Inventario              ?" , "Data Inventario              ?" , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"02" , "Contagem                     ?","Contagem                     ?" , "Contagem                     ?" , "mv_ch2" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par02", "1a.    " , "     " , "     " , "   " , "   " , "2a.  " , "     " , "     " , "   " , "   " , "3a.  " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"03" , "Do Almoxarifado              ?","Almoxarifado                 ?" , "Almoxarifado                 ?" , "mv_ch3" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par03", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"04" , "Ate o Almoxarifado           ?","Almoxarifado                 ?" , "Almoxarifado                 ?" , "mv_ch4" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par04", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"05" , "Do Produto                   ?","Do Produto                   ?" , "Do Produto                   ?" , "mv_ch5" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par05", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"06" , "Ate o Produto                ?","Ate o Produto                ?" , "Ate o Produto                ?" , "mv_ch6" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par06", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"07" , "Da Ficha                     ?","Da Ficha                     ?" , "Da Ficha                     ?" , "mv_ch7" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par07", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"08" , "Ate a Ficha                  ?","AtÈ a Ficha                  ?" , "Ate a Ficha                  ?" , "mv_ch8" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par08", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"09" , "Tipo do Produto              ?","Tipo do Produto              ?" , "Tipo do Produto              ?" , "mv_ch9" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par09", "Ambos  " , "     " , "     " , "   " , "   " , "P.A. " , "     " , "     " , "   " , "   " , "P.I. " , "     " , "     " , "   " , "   " , "M.P.  " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   For i:=1 to Len(aRegs)
+  	   If !DbSeek(cPerg+aRegs[i,2])
+	  	  RecLock("SX1",.T.)
+		   For j:=1 to FCount()
+		  	  If j <= Len(aRegs[i])
+				 FieldPut(j,aRegs[i,j])
+			  Endif
+		   Next
+		  MsUnlock()
+	   Endif
+   Next
+   dbSelectArea(_sAlias)
+Return

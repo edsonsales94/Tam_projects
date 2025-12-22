@@ -1,0 +1,405 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+#IFNDEF WINDOWS
+  #DEFINE PSAY SAY
+#ENDIF
+#define K_ALT_A         286   //   Alt-A
+
+User Function Reldep()        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+
+//зддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+//Ё Declaracao de variaveis utilizadas no programa atraves da funcao    Ё
+//Ё SetPrvt, que criara somente as variaveis definidas pelo usuario,    Ё
+//Ё identificando as variaveis publicas do sistema utilizadas no codigo Ё
+//Ё Incluido pelo assistente de conversao do AP6 IDE                    Ё
+//юддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+
+SetPrvt("CDESC1,CDESC2,CDESC3,CSTRING,AORDEM,ARETURN")
+SetPrvt("NOMEPROG,ALINHA,NLASTKEY,CPERG,NTAMANHO,LI")
+SetPrvt("AINFO,LEND,CFILANTE,CTIT,WNREL,NORDEM")
+SetPrvt("CFILDE,CFILATE,CMATDE,CMATATE,CCCDE,CCCATE")
+SetPrvt("CNOMEDE,CNOMEATE,TITULO,AT_PRG,WCABEC0,WCABEC1")
+SetPrvt("CONTFL,CTIPO,ADRIVER,CHAVE,CDETALHE,CFILMAT")
+SetPrvt("CFILIALFUN,CMATRICULA,CNOMEFUN,CCODCENCUS,CDESCCECUS,NCOLUNAS")
+SetPrvt("NNUMERODEP,CFILDEP,CNOMEDEP,DNASCDEP,CSEXODEP,CDEPGPAR")
+SetPrvt("CDEPIRRF,CDEPSALF,CDEPAGRE,AREGS,NSX1ORDER,NSX1RECNO")
+SetPrvt("NX,NY,")
+
+#IFNDEF WINDOWS
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 16/09/02 ==>   #DEFINE PSAY SAY
+#ENDIF
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 16/09/02 ==> #define K_ALT_A         286   //   Alt-A
+/*
+зддддддддддбддддддддддбдддддддбдддддддддддддддддддддддбддддддбдддддддддд©
+ЁPrograma  Ё RelDep   Ё Autor Ё CARLOS MIRANDA        Ё Data Ё  /  /    Ё
+цддддддддддеддддддддддадддддддадддддддддддддддддддддддаддддддадддддддддд╢
+ЁDescri┤┘o Ё Relatorio de Dependentes                                   Ё
+цддддддддддедддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+ЁSintaxe   Ё RelDep                                                     Ё
+цддддддддддедддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+Ё Uso      Ё RdMake                                                     Ё
+цддддддддддадддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+Ё         ATUALIZACOES SOFRIDAS DESDE A CONSTRU─AO INICIAL.             Ё
+цддддддддддддбддддддддбддддддбдддддддддддддддддддддддддддддддддддддддддд╢
+ЁProgramador Ё Data   Ё BOPS Ё  Motivo da Alteracao                     Ё
+цддддддддддддеддддддддеддддддедддддддддддддддддддддддддддддддддддддддддд╢
+Ё            Ё        Ё      Ё                                          Ё
+юддддддддддддаддддддддаддддддадддддддддддддддддддддддддддддддддддддддддды*/
+IF !(SX1->(dbSeek("RELDEP01",.F.)))
+   GravaPerg()
+   Pergunte('RELDEP',.F.)
+EndIF
+
+Set Century On
+
+cDesc1  := 'Relatorio de Dependentes.'
+cDesc2  := 'Ser═ impresso de acordo com os parametros solicitados pelo'
+cDesc3  := 'usuario.'
+cString := 'SRA' // Alias do arquivo principal (Base)
+aOrdem    := {'Matricula','Centro de Custo','Nome'} //-- Ordem de impressao.
+/*   
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Define Variaveis Private(Basicas)                            Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+aReturn  := { 'Zebrado',1,'Administra┤└o',2,2,1,'',1 }
+NomeProg := 'RELDEP'
+aLinha   := {}
+nLastKey := 0
+cPerg    := 'RELDEP'
+nTamanho := "M"
+/* 
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Variaveis Utilizadas na funcao Principal do Programa         Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+Li       := 0
+aInfo    := {}
+lEnd     := .F.
+cFilAnte := 'ЗЗ'
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Verifica as perguntas selecionadas                           Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+pergunte('RELDEP',.F.)
+/* 
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Variaveis utilizadas para parametros                         Ё
+Ё mv_par01        //  FiLial De                                Ё
+Ё mv_par02        //  FiLial Ate                               Ё
+Ё mv_par03        //  Matricula De                             Ё
+Ё mv_par04        //  Matricula Ate                            Ё
+Ё mv_par05        //  Centro De Custo De                       Ё
+Ё mv_par06        //  Centro De Custo Ate                      Ё
+Ё mv_par07        //  Nome De                                  Ё
+Ё mv_par08        //  Nome Ate                                 Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+cTit := ' Relatorio de Dependentes '
+/* 
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Envia controle para a funcao SETPRINT                        Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+WnRel := 'RELDEP'   //-- Nome Default do relatorio em Disco.
+WnRel := SetPrint(cString,WnRel,cPerg,cTit,cDesc1,cDesc2,cDesc3,.F.,aOrdem) //,.f.,nTamanho)
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Carregando variaveis mv_par?? para Variaveis do Sistema.     Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+nOrdem := aReturn[8]
+If(!Empty(mv_par01),cFilDe   := mv_par01,cFilDe   := '00'              )
+If(!Empty(mv_par02),cFilAte  := mv_par02,cFilAte  := '99'              )
+If(!Empty(mv_par03),cMatDe   := mv_par03,cMatDe   := '00000'           )
+If(!Empty(mv_par04),cMatAte  := mv_par04,cMatAte  := '99999'           )
+If(!Empty(mv_par05),cCCDe    := mv_par05,cCCDe    := '0        '       )
+If(!Empty(mv_par06),cCCAte   := mv_par06,cCCAte   := '999999999'       )
+If(!Empty(mv_par07),cNomeDe  := mv_par07,cNomeDe  := 'A'               )
+If(!Empty(mv_par08),cNomeAte := mv_par08,cNomeAte := Replicate('Z',30) )
+   
+If nLastKey == 27
+   Return Nil
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+   Return Nil
+Endif
+
+WnRel    := "RELDEP"
+cSTRING  := "SRA"
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Variaveis Utilizadas na funcao IMPR                          Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+Titulo   := "RELATORIO DE DEPENDENTES"
+AT_PRG   := "RELDEP"
+wCabec0  := 1
+wCabec1  := "Filial  Matr.  Nome do Funcionario           Centro de Custo"
+Contfl   := 1
+Li       := 0
+nTamanho := "M"
+lEnd     := .F.
+cTipo    := "M"
+
+#IFDEF WINDOWS
+    RptStatus({|| ImprimeDep()})// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==>     RptStatus({|| Execute(ImprimeDep)})
+    Return 
+    /*
+    здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+    ЁFuncao ImprimeDep - Impressao de Dependentes                  Ё
+    юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==>     Function ImprimeDep
+Static Function ImprimeDep()
+#ENDIF
+
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Seleciona Arquivo Principal e Faz o Relacionamento           Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+dbSelectArea('SRA')
+dbSetOrder(nOrdem)
+dbGotop()
+SET RELATION TO SRA->(RA_FILIAL+RA_MAT) INTO SRB ADDITIVE
+SetRegua(RecCount())
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Setar impressora                                             Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+aDriver := ReadDRIVER()
+
+IF aReturn[4] == 1         // Comprimido
+   @ 0,0 PSAY &aDriver[3]
+Else                       // Normal
+   @ 0,0 PSAY &aDriver[4]
+EndiF
+
+While !Eof()
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Incrementa Regua de Processamento.                           Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      IncRegua()
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Cancela Impressфo ao se pressionar <ALT> + <A>.              Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      #IFNDEF WINDOWS
+              Inkey()
+              If Lastkey() == K_ALT_A
+                 lEnd := .T.
+              EndIf 
+      #ENDIF        
+      IF lEnd
+         @ Prow()+1, 0 PSAY cCancela
+         Chave := 1
+         Exit
+      EndIF
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Processa Quebra de Filial.                                   Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      IF SRA->RA_FILIAL #cFilAnte
+         IF !fInfo(@aInfo,SRA->RA_FILIAL)
+            dbSkip()
+            Loop
+         Endif    
+         cFilAnte := SRA->RA_FILIAL       
+      Endif 
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Consiste Parametriza┤фo do Intervalo de Impressфo.           Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      IF SRA->(RA_FILIAL < cFilDe  .or. RA_FILIAL > cFilAte ).or. ;
+         SRA->(RA_MAT    < cMatDe  .or. RA_MAT    > cMatAte ).or. ;
+         SRA->(RA_CC     < cCcDe   .or. RA_CC     > cCCAte  ).or. ;
+         SRA->(RA_NOME   < cNomeDe .or. RA_NOME   > cNomeAte)
+         dbSkip()
+         Loop
+      EndIf
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Variaveis Utilizadas no Programa Cadastro de Funcionarios    Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      cDetalhe   := ""
+      cFilMat    := SRA->(RA_FILIAL+RA_MAT)
+      cFilialFun := SRA->RA_FILIAL
+      cMatricula := SRA->RA_MAT
+      cNomeFun   := SRA->RA_NOME
+      cCodCenCus := SRA->RA_CC
+      cDescCeCus := fDesc("SI3",cCodCenCus,"I3_DESC")
+      nColunas   := IIF(nTamanho=="P",80,IIF(nTamanho=="G",220,132))
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Posicionamento das colunas do Funcionario                    Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+                1         2         3         4         5         6         7         8         9         0         1         2         3
+      012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+      Filial  Matr.  Nome do Funcionario           Centro de Custo
+      XX      XXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXX - XXXXXXXXXXXXXXXXXXXXXXXXX
+      +----------------------------------------------------------------------------------------------------------------------------------+
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Impressao dos Dados dos Funcionarios                         Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      cDetalhe :=  cFilialFun + Space(06) + cMatricula + Space(01) + cNomeFun + Space(01) + cCodCenCus + " - " + cDescCeCus
+      Impr(cDetalhe,"C")
+      Li := Li + 1
+      cDetalhe := "               Nome do Dependente             Data Nasc. Sexo      Parentesco Dependente IRRF      Dependente .Sal.Fam. Dep. Agreg."
+      Impr(cDetalhe, "C") 
+      Li := Li + 1
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Seleciona o arquivo Secundario (Relacionado)                 Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      dbSelectArea("SRB")
+      dbSetOrder(1)
+      nNumeroDep := 0
+      Do While .T.
+          /*
+          здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+          Ё Cancela Impresфo ao se pressionar <ALT> + <A> (Versao DOS)   Ё
+          юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+          #IFNDEF WINDOWS
+                  Inkey()
+                  IF Lastkey() == K_ALT_A
+                     lEnd := .T.
+                  EndIF
+          #ENDIF
+          /*
+          здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+          Ё Se a impressao for cancelada                                 Ё
+          юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+          IF lEnd
+             @ Prow()+1,0 SAY cCancel
+            Exit
+          EndIF
+          /*
+          здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+          Ё Variaveis Utilizadas no Programa Cadastro de Funcionarios    Ё
+          юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+          cDetalhe := ""
+          cFilDep  := SRB->(RB_FILIAL+RB_MAT)
+          cNomeDep := SRB->RB_NOME
+          dNascDep := SRB->RB_DTNASC
+          cSexoDep := SRB->( IF( RB_SEXO == "F","Feminino",IF( RB_SEXO == "M","Masculino","") ) )
+          cDepGPar := SRB->( IF( RB_GRAUPAR == "F",IF(cSexoDep == "F","Filha","Filho"),IF( RB_GRAUPAR == "C","Conjuge",IF( RB_GRAUPAR == "O","Outros","") ) ) )
+          Do Case
+             Case SRB->RB_TIPIR == "1" ; cDepIRRF := "Sem Limite de Idade"
+             Case SRB->RB_TIPIR == "2" ; cDepIRRF := "Ate 21 anos de Idade"
+             Case SRB->RB_TIPIR == "3" ; cDepIRRF := "Ate 21 anos de Idade"
+             Case SRB->RB_TIPIR == "4" ; cDepIRRF := "Nao e Dependente"
+             OtherWise                 ; cDepIRRF := ""
+          EndCase
+          Do Case
+             Case SRB->RB_TIPSF == "1" ; cDepSalF := "Sem Limite de Idade"
+             Case SRB->RB_TIPSF == "2" ; cDepSalF := "Ate 14 anos de Idade"
+             Case SRB->RB_TIPSF == "3" ; cDepSalF := "Nao e Dependente"
+             OtherWise                 ; cDepSalF := ""
+          EndCase
+//          cDepAgre   := SRB->RB_DEPAGRE
+          dbSkip()
+          /*
+          здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+          Ё Posicionamento das colunas dos Dependentes                   Ё
+          юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+                    1         2         3         4         5         6         7         8         9         0         1         2         3
+          012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+                         Nome do Dependente            Data Nasc. Sexo      Parentesco Dependente IRRF      Dependente .Sal.Fam.  Dep. Agreg.
+                         XXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXX XXXXXXXXX XXXXXX     XXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXX  X
+          +-----------------------------------------------------------------------------------------------------------------------------------+
+          здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+          Ё Impressao dos Dados Dos Dependentes                          Ё
+          юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+          IF !Empty(cNomeDep)
+             nNumeroDep := nNumeroDep + 1
+             IF cFilDep == cFilMat
+                cDetalhe :=  Space(15) + cNomeDep + Space(01) + dtoc(dNascDep) + Space(01) + cSexoDep + Space(10-Len(cSexoDep)) + cDepGPar + Space(11-Len(cDepGPar)) + cDepIRRF + Space(21-Len(cDepIRRF)) + cDepSalF + Space(21-Len(cDepSalF))
+             Else
+                cDetalhe :=  "Nro. Dep.: " + Strzero(nNumeroDep,3) + Space(01) + cNomeDep + Space(01) + dtoc(dNascDep) + Space(01) + cSexoDep + Space(10-Len(cSexoDep)) + cDepGPar + Space(11-Len(cDepGPar)) + cDepIRRF + Space(21-Len(cDepIRRF)) + cDepSalF + Space(21-Len(cDepSalF))
+             EndIF
+             Impr(cDetalhe, "C")
+          EndIF
+          IF cFilDep <> cFilMat
+             cDetalhe := Replicate("_",nColunas)
+             Impr(cDetalhe,"C")
+             Li := Li + 1
+             dbSelectArea("SRA")
+             dbSkip()
+             Exit
+           EndIF
+      EndDo
+      /*
+      здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+      Ё Reinicializa Variaveis.                                      Ё
+      юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+      dbSelectArea('SRA')
+      dbSkip()
+EndDo	
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Ejeta a ultima Folha.                                        Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+Eject 
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Termino do Relatorio.                                        Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+dbSelectArea( 'SRA' )
+RetIndex('SRA')
+dbSetOrder(1)
+/*   
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё Restaura Set                                                 Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+Set Century OFF
+
+Set Device To Screen
+If aReturn[5] == 1
+   Set Printer To
+   dbCommit()
+   OurSpool(WnRel)
+Endif
+MS_Flush()
+   
+Return Nil
+
+/*
+здддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+ЁGrava as Perguntas utilizadas no Programa no SX1              Ё
+юдддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function GravaPerg
+Static Function GravaPerg()
+
+aRegs     := {}
+nSX1Order := SX1->(IndexOrd())
+nSX1Recno := SX1->(Recno())
+cPerg     := 'RELDEP'
+
+SX1->(dbSetOrder(1))
+
+/*
+зддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+Ё           Grupo  Ordem Pergunta               Variavel Tipo Tamanho Decimal Presel  GSC Valid      Var01     Def01  Cnt01             Var02 Def02 Cnt02 Var03 Def03 Cnt03 Var04 Def04 Cnt04 Var05 Def05 Cnt05  XF3  Ё
+юддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддддды*/
+aAdd(aRegs,{cPerg,'01' ,'Filial De          ?','mv_ch1','C'  ,02     ,0      ,0     ,'G','naovazio','mv_par01',''    ,REPLICATE('0',02),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SM0'})
+aAdd(aRegs,{cPerg,'02' ,'Filial Ate         ?','mv_ch2','C'  ,02     ,0      ,0     ,'G','naovazio','mv_par02',''    ,REPLICATE('9',02),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SM0'})
+aAdd(aRegs,{cPerg,'03' ,'Matricula De       ?','mv_ch3','C'  ,06     ,0      ,0     ,'G','naovazio','mv_par03',''    ,REPLICATE('0',06),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SRA'})
+aAdd(aRegs,{cPerg,'04' ,'Matricula Ate      ?','mv_ch4','C'  ,06     ,0      ,0     ,'G','naovazio','mv_par04',''    ,REPLICATE('Z',06),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SRA'})
+aAdd(aRegs,{cPerg,'05' ,'Centro de Custo De ?','mv_ch5','C'  ,09     ,0      ,0     ,'G','naovazio','mv_par05',''    ,REPLICATE('0',09),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SI3'})
+aAdd(aRegs,{cPerg,'06' ,'Centro de Custo Ate?','mv_ch6','C'  ,09     ,0      ,0     ,'G','naovazio','mv_par06',''    ,REPLICATE('Z',09),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SI3'})
+aAdd(aRegs,{cPerg,'07' ,'Nome De            ?','mv_ch7','C'  ,30     ,0      ,0     ,'G','naovazio','mv_par07',''    ,REPLICATE('A',30),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SRA'})
+aAdd(aRegs,{cPerg,'08' ,'Nome Ate           ?','mv_ch8','C'  ,30     ,0      ,0     ,'G','naovazio','mv_par08',''    ,REPLICATE('Z',30),''   , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  , ''  ,'SRA'})
+
+For nX := 1 to Len(aRegs)
+    IF !SX1->(dbSeek(cPerg + aRegs[nX,2], .F.))
+       RecLock('SX1',.T.)
+       For nY:=1 to fCount()
+           IF nY <= Len(aRegs[nX])
+              SX1->(FieldPut(nY,aRegs[nX,nY]))
+           EndIF
+       Next nY
+       MsUnlock()
+    EndIF
+Next nX
+	
+SX1->(dbSetOrder(nSX1Order))
+SX1->(dbGoto(nSX1Recno))
+
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> __Return( .T. )
+Return( .T. )        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02

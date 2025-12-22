@@ -1,0 +1,401 @@
+#Include "rwmake.ch"
+
+/*ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ CFATR620 ³ Autor ³ Carlos Nina           ³ Data ³ 05/10/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Relacao de Produto-Acabado para Inventario                 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ SIGAFAT                                                    ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß*/
+User Function CFATR620()
+
+Local oReport
+
+oReport := ReportDef()
+oReport:PrintDialog()
+
+Return
+
+/*ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ReportDef ³ Autor ³ Carlos Nina           ³ Data ³ 05/10/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³A funcao estatica ReportDef devera ser criada para todos os ³±±
+±±³          ³relatorios que poderao ser agendados pelo usuario.          ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ExpO1: Objeto do relatório                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³Nenhum                                                      ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Static Function ReportDef()
+
+Local oReport
+Local oVenProd
+Local cAliasQry   := GetNextAlias()
+Local cProd			:= ""
+Local nTotQuant 	:= 0
+Local nTotFat 		:= 0
+Local nTotValor   := 0
+Local nTotOp      := 0
+Local cUM 			:= ""
+Local cTipo       := ""
+Local nTotDesc 	:= 0
+Local nTotVal 		:= 0
+
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Criacao do componente de impressao                                      ³
+//³                                                                        ³
+//³TReport():New                                                           ³
+//³ExpC1 : Nome do relatorio                                               ³
+//³ExpC2 : Titulo                                                          ³
+//³ExpC3 : Pergunte                                                        ³
+//³ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao  ³
+//³ExpC5 : Descricao                                                       ³
+//³                                                                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+oReport := TReport():New("FATR620","Faturamento Diario","FATR620", {|oReport| ReportPrint(oReport,cAliasQry,oVenProd)},"Este relatorio ira emitir a relacao de Faturamento por ordem de Produto.")	// "Relacao de Pedidos por Produto"###"Este relatorio ira emitir a relacao de Vendas por"###"ordem de Produto."
+oReport:SetTotalInLine(.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                          				³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+cPerg := "FATR620   "
+ValidPerg()
+Pergunte(oReport:uParam,.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Criacao da secao utilizada pelo relatorio                               ³
+//³                                                                        ³
+//³TRSection():New                                                         ³
+//³ExpO1 : Objeto TReport que a secao pertence                             ³
+//³ExpC2 : Descricao da seçao                                              ³
+//³ExpA3 : Array com as tabelas utilizadas pela secao. A primeira tabela   ³
+//³        sera considerada como principal para a seção.                   ³
+//³ExpA4 : Array com as Ordens do relatório                                ³
+//³ExpL5 : Carrega campos do SX3 como celulas                              ³
+//³        Default : False                                                 ³
+//³ExpL6 : Carrega ordens do Sindex                                        ³
+//³        Default : False                                                 ³
+//³                                                                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Criacao da celulas da secao do relatorio                                ³
+//³                                                                        ³
+//³TRCell():New                                                            ³
+//³ExpO1 : Objeto TSection que a secao pertence                            ³
+//³ExpC2 : Nome da celula do relatório. O SX3 será consultado              ³
+//³ExpC3 : Nome da tabela de referencia da celula                          ³
+//³ExpC4 : Titulo da celula                                                ³
+//³        Default : X3Titulo()                                            ³
+//³ExpC5 : Picture                                                         ³
+//³        Default : X3_PICTURE                                            ³
+//³ExpC6 : Tamanho                                                         ³
+//³        Default : X3_TAMANHO                                            ³
+//³ExpL7 : Informe se o tamanho esta em pixel                              ³
+//³        Default : False                                                 ³
+//³ExpB8 : Bloco de código para impressao.                                 ³
+//³        Default : ExpC2                                                 ³
+//³                                                                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+oVenProd := TRSection():New(oReport,"Faturamento Diario",{"SC2","SC6","SB1","SB2"},/*{Array com as ordens do relatório}*/,/*Campos do SX3*/,/*Campos do SIX*/)		// "Relacao de Pedidos por Produto"
+oVenProd:SetTotalInLine(.T.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Define celulas da secao                                                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+TRCell():New(oVenProd,"DTEMIS"	  ,/*Tabela*/	,"Data",,20,/*lPixel*/,{|| dEmissao })
+TRCell():New(oVenProd,"CPROD"	  	  ,/*Tabela*/	,"Produto",PesqPict("SB1","B1_COD"),20,/*lPixel*/,{|| cProd })
+TRCell():New(oVenProd,"B1_DESC"	  ,"SB1"		,"Descricao",PesqPict("SB1","B1_DESC"),40,/*lPixel*/,{|| LEFT(SB1->B1_DESC,30) })
+TRCell():New(oVenProd,"CUM"		  ,/*Tabela*/	,"UM",,7,/*lPixel*/,{|| cUM })
+TRCell():New(oVenProd,"CTIPO"		  ,/*Tabela*/	,"Tipo",,9,/*lPixel*/,{|| cTipo })
+TRCell():New(oVenProd,"CLOCAL"	  ,/*Tabela*/	,"Local",,9,/*lPixel*/,{|| cLocal })
+TRCell():New(oVenProd,"CCFOP" 	  ,/*Tabela*/	,"Operaçao",,12,/*lPixel*/,{|| cCfop })
+TRCell():New(oVenProd,"NTOTSDO1"	  ,/*Tabela*/	,"Sdo.Est.Inicial",PesqPict("SB2","B2_QFIM",19),22,/*lPixel*/,{|| nTotSdo1 })
+TRCell():New(oVenProd,"NTOTOP"  	  ,/*Tabela*/	,"Apont.Producao",PesqPict("SC2","C2_QUANT",19),22,/*lPixel*/,{|| nTotOp })
+TRCell():New(oVenProd,"NTOTQUANT1" ,/*Tabela*/	,"Qtd.Faturada",PesqPict("SC6","C6_QTDVEN",19),22,/*lPixel*/,{|| nTotQuant })
+TRCell():New(oVenProd,"NTOTVALOR1" ,/*Tabela*/	,"Vlr.Faturado",PesqPict("SC6","C6_VALOR",19),22,/*lPixel*/,{|| nTotValor })
+TRCell():New(oVenProd,"NTOTSDO2"	  ,/*Tabela*/	,"Sdo.Est.Final",PesqPict("SB2","B2_QATU",19),22,/*lPixel*/,{|| nTotSdo2 },,,"RIGHT")
+TRCell():New(oVenProd,"SDOFISICO"  ,/*Tabela*/	,"Sdo.Fisico",,18,/*lPixel*/,,,,)	// "Valor Total"
+
+TRFunction():New(oVenProd:Cell("NTOTQUANT1")	,/* cID */,"SUM",/*oBreak*/,/*cTitle*/,/*cPicture*/,/*uFormula*/,.F./*lEndSection*/,.T./*lEndReport*/,/*lEndPage*/)
+TRFunction():New(oVenProd:Cell("NTOTSDO1")	,/* cID */,"SUM",/*oBreak*/,/*cTitle*/,/*cPicture*/,/*uFormula*/,.F./*lEndSection*/,.T./*lEndReport*/,/*lEndPage*/)
+TRFunction():New(oVenProd:Cell("NTOTSDO2")	,/* cID */,"SUM",/*oBreak*/,/*cTitle*/,/*cPicture*/,/*uFormula*/,.F./*lEndSection*/,.T./*lEndReport*/,/*lEndPage*/)
+TRFunction():New(oVenProd:Cell("NTOTOP")	  	,/* cID */,"SUM",/*oBreak*/,/*cTitle*/,/*cPicture*/,/*uFormula*/,.F./*lEndSection*/,.T./*lEndReport*/,/*lEndPage*/)
+TRFunction():New(oVenProd:Cell("NTOTVALOR1")	,/* cID */,"SUM",/*oBreak*/,/*cTitle*/,/*cPicture*/,/*uFormula*/,.F./*lEndSection*/,.T./*lEndReport*/,/*lEndPage*/)
+
+Return(oReport)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ReportPrin³ Autor ³ Carlos Nina           ³ Data ³ 05/10/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³A funcao estatica ReportDef devera ser criada para todos os ³±±
+±±³          ³relatorios que poderao ser agendados pelo usuario.          ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³Nenhum                                                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ExpO1: Objeto Report do Relatório                           ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Static Function ReportPrint(oReport,cAliasQry,oVenProd)
+
+
+Local cQueryD2 := ""
+
+oReport:Section(1):Cell("NTOTVALOR1"):SetBlock({|| nTotValor})
+oReport:Section(1):Cell("NTOTOP" ):SetBlock({|| nTotOp})
+oReport:Section(1):Cell("NTOTQUANT1" ):SetBlock({|| nTotQuant})
+oReport:Section(1):Cell("NTOTSDO1" ):SetBlock({|| nTotSdo1})
+oReport:Section(1):Cell("CPROD" ):SetBlock({|| cProd})
+oReport:Section(1):Cell("DTEMIS" ):SetBlock({|| dEmissao})
+oReport:Section(1):Cell("CUM" ):SetBlock({|| cUM})
+oReport:Section(1):Cell("CTIPO" ):SetBlock({|| cTipo})
+oReport:Section(1):Cell("CLOCAL" ):SetBlock({|| cLocal})
+oReport:Section(1):Cell("CCFOP" ):SetBlock({|| cCfop})
+oReport:Section(1):Cell("NTOTSDO2" ):SetBlock({|| nTotSdo2})
+oReport:Section(1):Cell("SDOFISICO" ):SetBlock({|| "[_____________]"})
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Metodo TrPosition()                                                     ³
+//³                                                                        ³
+//³Posiciona em um registro de uma outra tabela. O posicionamento será     ³
+//³realizado antes da impressao de cada linha do relatório.                ³
+//³                                                                        ³
+//³                                                                        ³
+//³ExpO1 : Objeto Report da Secao                                          ³
+//³ExpC2 : Alias da Tabela                                                 ³
+//³ExpX3 : Ordem ou NickName de pesquisa                                   ³
+//³ExpX4 : String ou Bloco de código para pesquisa. A string será macroexe-³
+//³        cutada.                                                         ³
+//³                                                                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+TRPosition():New(oReport:Section(1),"SB1",1,{|| SB1->B1_FILIAL+cProd })
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Transforma parametros Range em expressao SQL                            ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+MakeSqlExpr(oReport:uParam)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Query do relatório da secao 1                                           ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	oReport:Section(1):BeginQuery()
+	BeginSql Alias cAliasQry
+		SELECT D2_EMISSAO,D2_COD,D2_LOCAL,SUBSTRING(D2_CF,2,3) D2CF,D2_UM,D2_TP,SUM(D2_QUANT) D2_QUANT,SUM(D2_TOTAL) D2_TOTAL
+		FROM %Table:SD2% SD2 , %Table:SF4% SF4
+		WHERE D2_FILIAL = %xFilial:SD2%
+         AND D2_EMISSAO >= %Exp:dtos(mv_par01)% AND D2_EMISSAO <= %Exp:dtos(mv_par02)%
+			AND D2_COD >= %Exp:mv_par03% AND D2_COD <= %Exp:mv_par04%
+         AND F4_CODIGO = D2_TES
+	      AND ( D2_CF IN ('5101','5102','5107','5911','6101','6102','6107','6911','6915','7101','7102','7107','7911','7949') AND F4_ESTOQUE = %Exp:'S'% OR D2_CF IN ('5122','6122') )
+			AND SD2.%NotDel%
+         AND SF4.%NotDel%
+      GROUP BY D2_EMISSAO,D2_COD,SUBSTRING(D2_CF,2,3),D2_LOCAL,D2_UM,D2_TP
+		ORDER BY D2_EMISSAO,D2_COD,D2CF
+	EndSql
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Metodo EndQuery ( Classe TRSection )                                    ³
+	//³                                                                        ³
+	//³Prepara o relatório para executar o Embedded SQL.                       ³
+	//³                                                                        ³
+	//³ExpA1 : Array com os parametros do tipo Range                           ³
+	//³                                                                        ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	oReport:Section(1):EndQuery(/*Array com os parametros do tipo Range*/)
+
+SF2->(DbSetOrder(1))
+SB1->(DbSetOrder(1))
+SF4->(DbSetOrder(1))
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Inicio da impressao do fluxo do relatório                               ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aItens := {}
+dbSelectArea(cAliasQry)
+dbGoTop()
+oReport:SetMeter((cAliasQry)->(LastRec()))
+oReport:Section(1):Init()
+
+While !oReport:Cancel() .And. !(cAliasQry)->(Eof())
+	oReport:IncMeter()
+   dEmissao := (cAliasQry)->D2_EMISSAO
+   cProd    := (cAliasQry)->D2_COD
+   cLocal   := (cAliasQry)->D2_LOCAL
+   cUM      := (cAliasQry)->D2_UM   
+	/////
+   /////Qty Produzida no dia
+   /////
+	cQry := "SELECT SUM(D3_QUANT) D3_QUANT FROM "+RetSqlName("SD3")
+	cQry += " WHERE D_E_L_E_T_ = ' '"
+	cQry += " AND D3_FILIAL = '"+xFilial("SD3")+"'"
+   cQry += " AND D3_EMISSAO = '"+dtos(dEmissao)+"'"
+   cQry += " AND D3_COD = '"+cProd+"'"
+   cQry += " AND D3_TM = '400'"
+   cQry += " AND D3_ESTORNO = ' '"
+
+   cQry := ChangeQuery(cQry)
+
+   dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+	TcSetField("TMP","D3_QUANT","N",11,2)
+
+   nTotOp := TMP->D3_QUANT
+
+   TMP->(dbCloseArea())
+
+   aSaldo    := CalcEst(cProd,cLocal,dEmissao)
+   nTotSdo1  := aSaldo[1]
+   aSaldo    := CalcEst(cProd,cLocal,(dEmissao+1))
+   nTotSdo2  := aSaldo[1]
+   xUm       := IIF(cUM $ "PA,PP","01","02")
+   cOper     := IIF((cAliasQry)->D2CF $ "101/102/107/122" , "01" , IIF((cAliasQry)->D2CF == "915" , "03" , "02" ) )
+
+   AADD( aItens , { cOper                    , ;
+                    cProd                    , ;
+                    dEmissao                 , ;
+                    cUM                      , ;
+                    cLocal                   , ;
+                    (cAliasQry)->D2_TP       , ;
+                    (cAliasQry)->D2_QUANT    , ;
+                    (cAliasQry)->D2_TOTAL    , ;
+                    nTotSdo1                 , ;
+                    nTotSdo2                 , ;
+						  nTotOp                   , ;
+						  xUM    } )
+
+	dbSelectArea(cAliasQry)
+   dbSkip()
+
+EndDo
+
+aSort(aItens,,,{|x,y| x[1]+x[12]+x[2] < y[1]+y[12]+y[2] } )
+
+FOR iw:=1 TO LEN(aItens)
+	 cProd 	  := aItens[iw,2]
+    dEmissao  := aItens[iw,3]
+	 cUM       := aItens[iw,4]
+    cLocal    := aItens[iw,5]
+    cTipo     := aItens[iw,6]
+    cCfop     := IIF(aItens[iw,1]=="01" , "VENDAS" , IIF(aItens[iw,1]=="02" , "AMOSTRA" , "REM.CONSERTO" ) )
+    nTotQuant := aItens[iw,7]
+    nTotValor := aItens[iw,8]
+    nTotSdo1  := aItens[iw,9]
+    nTotSdo2  := aItens[iw,10]
+    nTotOp    := aItens[iw,11]
+
+	 oReport:Section(1):PrintLine()
+
+NEXT
+
+oReport:Section(1):Finish()
+
+Return
+
+/*
+While !oReport:Cancel() .And. !(cAliasQry)->(Eof())
+	cProd 	 := (cAliasQry)->D2_COD
+   dEmissao  := D2_EMISSAO
+	cUM       := (cAliasQry)->D2_UM
+   cLocal    := (cAliasQry)->D2_LOCAL
+   cTipo     := (cAliasQry)->D2_TP
+   cCfop     := (cAliasQry)->D2CF
+   //nTotQuant := 0
+   //nTotValor := 0
+	//While !oReport:Cancel() .And. !(cAliasQry)->(Eof()) .And. (cAliasQry)->D2_EMISSAO==dEmissao .And. (cAliasQry)->D2_COD==cProd
+		oReport:IncMeter()
+      nTotQuant := (cAliasQry)->D2_QUANT
+      nTotValor := (cAliasQry)->D2_TOTAL
+   //   dbSKip()
+   //End
+   /////
+   /////Qty Produzida no dia
+   ////
+	cQry := "SELECT SUM(D3_QUANT) D3_QUANT FROM "+RetSqlName("SD3")
+	cQry += " WHERE D_E_L_E_T_ = ' '"
+	cQry += " AND D3_FILIAL = '"+xFilial("SD3")+"'"
+   cQry += " AND D3_EMISSAO = '"+dtos(dEmissao)+"'"
+   cQry += " AND D3_COD = '"+cProd+"'"
+   cQry += " AND D3_TM = '400'"
+   cQry += " AND D3_ESTORNO = ' '"
+
+   cQry := ChangeQuery(cQry)
+
+   dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+	TcSetField("TMP","D3_QUANT","N",11,2)
+
+   nTotOp := TMP->D3_QUANT
+
+   TMP->(dbCloseArea())
+
+   aSaldo    := CalcEst(cProd,cLocal,dEmissao)
+   nTotSdo1  := aSaldo[1]
+   aSaldo    := CalcEst(cProd,cLocal,(dEmissao+1))
+   nTotSdo2  := aSaldo[1]
+
+	oReport:Section(1):PrintLine()
+
+	dbSelectArea(cAliasQry)
+   dbSkip()
+
+EndDo
+*/
+
+///////////////////////////////////////////
+Static Function ValidPerg()
+///////////////////////////////////////////
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Do Periodo                  ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Até o Periodo               ?",   ""   ,  ""    , "mv_ch2" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch3" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "Até o Produto               ?",   ""   ,  ""    , "mv_ch4" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par04", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+
+	//SX1->(dbSetOrder(1))
+	//If SX1->(DbSeek("MTR62001"))
+   //		RecLock("SX1",.F.)
+	//	Replace SX1->X1_PERSPA With "¿De Fecha ?"
+	//	Replace SX1->X1_PERENG With "From Date ?"
+	//	SX1->(MsUnLock())
+	//	SX1->(DbCommit())
+	//Endif
+Return

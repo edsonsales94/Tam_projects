@@ -1,0 +1,43 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_web_debug",
+			"request": "launch",
+			"name": "Smart Client Web Debug",
+			"program": "${command:AskForProgramName}",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			"cwb": "${workspaceFolder}",
+			"smartclientUrl": "http://192.168.1.5:9090/WEBAPP/"
+		}
+	],
+	"lastPrograms": [
+		{
+			"label": "SIGAMDI"
+		},
+		{
+			"label": "SIGACFG"
+		},
+		{
+			"args": [],
+			"label": "u_hisfat01"
+		},
+		{
+			"args": [],
+			"label": "U_HSCED01"
+		},
+		{
+			"label": "U_HSCHED01"
+		},
+		{
+			"args": [],
+			"label": "U_hisped"
+		},
+		{
+			"label": "U_hisped01"
+		}
+	],
+	"lastProgramExecuted": "SIGAMDI",
+	"lastProgramArguments": []
+}

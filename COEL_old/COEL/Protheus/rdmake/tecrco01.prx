@@ -1,0 +1,493 @@
+//#INCLUDE "TECR310.CH" //SUBSTITUIDO PELAS CONSTANTES ABAIXO (STR00XX)
+#INCLUDE "REPORT.CH"
+#include "rwmake.ch"
+
+#IFNDEF WINDOWS
+	#DEFINE PSAY SAY
+#ENDIF
+#DEFINE CHRCOMP If(aReturn[4]==1,15,18)
+
+// SUBSTITUI TECR310.CH
+#DEFINE STR0001 "Relacao de Chamados Tecnicos"
+#DEFINE STR0002 "   Este programa ira imprimir a relacao de chamados tecnicos conforme"
+#DEFINE STR0003 "os parametros solicitados."
+#DEFINE STR0004 ""
+#DEFINE STR0005 "CHAMADO"
+#DEFINE STR0006 "CLIENTE"
+#DEFINE STR0007 "EMISSAO"
+#DEFINE STR0029 "PRODUTO"
+#DEFINE STR0008 "ZEBRADO"
+#DEFINE STR0009 "ADMINISTRACAO"
+#DEFINE STR0010 "CLIENTE       NOME                                                          CODIGO PROD.        QUANT.          DESCRICAO                                 EMISSAO O.S.         SERIE"
+#DEFINE STR0011 "                                                                                                 "
+#DEFINE STR0012 " [ NR.CHAMADO ] "
+#DEFINE STR0013 " [ CLIENTE ] "
+#DEFINE STR0014 " [ EMISSAO ] "
+#DEFINE STR0015 "CANCELADO PELO OPERADOR"
+#DEFINE STR0016 "TOTAL DO CLIENTE: "
+#DEFINE STR0017 "NR.CHAMADOS:"
+#DEFINE STR0018 "MEDIA:"
+#DEFINE STR0019 "TOTAL DO DIA: "
+#DEFINE STR0020 "NR.CHAMADOS:"
+#DEFINE STR0021 "MEDIA:"
+#DEFINE STR0022 "TOTAL GERAL:"
+#DEFINE STR0023 "NR.CHAMADOS:"
+#DEFINE STR0024 "MEDIA:"
+#DEFINE STR0025 "Tempo(Min)"
+#DEFINE STR0026 "Comentário da Ocorr/Problema"
+#DEFINE STR0027 "Cliente"
+#DEFINE STR0028 "Chamados"
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³TECRCO1   ³ Autor ³                       ³ Data ³ 20.10.10 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Relacao de Chamados Tecnicos Especifico Coel                ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³Nenhum                                                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³Nenhum                                                      ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+User Function TECRCO01()
+Local oReport				//Objeto do relatorio personalizavel
+Local aArea := GetArea()	//Guarda a area atual
+TECR310R3()
+RestArea( aArea )
+Return
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³TECR310R3 ³ Autor ³                       ³ Data ³ 20.10.10 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Relacao de Chamados Tecnicos.                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³Nenhum                                                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³Nenhum                                                      ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+STATIC Function TECR310R3()
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Define Variaveis                                                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+Local Titulo  := STR0001 //"Relacao de Chamados Tecnicos"  // Titulo do Relatorio
+Local cDesc1  := STR0002 //"   Este programa ira imprimir a relacao de chamados tecnicos conforme"  // Descricao 1
+Local cDesc2  := STR0003 //"os parametros solicitados."  // Descricao 2
+Local cDesc3  := STR0004 //""  // Descricao 3
+Local cString := "AB1"  // Alias utilizado na Filtragem
+Local lDic    := .F. // Habilita/Desabilita Dicionario
+Local lComp   := .F. // Habilita/Desabilita o Formato Comprimido/Expandido
+Local lFiltro := .T. // Habilita/Desabilita o Filtro
+Local wnrel   := "TECRCO01"  // Nome do Arquivo utilizado no Spool
+Local nomeprog:= "TECRCO01"  // nome do programa
+
+Private Tamanho := "G" // P/M/G
+Private Limite  := 220 // 80/132/220
+Private aOrdem  := {STR0005,STR0006,STR0007,STR0029} //"Chamado"###"Cliente"###"Emissao"###produto
+Private cPerg   := "ATR310"  // Pergunta do Relatorio
+Private aReturn := { STR0008, 1,STR0009, 1, 2, 1, "",1 } //"Zebrado"###"Administracao"
+//[1] Reservado para Formulario
+//[2] Reservado para N§ de Vias
+//[3] Destinatario
+//[4] Formato => 1-Comprimido 2-Normal
+//[5] Midia   => 1-Disco 2-Impressora
+//[6] Porta ou Arquivo 1-LPT1... 4-COM1...
+//[7] Expressao do Filtro
+//[8] Ordem a ser selecionada
+//[9]..[10]..[n] Campos a Processar (se houver)
+Private lEnd    := .F.// Controle de cancelamento do relatorio
+Private m_pag   := 1  // Contador de Paginas
+Private nLastKey:= 0  // Controla o cancelamento da SetPrint e SetDefault
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Verifica as Perguntas Seleciondas                                       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³                       PARAMETROS                                       ³
+//³                                                                        ³
+//³ MV_PAR01 : Nr.Chamado de  ?                                            ³
+//³ MV_PAR02 : Nr.Chamado ate ?                                            ³
+//³ MV_PAR03 : Emissao de     ?                                            ³
+//³ MV_PAR04 : Emissao ate    ?                                            ³
+//³ MV_PAR05 : Cliente de     ?                                            ³
+//³ MV_PAR06 : Cliente ate    ?                                            ³
+//³ MV_PAR07 : Produto de     ?                                            ³
+//³ MV_PAR08 : Produto ate    ?                                            ³
+//³ MV_PAR09 : Lista Quais    ? Aberto / Orcamento / OS / Todos / Outros   ³
+//³ MV_PAR10 : Classificacao de ?                                          ³
+//³ MV_PAR11 : Classificacao ate?                                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+Pergunte(cPerg,.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Envia para a SetPrinter                                                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+wnrel:=SetPrint(cString,wnrel,cPerg,@titulo,cDesc1,cDesc2,cDesc3,lDic,aOrdem,lComp,Tamanho,lFiltro)
+If ( nLastKey==27 )
+	DbSelectArea(cString)
+	DbSetOrder(1)
+	Set Filter to
+	Return
+Endif
+SetDefault(aReturn,cString)
+If ( nLastKey==27 )
+	DbSelectArea(cString)
+	DbSetOrder(1)
+	Set Filter to
+	Return
+Endif
+#IFDEF WINDOWS
+	RptStatus({|lEnd| ImpDet(@lEnd,wnRel,cString,nomeprog,Titulo)},Titulo)
+#ELSE
+	ImpDet(.F.,wnrel,cString,nomeprog,Titulo)
+#ENDIF
+
+Return(.T.)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Program   ³ ImpDet   ³ Autor ³                       ³ Data ³20.10.2010³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Controle de Fluxo do Relatorio.                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³Nenhum                                                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³Nenhum                                                      ³±±
+±±³          ³                                                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+Static Function ImpDet(lEnd,wnrel,cString,nomeprog,Titulo)
+
+Local li        := 100 // Contador de Linhas
+Local lImp      := .F. // Indica se algo foi impresso
+Local cbCont    := 0   // Numero de Registros Processados
+Local cbText    := ""  // Mensagem do Rodape
+Local cQuebra   := ""  // Quebra
+Local cQuery    := ""
+Local cArqInd   := CriaTrab(,.F.)
+Local cMemo     := ""
+Local aTotal    := { 0 , 0 , 0 , 0}
+Local nMinutos  := 0
+Local nMemCount := 0
+Local cLinha    := ""
+Local nLoop     := 0
+
+//
+//                                   1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16        17        18        19        20        21
+//                          123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+Local cCabec1 := STR0010 //"CLIENTE       NOME                                                          CODIGO PROD.        QUANT.          DESCRICAO                                 EMISSAO O.S.         SERIE""
+Local cCabec2 := STR0011 //
+//XXXXXXXX-XX XX/XX/XXXX XXXXXXXXXX XXX-XXXXXXXXXX XXXXXX-XX XXXXXXXXXXXXXXXXXXXX XXXXX XXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXX XXXXXX-123456789012345678901234567890 XXXXXXXX 123456789012345678901234567890123456789012345678901
+
+DbSelectArea("AB1")
+SetRegua(LastRec())
+cQuery := "AB1_FILIAL=='"+xFilial("AB1")+"'.And."
+cQuery += "AB1_NRCHAM>='"+MV_PAR01+"'.And."
+cQuery += "AB1_NRCHAM<='"+MV_PAR02+"'.And."
+cQuery += "DTOS(AB1_EMISSA)>='"+DTOS(MV_PAR03)+"'.And."
+cQuery += "DTOS(AB1_EMISSA)<='"+DTOS(MV_PAR04)+"'.And."
+cQuery += "AB1_CODCLI>='"+MV_PAR05+"'.And."
+cQuery += "AB1_CODCLI<='"+MV_PAR06+"'"
+
+Do Case
+	Case ( aReturn[8] == 1 )
+		cChave := "AB1_FILIAL+AB1_NRCHAM"
+		Titulo += STR0012 //" [ NR.CHAMADO ] "
+	Case ( aReturn[8] == 2 )
+		cChave := "AB1_FILIAL+AB1_CODCLI+AB1_LOJA+AB1_NRCHAM"
+		Titulo += STR0013 //" [ CLIENTE ] "
+	Case ( aReturn[8] == 3 )
+		cChave := "AB1_FILIAL+DTOS(AB1_EMISSA)+AB1_NRCHAM"
+		Titulo += STR0014 //" [ EMISSAO ] "
+	Case ( aReturn[8] == 4 )
+		cChave := "AB2_FILIAL+AB2_CODPRO+AB2_NRCHAM"
+		Titulo += STR0014 //" [ PRODUTO ] "
+EndCase
+
+IF !aReturn[8] == 4  //SE NÃO FOR ORDEM POR PRODUTO
+	
+	DbSelectArea("AB1")
+	SetRegua(LastRec())
+	cQuery := "AB1_FILIAL=='"+xFilial("AB1")+"'.And."
+	cQuery += "AB1_NRCHAM>='"+MV_PAR01+"'.And."
+	cQuery += "AB1_NRCHAM<='"+MV_PAR02+"'.And."
+	cQuery += "DTOS(AB1_EMISSA)>='"+DTOS(MV_PAR03)+"'.And."
+	cQuery += "DTOS(AB1_EMISSA)<='"+DTOS(MV_PAR04)+"'.And."
+	cQuery += "AB1_CODCLI>='"+MV_PAR05+"'.And."
+	cQuery += "AB1_CODCLI<='"+MV_PAR06+"'"
+	
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Esta IndRegua fornece bom desempenho para o TOP e o ADS,³
+	//³com grande volume de dados.                             ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	IndRegua("AB1",cArqInd,cChave,,cQuery)
+	dbGotop()
+	While ( !Eof() ) //IndRegua
+		lImp := .T.
+		#IFNDEF WINDOWS
+			If LastKey() = 286
+				lEnd := .T.
+			EndIf
+		#ENDIF
+		If lEnd
+			@ Prow()+1,001 PSAY STR0015 //"CANCELADO PELO OPERADOR"
+			Exit
+		EndIf
+		If ( li > 60 )
+			li := cabec(Titulo,cCabec1,cCabec2,nomeprog,Tamanho,CHRCOMP)
+			li++
+		EndIf
+		Do Case
+			Case ( aReturn[8] == 2 )
+				If ( cQuebra <> AB1->AB1_CODCLI)
+					cQuebra := AB1->AB1_CODCLI
+					DbSelectArea("SA1")
+					DbSetOrder(1)
+					MsSeek(xFilial("SA1")+AB1->AB1_CODCLI+AB1->AB1_LOJA)
+					Li++
+					@ Li,000 PSAY RetTitle("AB1_CODCLI")+": "+SA1->A1_NOME
+					Li++
+					Li++
+				EndIf
+			Case ( aReturn[8] == 3 )
+				cQuebra := Dtoc(AB1->AB1_EMISSA)
+		EndCase
+		DbSelectArea("AB2")
+		DbSetOrder(1)
+		MsSeek(xFilial("AB2")+AB1->AB1_NRCHAM)
+		While ( !Eof() .And. xFilial("AB2") == AB2->AB2_FILIAL .And.;
+			AB1->AB1_NRCHAM== AB2->AB2_NRCHAM )
+			If (  AB2->AB2_CODPRO >= MV_PAR07 .And.;
+				AB2->AB2_CODPRO <= MV_PAR08 .And.;
+				AB2->AB2_CLASSI >= MV_PAR10 .And.;
+				AB2->AB2_CLASSI <= MV_PAR11 .And.;
+				(  (AB2->AB2_TIPO=="2" .And. MV_PAR09 == 2) .Or.;
+				(AB2->AB2_TIPO=="3" .And. MV_PAR09 == 3) .Or.;
+				(AB2->AB2_TIPO=="1" .And. MV_PAR09 == 1) .Or.;
+				(!AB2->AB2_TIPO$"123" .And. MV_PAR09==5) .Or.;
+				( MV_PAR09 == 4 )) )
+				
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Efetua a quebra de pagina caso estore o limite de ³
+				//³60 linhas/pagina                                  ³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				
+				If ( li > 60 )
+					li := cabec(Titulo,cCabec1,cCabec2,nomeprog,Tamanho,CHRCOMP)
+					li++
+				EndIf
+				DbSelectArea("AAG")
+				DbSetOrder(1)
+				MsSeek(xFilial("AAG")+AB2->AB2_CODPRB)
+				//cMemo 	:= AllTrim(MSMM(AB2->AB2_MEMO))
+				//nMinutos := SubtHoras(AB1->AB1_EMISSA,AB1->AB1_HORA,AB1->AB1_EMISSA,AB1->AB1_HORAF)*60
+				@ Li,000 PSAY AB1->AB1_CODCLI
+				@ Li,015 PSAY Posicione("SA1",1,xFilial("SA1")+AB1->AB1_CODCLI,"A1_NOME")
+				@ Li,077 PSAY AB2->AB2_CODPRO
+				@ Li,097 PSAY AB2->AB2_CLQTDE
+				@ Li,113 PSAY Posicione("SB1",1,xFilial("SB1")+AB2->AB2_CODPRO,"B1_DESC")
+				@ Li,155 PSAY AB1->AB1_EMISSA
+				@ Li,176 PSAY AB2->AB2_NUMSER
+				//          1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16        17        18        19        20        21
+				// 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+				//"CLIENTE       NOME                                                          CODIGO PROD.        QUANT.          DESCRICAO                                 EMISSAO O.S.         SERIE"
+				
+				
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³ Exibe o campo memo     ³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				/*
+				nMemCount := MlCount( cMemo, 50 )
+				
+				If !Empty( nMemCount )
+				For nLoop := 1 To nMemCount
+				cLinha := MemoLine( cMemo, 50, nLoop )
+				If ( li > 60 )
+				li := cabec(Titulo,cCabec1,cCabec2,nomeprog,Tamanho,CHRCOMP)
+				li++
+				EndIf
+				@ Li,170 PSAY cLinha
+				li++
+				Next nLoop
+				EndIf
+				*/
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Sub-Totais do Relatorio ³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				aTotal[1] ++
+				aTotal[2] ++
+				aTotal[3] += nMinutos
+				aTotal[4] += nMinutos
+				Li++
+			EndIf
+			DbSelectArea("AB2")
+			DbSkip()
+		End
+		DbSelectArea("AB1")
+		DbSkip()
+		cbCont++
+		IncRegua()
+		Do Case
+			Case ( aReturn[8] == 2 )
+				If ( cQuebra <> AB1->AB1_CODCLI)
+					Li++
+					@ Li,000 PSAY STR0016+cQuebra 	//"TOTAL DO CLIENTE: "
+					@ Li,035 PSAY STR0017				//"NR.CHAMADOS:"
+					@ Li,050 PSAY aTotal[1] PICTURE TM(aTotal[1],6,0)
+					//@ Li,079 PSAY aTotal[3] PICTURE TM(aTotal[3],6,0)
+					//@ Li,120 PSAY STR0018 			//"MEDIA:"
+					//@ Li,130 PSAY aTotal[3]/aTotal[1] PICTURE TM(aTotal[3]/aTotal[1],6)
+					aTotal[1] := aTotal[3] := 0
+					Li++
+				EndIf
+			Case ( aReturn[8] == 3 )
+				If ( cQuebra <> Dtoc(AB1->AB1_EMISSA) )
+					Li++
+					@ Li,000 PSAY STR0019+cQuebra 	//"TOTAL DO DIA: "
+					@ Li,035 PSAY STR0020				//"NR.CHAMADOS:"
+					@ Li,050 PSAY aTotal[1] PICTURE TM(aTotal[1],6,0)
+					//@ Li,079 PSAY aTotal[3] PICTURE TM(aTotal[3],6,0)
+					//@ Li,120 PSAY STR0021 	//"MEDIA:"
+					//@ Li,130 PSAY aTotal[3]/aTotal[1] PICTURE TM(aTotal[3]/aTotal[1],6)
+					aTotal[1] := aTotal[3] := 0
+					Li++
+				EndIf
+		EndCase
+	End
+	If ( lImp )
+		Li++
+		@ Li,000 PSAY STR0022 	//"TOTAL GERAL:"
+		@ Li,035 PSAY STR0023		//"NR.CHAMADOS:"
+		@ Li,050 PSAY aTotal[2] PICTURE TM(aTotal[2],6,0)
+	    //@ Li,079 PSAY aTotal[4] PICTURE TM(aTotal[4],6,0)
+		//@ Li,120 PSAY STR0024 	//"MEDIA:"
+		//@ Li,130 PSAY aTotal[4]/aTotal[2] PICTURE TM(aTotal[4]/aTotal[2],6)
+		Roda(cbCont,cbText,Tamanho)
+	EndIf
+
+	
+ELSE //SE A ORDEM FOR POR PRODUTO NÃO EXISTE O PRODUTO NA AB1(CABECALHO)
+	
+	DbSelectArea("AB2")
+	SetRegua(LastRec())
+	cQuery := "AB2_FILIAL=='"+xFilial("AB2")+"'.And."
+	cQuery += "AB2_NRCHAM>='"+MV_PAR01+"'.And."
+	cQuery += "AB2_NRCHAM<='"+MV_PAR02+"'.And."
+	cQuery += "DTOS(AB2_EMISSA)>='"+DTOS(MV_PAR03)+"'.And."
+	cQuery += "DTOS(AB2_EMISSA)<='"+DTOS(MV_PAR04)+"'.And."
+	cQuery += "AB2_CODCLI>='"+MV_PAR05+"'.And."
+	cQuery += "AB2_CODCLI<='"+MV_PAR06+"'"
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Esta IndRegua fornece bom desempenho para o TOP e o ADS,³
+	//³com grande volume de dados.                             ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	IndRegua("AB2",cArqInd,cChave,,cQuery)
+	dbGotop()
+	While ( !Eof() ) //IndRegua
+		lImp := .T.
+		#IFNDEF WINDOWS
+			If LastKey() = 286
+				lEnd := .T.
+			EndIf
+		#ENDIF
+		If lEnd
+			@ Prow()+1,001 PSAY STR0015 //"CANCELADO PELO OPERADOR"
+			Exit
+		EndIf
+		If ( li > 60 )
+			li := cabec(Titulo,cCabec1,cCabec2,nomeprog,Tamanho,CHRCOMP)
+			li++
+		EndIf
+		DbSelectArea("AB1")
+		DbSetOrder(1)
+		MsSeek(xFilial("AB1")+AB2->AB2_NRCHAM)
+		DbSelectArea("AAG")
+		DbSetOrder(1)
+		MsSeek(xFilial("AAG")+AB2->AB2_CODPRB)
+		//cMemo 	:= AllTrim(MSMM(AB2->AB2_MEMO))
+		//nMinutos := SubtHoras(AB1->AB1_EMISSA,AB1->AB1_HORA,AB1->AB1_EMISSA,AB1->AB1_HORAF)*60
+		@ Li,000 PSAY AB1->AB1_CODCLI
+		@ Li,015 PSAY Posicione("SA1",1,xFilial("SA1")+AB1->AB1_CODCLI,"A1_NOME")
+		@ Li,077 PSAY AB2->AB2_CODPRO
+		@ Li,097 PSAY AB2->AB2_CLQTDE
+		@ Li,113 PSAY Posicione("SB1",1,xFilial("SB1")+AB2->AB2_CODPRO,"B1_DESC")
+		@ Li,155 PSAY AB1->AB1_EMISSA
+		@ Li,176 PSAY AB2->AB2_NUMSER
+		//          1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16        17        18        19        20        21
+		// 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+		//"CLIENTE       NOME                                                          CODIGO PROD.        QUANT.          DESCRICAO                                 EMISSAO O.S.         SERIE"
+		
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Sub-Totais do Relatorio ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aTotal[1] ++
+		aTotal[2] ++
+		aTotal[3] += nMinutos
+		aTotal[4] += nMinutos
+		Li++
+		DbSelectArea("AB2")
+		DbSkip()
+		cbCont++
+		IncRegua()
+	End
+	If ( lImp )
+		Li++
+		@ Li,000 PSAY STR0022 	//"TOTAL GERAL:"
+		@ Li,035 PSAY STR0023		//"NR.CHAMADOS:"
+		@ Li,050 PSAY aTotal[2] PICTURE TM(aTotal[2],6,0)
+		//@ Li,079 PSAY aTotal[4] PICTURE TM(aTotal[4],6,0)
+		//@ Li,120 PSAY STR0024 	//"MEDIA:"
+		//@ Li,130 PSAY aTotal[4]/aTotal[2] PICTURE TM(aTotal[4]/aTotal[2],6)
+		Roda(cbCont,cbText,Tamanho)
+	EndIf
+ENDIF
+
+Set Device To Screen
+Set Printer To
+DbSelectArea("AB1")
+RetIndex("AB1")
+dbClearFilter()
+Ferase(cArqInd+OrdBagExt())
+DbSelectArea(cString)
+dbClearFilter()
+If ( aReturn[5] = 1 )
+	dbCommitAll()
+	OurSpool(wnrel)
+EndIf
+MS_FLUSH()
+Return(.T.)
+

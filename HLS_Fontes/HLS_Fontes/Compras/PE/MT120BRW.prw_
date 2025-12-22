@@ -1,0 +1,27 @@
+#INCLUDE "URZUM.CH"
+/*/{protheus.doc}mt120brw
+PE para inclusão de informações no aRotina
+@author aFill Tecnologia
+@since 04/09/2013
+/*/
+
+//+-----------------------------------------------------------------------------------//
+//|Empresa...: aFill Tecnologia
+//|Funcao....: U_MT120BRW
+//|Autor.....: aFill Tecnologia - suporte@afill.com.br
+//|Data......: 04 de setembro de 2013, 10:00
+//|Uso.......: SIGACOM   
+//|Versao....: Protheus
+//|Descricao.: PE para inclusão de informações no aRotina
+//|Observação: 
+//+-----------------------------------------------------------------------------------//
+*-----------------------------------------*
+User Function MT120BRW()
+*-----------------------------------------*
+
+U_UzxPCBrow("AROT")
+
+Return (.T.)
+
+                                                             
+

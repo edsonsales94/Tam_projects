@@ -1,0 +1,242 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+#Include "TOPCONN.CH"
+
+User Function CESTR010()        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+
+SetPrvt("MV_PAR01,MV_PAR02,MV_PAR03,NORDEM,TAMANHO,LIMITE")
+SetPrvt("CSTRING,TITULO,CDESC1,CDESC2,CDESC3,CRESP")
+SetPrvt("NDOCANT,DDATANT,LCONTINUA,LIMPRIME1,LIMPRIME2,ARETURN")
+SetPrvt("NOMEPROG,NLASTKEY,CPERG,CSAVSCR1,CSAVCUR1,CSAVROW1")
+SetPrvt("CSAVCOL1,CSAVCOR1,WNREL,CBTXT,CBCONT,NLINNOT")
+SetPrvt("TABMES,ADRIVER,X6DATA,CDATPRO,DDATINI,DDATFIN")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR010 ³ Autor ³ Carlos Nina           ³ Data ³ 17/04/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relatorio de acompanhamento de apontoamento de producao    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Nina                                                       ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SB1" 
+titulo    := "ACOMPANHAMENTO DE APONTAMENTO PRODUCAO"
+cDesc1    := "Emite uma relacao para acompanhamento de apontamento de producao."
+cDesc2    := ""
+cDesc3    := ""
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+cRodaTxt  := ""
+nCntImpr  := 0
+aReturn   := { "Especial", 1,"Produçao", 1, 1, 2, "",1 }
+nomeprog  := "ESTR010 "
+nLastKey  := 0
+cPerg     := "CESTR010  "
+wnrel     := "ESTR010 "
+Tabmes   := 'JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+ValidPerg()
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+        Return
+Endif
+SetDefault(aReturn,cString)
+RptStatus({|| fRC_Imp()})  //-- Chamada do Relatorio.// Substituido pelo assistente de conversao do AP5 IDE em 11/10/01 ==>         RptStatus({|| Execute(fRC_Imp)})  //-- Chamada do Relatorio.
+Return Nil
+
+*************************
+Static Function fRC_Imp()
+*************************
+nTipo   := IIF(aReturn[4]==1,15,18)
+LI      := 99
+m_pag   := 0
+dDatFin := LastDay( mv_par05 )
+titulo  := "APONTAMENTO DE O.P. " + IIF(mv_par01==1,"(PRODUTO-ACABADO)",IIF(mv_par01==2,"(PRODUTO-INTERMEDIARIO)","(PRODUTO-ACABADO/INTERMEDIARIO)"))+" DE "+DTOC(mv_par04)+" a "+DTOC(mv_par05)
+V4      := {}
+ASIZE(V4,16)
+V4[01] := {"11  ","CONT TEMPO               ","411 "}
+V4[02] := {"12  ","PROTECAO                 ","412 "}
+V4[03] := {"13  ","NIVEL                    ","413 "}
+V4[04] := {"14  ","CONT DIG TEMPERATURA     ","414 "}
+V4[05] := {"15  ","SENSORES                 ","415 "}
+V4[06] := {"16  ","DIVERSOS                 ","416 "}
+V4[07] := {"17  ","INDICADOR                ","417 "}
+V4[08] := {"18  ","CONTADOR DIGITAL         ","418 "}
+V4[09] := {"192 ","CONT DIG TEMP REFRIG     ","4192"}
+V4[10] := {"20  ","RELE DE TEMPO            ","420 "}
+V4[11] := {"21  ","INTERRUPTOR DIGITAL      ","421 "}
+V4[12] := {"211 ","INTERRUPTOR MECANICO     ","4211"}
+V4[13] := {"22  ","PLACAS EXCETO USO INFO   ","422 "}
+V4[14] := {"23  ","PLACAS USO INFO          ","423 "}
+V4[15] := {"24  ","RELE ELETR.DIGITAL       ","424 "}
+V4[16] := {"ZZ1 ","SUB-CONJUNTO             ","498 "}
+*
+cCabec1 := '                                                                                                              SALDO    -------------- ORDEM DE PRODUCAO --------------     SALDO EST                                        '   
+cCabec2 := 'DATA       FAMILIA..................   PRODUTO       DESCRICAO.....................  TIPO  NRO.DCR       CART.VENDA    NUMERO        QTY.PEDIDA  QTY.APONT.      SALDO        NO DIA                                        '   
+*****       xx/xx/xx   x-----------------------x   9999999999999 x----------------------------x  xx    9999/999999    999999999    999999.99/999  999999999   999999999  999999999     999999999                                                           
+*****                 1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220
+*****       01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123
+////                                                                                                                                                                                                                
+//// Filtra de acordo com os parametros informados
+////
+cQry  := "SELECT D3_COD,D3_EMISSAO,D3_OP,D3_QUANT,D3_LOCAL,B1_TIPO,B1_DESC,B1_X_DCR,B1_CLCFAM,C2_QUANT,C2_QUJE,C2_DATRF FROM "
+cQry  += RetSqlName("SB1")+" B1,"+RetSqlName("SD3")+" D3,"+RetSqlName("SC2")+" C2"
+cQry  += " WHERE D3.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' ' AND C2.D_E_L_E_T_ = ' '"
+cQry  += " AND D3_FILIAL = '"+xFilial("SD3")+"' AND D3_ESTORNO = ' '"
+cQry  += " AND D3_CF = 'PR0' AND D3_EMISSAO BETWEEN '"+DTOS(mv_par04)+"' AND '"+DTOS(mv_par05)+"'"
+cQry  += " AND B1_FILIAL = '"+xFilial("SB1")+"' AND B1_COD = D3_COD"
+IF ( mv_par01 == 1 )
+	cQry  += " AND B1_TIPO = 'PA'"
+ELSEIF ( mv_par01 == 2 )
+	cQry  += " AND B1_TIPO = 'PI'"
+ELSE
+	cQry  += " AND B1_TIPO IN ('PA','PI')"
+ENDIF
+cQry  += " AND C2_FILIAL = '"+xFilial("SC2")+"' AND C2_NUM+C2_ITEM+C2_SEQUEN = D3_OP"
+cQry  += " ORDER BY D3_EMISSAO,B1_CLCFAM,D3_COD,D3_OP "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+TcSetField("TMP","D3_QUANT","N",11,0)
+TcSetField("TMP","D3_EMISSAO","D",08,0)
+TcSetField("TMP","C2_QUANT","N",11,0)
+TcSetField("TMP","C2_QUJE","N",11,0)
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+SetRegua(Lastrec())
+dbSelectArea("TMP")
+dbGoTop()
+DO WHILE !EOF().AND.lContinua
+	D3DATA  := TMP->D3_EMISSAO
+	nQtyApt := 0
+	nQtyOPP := 0
+	nQtyOPS := 0
+	nQtyPV  := 0
+	nQtySdo := 0
+	nCtd    := 0
+	lBrk    := .T.
+	DO WHILE !EOF().AND.D3DATA==TMP->D3_EMISSAO.AND.lContinua
+		cGrupo  := IIF(TMP->B1_TIPO=="PI","ZZZ ",TMP->B1_CLCFAM)
+		I1      := ASCAN( V4 , { |xx| xx[1]==cGrupo } )
+		cDesGrp := IIF(I1==0 , "*** DESCONHECIDO ***" , RTRIM(V4[I1,2]))
+		D3COD   := TMP->D3_COD
+		D3OP    := TMP->D3_OP
+		D3LOCAL := TMP->D3_LOCAL
+		B1TIPO  := TMP->B1_TIPO
+		B1DCR   := TMP->B1_X_DCR
+		B1DESC  := LEFT(TMP->B1_DESC,30)
+		C2QUANT := TMP->C2_QUANT
+		C2QUJE  := TMP->C2_QUJE
+		C2DATRF := TMP->C2_DATRF
+		nQty    := 0
+		DO WHILE !EOF().AND.D3DATA==TMP->D3_EMISSAO.AND.D3COD==TMP->D3_COD.AND.D3OP==TMP->D3_OP
+			IF LastKey()==286
+				lContinua := .F.
+				Exit
+			ENDIF	
+			IncRegua()
+			nQty += TMP->D3_QUANT
+			dbSkip()
+		ENDDO
+		////
+		//// Extrai o saldo na carteira de venda do produto
+		////
+		cQry  := "SELECT SUM(C6_QTDVEN) C6_QTDVEN,SUM(C6_QTDENT) C6_QTDENT FROM "+RetSqlName("SC6")
+		cQry  += " WHERE D_E_L_E_T_ = ' '"
+		cQry  += " AND C6_FILIAL = '"+xFilial("SC6")+"'"
+		cQry  += " AND C6_ENTREG <= '"+DTOS(dDatFin)+"'"
+		cQry  += " AND C6_PRODUTO = '"+D3COD+"'"
+
+		cQry := ChangeQuery(cQry)
+
+		dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TC6', .T., .T.)
+		
+  	   aSaldo  := CalcEst(D3COD,D3LOCAL,(D3DATA+1))
+		nCtd    := ( nCtd + 1 )
+		nSdoPV  := ( TC6->C6_QTDVEN - TC6->C6_QTDENT )
+		nSdoOP  := IIF(EMPTY(C2DATRF) , ( C2QUANT - C2QUJE ) , 0 )
+		nQtyApt := ( nQtyApt + nQty )
+		nQtyOPP := ( nQtyOPP + C2QUANT )
+		nQtyOPS := ( nQtyOPS + nSdoOP )
+		nQtyPV  := ( nQtyPV + nSdoPV )
+		nQtySdo := ( nQtySdo + aSaldo[1] )
+ 	   If ( Li > 56 )
+	      li := Cabec(titulo,cCabec1,cCabec2,wnrel,Tamanho,nTipo)
+         lBrk := .T.
+	   EndIf
+   	li := ( li + 1 )
+		@ li,000 PSAY D3DATA
+		@ li,011 PSAY cDesGrp
+		@ li,039 PSAY LEFT(D3COD,14)
+		@ li,053 PSAY B1DESC
+		@ li,085 PSAY B1TIPO
+		@ li,091 PSAY B1DCR
+		@ li,106 PSAY nSdoPV                    Picture "@E 999999999"
+		@ li,119 PSAY D3OP                      Picture "@R XXXXXX.99/999"
+		@ li,134 PSAY C2QUANT                   Picture "@E 999999999"
+		@ li,145 PSAY nQty                      Picture "@E 999999999"
+		@ li,157 PSAY nSdoOP                    Picture "@E 999999999"
+		@ li,171 PSAY aSaldo[1]                 Picture "@E 999999999"
+		TC6->(dbCloseArea())
+		dbSelectArea("TMP")
+   ENDDO
+	li++
+	IF ( nCtd > 1 )
+		@ li,091 PSAY "**TOTAL DO DIA:"
+		@ li,106 PSAY nQtyPV                    Picture "@E 999999999"
+		@ li,134 PSAY nQtyOPP                   Picture "@E 999999999"
+		@ li,145 PSAY nQtyApt                   Picture "@E 999999999"
+		@ li,157 PSAY nQtyOPS                   Picture "@E 999999999"
+		@ li,171 PSAY nQtySdo                   Picture "@E 999999999"
+		li++
+	ENDIF
+ENDDO
+TMP->(dbCloseArea())
+If li <> 99
+   Roda(nCntImpr,cRodaTxt,Tamanho)
+EndIf
+If aReturn[5] == 1
+        dbcommitAll()
+        ourspool(wnrel)
+Endif
+MS_FLUSH()
+RETURN
+
+///////////////////////////////////////////////////////
+Static Function ValidPerg()
+///////////////////////////////////////////////////////
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Tipo do Produto             ?",   ""   ,  ""    , "mv_ch1" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par01", "Prod.Acabado" , "     " , "     " , "   " , "   " , "Prod.Intermed" , "     " , "     " , "   " , "   " , "Ambos " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch2" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Até o Produto               ?",   ""   ,  ""    , "mv_ch3" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+	aAdd(aRegs,{ cPerg,"04" , "Do Periodo                  ?",   ""   ,  ""    , "mv_ch4" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par04", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"05" , "Até o Periodo               ?",   ""   ,  ""    , "mv_ch5" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par05", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

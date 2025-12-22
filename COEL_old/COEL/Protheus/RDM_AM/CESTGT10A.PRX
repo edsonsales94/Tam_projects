@@ -1,0 +1,33 @@
+#Include "RwMake.ch"
+/*
+	Objetivo: Gatilho para atualizar os campos D1_TES, D1_CF, D1_LOCAL
+	          Campo disparador D1_LOCAL
+	Por.....: Coelmatic
+	Data....: 25/05/2012
+	C103FORM
+	CUFORIG
+*/
+User Function CESTGT10A()
+
+Local nPosTES   := GdFieldPos("D1_TES", aHeader)
+Local nPosLocal := GdFieldPos("D1_LOCAL", aHeader)
+Local nPosCF    := GdFieldPos("D1_CF", aHeader)
+Local nPosCla   := GdFieldPos("D1_CLASFIS", aHeader)
+Local ix , lValid
+
+If n == 1 .And. Len(aCols) > 1
+	If LEFT(aCols[1,nPosCF],1) == "3" .AND. EMPTY(aCols[2,nPosTES])
+		aCols[1,nPosCla] := "1"+SUBS(aCols[1,nPosCla],2,2)
+		For nx := 2 to Len(aCols)
+			 n := nx
+			 aCols[nx,nPosTES]   := aCols[1,nPosTES]
+			 aCols[nx,nPosLocal] := aCols[1,nPosLocal]
+			 aCols[nx,nPosCF]    := aCols[1,nPosCF]
+			 aCols[nx,nPosCla]   := aCols[1,nPosCla]     ///aCols[nx,nPosCla]+Posicione("SF4",1,xFilial("SF4")+aCols[1,nPosTES],"F4_SITTRIB")
+			 lValid := MaAvalTes("E",aCols[nx,nPosTES]).And.MaFisRef("IT_TES","MT100",aCols[nx,nPosTES])
+		Next
+		N := 1
+	EndIf	
+Endif
+
+Return(aCols[n,nPosLocal])

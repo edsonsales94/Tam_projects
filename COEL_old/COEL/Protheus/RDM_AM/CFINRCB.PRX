@@ -1,0 +1,296 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ CFINRCB   ³ Autor ³ Cometais             ³ Data ³03/09/2014³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Impressao do Recibo de Cobrança                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ Financeiro: Baixa a Receber                                ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#include "protheus.ch"
+#include "rwmake.ch"
+#include "totvs.ch"
+#Include "FONT.CH"
+#include "colors.ch"
+#INCLUDE "TBICONN.CH"
+#INCLUDE "RPTDEF.CH"
+
+User Function CFINRCB(cRecPag,dPagto1,dPagto2,dVencRea,cBenef2,cValor2,cValor3,cDocto3,cCheque1,cBanco1,cAgenc1,cConta1,cReferente,cEnder2,nValor,cTipoCF,xCGC,xNumero,xClifor,xLoja)
+
+Local cExtenso,cExtenso1,cExtenso2
+Local Tabmes   := 'JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+Local nDia     := DAY(dPagto2)
+Local nMes     := MONTH(dPagto2)
+Local nAno     := YEAR(dPagto2)
+Local lImp     := .F.
+Local Titulo   := "RECIBO"
+Local cDataExt := "Manaus/AM, "+STRZERO(nDia,2)+" DE "+Rtrim(Subs(Tabmes,(nMes*9)-8,9))+' DE '+Str(nAno,4)
+Local cCGC,mvBalFrnD
+Local oPrint
+Local xBitMap   := "\SYSTEM\LOGO_COMETAIS.BMP"  
+Local axArea    := GetArea()
+Local aCoords   := {061,1720,370,2290} 
+Local aCoords2  := {921,010,1090,2290} 
+Local nCor      := RGB(128,128,0)
+
+xFone := RTRIM(SM0->M0_TEL)
+xFone := STRTRAN(xFone,"(","")
+xFone := STRTRAN(xFone,")","")
+xFone := STRTRAN(xFone,"-","")
+xFone := STRTRAN(xFone," ","")
+*
+xFax := RTRIM(SM0->M0_FAX)
+xFax := STRTRAN(xFax,"(","")
+xFax := STRTRAN(xFax,")","")
+xFax := STRTRAN(xFax,"-","")
+xFax := STRTRAN(xFax," ","")
+	
+xRazSoc := RTRIM(SM0->M0_NOMECOM)
+xEnder  := RTRIM(SM0->M0_ENDCOB) + " - " + RTRIM(SM0->M0_BAIRCOB) 
+xFone   := "Fone / Fax: " + TRANSF(xFone,"@R (99)9999-9999") + IIF(!EMPTY(SM0->M0_FAX) , " / " + TRANSF(xFax,"@R (99)9999-9999") , "" )
+xCnpj   := "C.N.P.J.: " + TRANSF(SM0->M0_CGC,"@R 99.999.999/9999-99")
+
+cxExtenso := RTRIM(LTRIM(EXTENSO(nValor)))
+nZ        := ( 144 - LEN(cxExtenso) )
+cExtenso  := cxExtenso + REPL("*",nZ)
+cExtenso1  := SUBS(cExtenso,1,72)
+cExtenso2  := SUBS(cExtenso,73,72)
+
+// Cria os objetos com as configuracoes das fontes
+//                                              Negrito  Subl  Italico
+oFont08  := TFont():New( "Times New Roman",,08,,.f.,,,,,.f.,.f. )
+oFont08b := TFont():New( "Times New Roman",,08,,.t.,,,,,.f.,.f. )
+oFont09  := TFont():New( "Times New Roman",,09,,.f.,,,,,.f.,.f. )
+oFont10  := TFont():New( "Times New Roman",,10,,.f.,,,,,.f.,.f. )
+oFont10b := TFont():New( "Times New Roman",,10,,.t.,,,,,.f.,.f. )
+oFont10c := TFont():New( "Times New Roman",,10,,.t.,,,,,.f.,.f. )
+oFont11  := TFont():New( "Times New Roman",,11,,.f.,,,,,.f.,.f. )
+oFont11b := TFont():New( "Times New Roman",,11,,.t.,,,,,.f.,.f. )
+oFont12  := TFont():New( "Times New Roman",,12,,.f.,,,,,.f.,.f. )
+oFont12b := TFont():New( "Times New Roman",,12,,.t.,,,,,.f.,.f. )
+oFont13b := TFont():New( "Times New Roman",,13,,.t.,,,,,.f.,.f. )
+oFont14  := TFont():New( "Times New Roman",,14,,.f.,,,,,.f.,.f. )
+oFont14b := TFont():New( "Times New Roman",,14,,.t.,,,,,.f.,.f. )
+oFont16b := TFont():New( "Times New Roman",,16,,.t.,,,,,.f.,.f. )
+oFont20  := TFont():New( "Times New Roman",,20,,.f.,,,,,.f.,.f. )
+oFont20b := TFont():New( "Times New Roman",,20,,.t.,,,,,.t.,.f. )
+oFont20c := TFont():New( "Times New Roman",,20,,.t.,,,,,.f.,.f. )
+oFont24b := TFont():New( "Times New Roman",,24,,.t.,,,,,.t.,.f. )
+oFont28b := TFont():New( "Times New Roman",,28,,.t.,,,,,.t.,.f. )
+
+oFontMM := TFont():New("Courier New",10,10,,.T.,,,,.F.,.F.)
+oFontPN := TFont():New("Courier New",10,10,,.F.,,,,.F.,.F.)
+oFontMN := TFont():New("Courier New",10,10,,.T.,,,,.F.,.F.)
+oFontGN := TFont():New("Courier New",20,20,,.T.,,,,.F.,.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Cria o Objeto o Print do TmsPrinter                          ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+oPrint := TMSPrinter():New(Titulo)
+lImp   := oPrint:Setup()
+oPrint:SetPortrait()
+
+If !lImp
+   Return
+Endif
+
+// Inicia uma nova pagina
+oPrint:StartPage()
+
+///oBrush := TBrush():New("",nCor)
+///oPrint:FillRect(aCoords,oBrush)
+///oPrint:FillRect(aCoords2,oBrush)
+
+DO CASE
+	CASE cRecPag == "P"
+			IF ( cTipoCF == "F" )
+				mvBalFrnD := GETMV("MV_BALFRND")           ////Fornecedor diversos (codigo+loja)
+				IF ( RTRIM(mvBalFrnD) == xCliFor+xLoja )
+					dbSelectArea("SC7")
+					dbSetOrder(1)
+					dbSeek(xFilial("SC7")+LEFT(xNumero,6))		
+					xTpDoc    := IIF(EMPTY(SC7->C7_YDOCTO) , "CPF: " , LEFT(SC7->C7_YDOCTO,3)+": " )
+					xNroDoc   := SUBS(SC7->C7_YDOCTO,4,11)	
+					xNroDoc   := IIF(EMPTY(xNroDoc) , " " , IIF(LEFT(xTpDoc,3)=="CPF", TRANSF(xNroDoc,"@R 999.999.999-XX") , xNroDoc ) )
+					cCGC    := ( xTpDoc + xNroDoc )
+				ELSE	
+					cCGC := TRANSF(RTRIM(xCGC),"@R 999.999.999-XX") 
+				ENDIF
+			ELSE
+				cCGC := TRANSF(RTRIM(xCGC),"@R 99.999.999/9999-XX") 
+			ENDIF
+			oPrint:Box(060,10,370,1700)
+			oPrint:SetFont(oFont24b)
+			oPrint:SayBitMap(160,30,xBitMap,540,180)   ///600,280)
+			oPrint:Say(120,590,xRazSoc,oFont11b ,140)
+			oPrint:Say(180,590,xEnder,oFont11 ,140)
+			oPrint:Say(230,590,xFone,oFont11 ,140)
+			oPrint:Say(280,590,xCnpj,oFont11 ,140)
+
+			oPrint:Box(060,1720,370,2290)
+
+			oPrint:Say(100,1740,"R E C I B O",oFont28b)
+			oPrint:Say(260,1740,cValor2,oFont20c)
+
+			oPrint:Box(390,010,900,2290)
+
+			oPrint:Say(400,030,"RECEBI(EMOS) DE:",oFont10c)
+			oPrint:Say(440,150,RTRIM(SM0->M0_NOMECOM),oFont14b)
+			oPrint:Line(500,10,500,2290)
+
+			oPrint:Say(506,030,"ENDEREÇO:",oFont10c)
+			oPrint:Say(540,150,RTRIM(SM0->M0_ENDCOB) + " - " + RTRIM(SM0->M0_BAIRCOB),oFont14b)
+			oPrint:Line(600,10,600,2290)
+
+			oPrint:Say(606,030,"A IMPORTÂNCIA DE:",oFont10c)
+			oPrint:Say(640,150,cExtenso1,oFont14b)
+			oPrint:Line(700,10,700,2290)
+
+			oPrint:Say(706,150,cExtenso2,oFont14b)
+			oPrint:Line(800,10,800,2290)
+
+			oPrint:Say(806,030,"REFERENTE A:",oFont10c)
+			oPrint:Say(840,150,RTRIM(cReferente),oFont14b)
+
+			oPrint:Box(920,010,1090,2290)
+			oPrint:Say(930,720,"RECEBIMENTO ATRAVÉS DE CHEQUE / CAIXA",oFont11b)
+			oPrint:Line(974,10,974,2290)
+			oPrint:Line(974,770,1090,770)
+			oPrint:Line(974,1740,1090,1740)
+			oPrint:Say(980,030,"CHEQUE Nº.",oFont10c)
+			oPrint:Say(980,790,"BANCO",oFont10c)
+			oPrint:Say(980,1760,"AGÊNCIA",oFont10c)
+			oPrint:Say(1024,030,cCheque1,oFont14b)
+			oPrint:Say(1024,790,cBanco1,oFont14b)
+			oPrint:Say(1024,1760,cAgenc1,oFont14b)
+
+			oPrint:Box(1110,010,1210,420)
+			oPrint:Say(1120,030,"DOCUMENTO",oFont10b)
+			oPrint:Say(1154,060,cDocto3,oFont14b)
+			oPrint:Box(1110,440,1210,1000)
+			oPrint:Say(1120,460,"DATA  DE  VENCIMENTO",oFont10b)
+			oPrint:Say(1154,490,dVencRea,oFont14b)
+			oPrint:Box(1110,1020,1210,1580)
+			oPrint:Say(1120,1040,"DATA  DO  PAGAMENTO",oFont10b)
+			oPrint:Say(1154,1070,dPagto1,oFont14b)
+			oPrint:Box(1110,1600,1210,2290)
+			oPrint:Say(1120,1620,"VALOR  DO  DOCUMENTO",oFont10b)
+			oPrint:Say(1154,1650,cValor3,oFont14b)
+
+			oPrint:Box(1230,010,1560,1250)
+
+			oPrint:Say(1240,030,"NOME  EMITENTE:",oFont10c)
+			oPrint:Say(1280,030,cBenef2,oFont12b)
+			oPrint:Line(1340,10,1340,1250)
+
+			oPrint:Say(1346,030,"ENDEREÇO:",oFont10c)
+			oPrint:Say(1386,030,LEFT(cEnder2,54),oFont11b)
+			oPrint:Line(1446,10,1446,1250)
+
+			oPrint:Say(1452,030,"CNPJ / CPF / RG:",oFont10c)
+			oPrint:Say(1492,030,cCGC,oFont14b)
+
+			oPrint:Box(1230,1270,1560,2290)
+
+			oPrint:Say(1240,1290,"LOCAL / DATA:",oFont10c)
+			oPrint:Say(1280,1290,cDataExt,oFont14b)
+			oPrint:Line(1340,1270,1340,2290)
+
+			oPrint:Say(1350,1290,"ASSINATURA:",oFont10c)
+			oPrint:Line(1510,1290,1510,2250)
+	
+	CASE cRecPag == "R"
+	
+			IF ( cTipoCF == "F" )
+				cCGC := TRANSF(RTRIM(xCGC),"@R 999.999.999-XX") 
+			ELSE
+				cCGC := TRANSF(RTRIM(xCGC),"@R 99.999.999/9999-XX") 
+			ENDIF
+
+	
+			oPrint:Box(060,10,370,1700)
+			oPrint:SetFont(oFont24b)
+			oPrint:SayBitMap(160,30,xBitMap,540,180)   ///600,280)
+			oPrint:Say(120,590,xRazSoc,oFont11b ,140)
+			oPrint:Say(180,590,xEnder,oFont11 ,140)
+			oPrint:Say(230,590,xFone,oFont11 ,140)
+			oPrint:Say(280,590,xCnpj,oFont11 ,140)
+
+			oPrint:Box(060,1720,370,2290)
+
+			oPrint:Say(100,1740,"R E C I B O",oFont28b)
+			oPrint:Say(260,1740,cValor2,oFont20c)
+
+			oPrint:Box(390,010,900,2290)
+			oPrint:Line(390,1720,500,1720)
+
+			oPrint:Say(400,030,"RECEBI(EMOS) DE:",oFont10c)
+			oPrint:Say(400,1740,"CNPJ / CPF / RG:",oFont10c)
+			oPrint:Say(440,060,cBenef2,oFont14b)
+			oPrint:Say(440,1760,cCGC,oFont14b)
+			oPrint:Line(500,10,500,2290)
+
+			oPrint:Say(506,030,"ENDEREÇO:",oFont10c)
+			oPrint:Say(540,060,cEnder2,oFont14b)
+			oPrint:Line(600,10,600,2290)
+
+			oPrint:Say(606,030,"A IMPORTÂNCIA DE:",oFont10c)
+			oPrint:Say(640,060,cExtenso1,oFont14b)
+			oPrint:Line(700,10,700,2290)
+
+			oPrint:Say(706,060,cExtenso2,oFont14b)
+			oPrint:Line(800,10,800,2290)
+
+			oPrint:Say(806,030,"REFERENTE A:",oFont10c)
+			oPrint:Say(840,060,RTRIM(cReferente),oFont14b)
+
+			oPrint:Box(920,010,1090,2290)
+			oPrint:Say(930,720,"RECEBIMENTO ATRAVÉS DE CHEQUE / CAIXA",oFont11b)
+			oPrint:Line(974,10,974,2290)
+			oPrint:Line(974,770,1090,770)
+			oPrint:Line(974,1740,1090,1740)
+			oPrint:Say(980,030,"CHEQUE Nº.",oFont10c)
+			oPrint:Say(980,790,"BANCO",oFont10c)
+			oPrint:Say(980,1760,"AGÊNCIA",oFont10c)
+			oPrint:Say(1024,030,cCheque1,oFont14b)
+			oPrint:Say(1024,790,cBanco1,oFont14b)
+			oPrint:Say(1024,1760,cAgenc1,oFont14b)
+
+			oPrint:Box(1110,010,1210,420)
+			oPrint:Say(1120,030,"DOCUMENTO",oFont10b)
+			oPrint:Say(1154,060,cDocto3,oFont14b)
+			oPrint:Box(1110,440,1210,1000)
+			oPrint:Say(1120,460,"DATA  DE  VENCIMENTO",oFont10b)
+			oPrint:Say(1154,490,dVencRea,oFont14b)
+			oPrint:Box(1110,1020,1210,1580)
+			oPrint:Say(1120,1040,"DATA  DO  PAGAMENTO",oFont10b)
+			oPrint:Say(1154,1070,dPagto1,oFont14b)
+			oPrint:Box(1110,1600,1210,2290)
+			oPrint:Say(1120,1620,"VALOR  DO  DOCUMENTO",oFont10b)
+			oPrint:Say(1154,1650,cValor3,oFont14b)
+
+			oPrint:Box(1230,010,1560,1250)
+
+			oPrint:Say(1240,030,"LOCAL / DATA:",oFont10c)
+			oPrint:Say(1280,030,cDataExt,oFont14b)
+			oPrint:Line(1340,10,1340,1250)
+
+			oPrint:Say(1350,030,"ASSINATURA:",oFont10c)
+			oPrint:Line(1510,10,1510,1210)
+
+			oPrint:Box(1230,1270,1560,2290)
+
+			oPrint:Say(1240,1290,"RESERVADO",oFont10c)
+ENDCASE
+
+oPrint:EndPage()
+oPrint:Preview()
+///oPrint:Print()               ///Preview()
+
+RestArea(axArea)
+
+Return

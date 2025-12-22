@@ -1,0 +1,29 @@
+#INCLUDE "URZUM.CH" 
+/*/{protheus.doc}mt120vld
+PE para validação da linha do pedido independete de estar deletado
+@author aFill Tecnologia
+@since 30/10/2011
+/*/
+//+-----------------------------------------------------------------------------------//
+//|Empresa...: aFill Tecnologia
+//|Funcao....: U_MT120VLD()
+//|Autor.....: aFill Tecnologia - suporte@afill.com.br
+//|Data......: 30 de Outubro de 2011, 13:44
+//|Uso.......: SIGACOM   
+//|Versao....: Protheus - 10/11
+//|Descricao.: PE para validação da linha do pedido independete de estar deletado
+//|Observação: 
+//+-----------------------------------------------------------------------------------//
+*-----------------------------------------*
+User Function MT120VLD()
+*-----------------------------------------*
+
+Local lRet := .T.
+
+If !IsBlind()
+	xcPCNum2 := CA120NUM
+	lRet     := U_UZPCVIMP("ITEM")
+EndIf
+
+Return(lRet)
+                  

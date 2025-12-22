@@ -1,0 +1,1007 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR09E ³ Autor ³ Carlos Nina           ³ Data ³ 17/12/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relatorio de Fechamento: Custo de Produto-Acabado S/MOD    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Via VBA/Excell                                             ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#Include "rwmake.ch"        
+#Include "protheus.ch"
+#Include "TOTVS.CH"
+#INCLUDE "TBICONN.CH"
+#Include "TOPCONN.CH"
+
+User Function CESTR09E()
+
+Local   aStru := {}
+Local   cArqTrab,cIndex,cKey
+
+Private oDlg,oButton1,oButton2,oButton3,oSay1,oSay2,oSay3,oSay4,oSay5,oSay6,oSay7,oSay8,oSay9,oSay10,oSay11
+Private cDatRef
+Private nOpcA    := 0
+Private cArqProc := "C:\RELATO\"
+Private cPerg    := "ESTR009   "
+Private aMovimen := {}
+Private Tabmes   := 'JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+
+AADD(aMovimen, {"(EVL)","001","ENTRADA VALORIZADA"} )
+AADD(aMovimen, {"(ACE)","003","ACERTO ESTOQUE"} )
+AADD(aMovimen, {"(RPM)","030","REPOSICAO FILIAL"} )
+AADD(aMovimen, {"(OUE)","101","OUTRAS ENTRADAS"} )
+AADD(aMovimen, {"(RPS)","600","REPOSIÇÃO SP"} )
+AADD(aMovimen, {"(SCR)","507","SCRAPE"} )
+AADD(aMovimen, {"(DEF)","507","DEFEITO"} )
+AADD(aMovimen, {"(FLT)","702","FALTA"} )
+AADD(aMovimen, {"(TRF)","999","TRANSF.PRODUTO"} )
+AADD(aMovimen, {"(OUS)","505","OUTRAS SAIDAS"} )
+AADD(aMovimen, {"(ACS)","601","ACERTO ESTOQUE"} )
+
+ValidPerg()
+
+Pergunte(cPerg,.F.)
+
+  DEFINE MSDIALOG oDlg TITLE "Relatório: Resumo de Movimentação de PA/PI" FROM 000, 000  TO 200, 500 COLORS 0, 16777215 PIXEL
+
+    @ 005, 004 SAY oSay1       PROMPT "Gera uma planilha pré-formatada do resumo de movimentação"                 SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 012, 005 SAY oSay2       PROMPT "de  Produto-Acabado  ou  Intermediario   de   acordo  com  os"             SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 020, 005 SAY oSay3       PROMPT "parametros informados."                                                    SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 027, 005 SAY oSay4       PROMPT "** Nota relativo aos parametros:"                                          SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 035, 005 SAY oSay5       PROMPT "    1 - Tipo do Produto: Selecione Produto-Acabado ou"                     SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 042, 005 SAY oSay6       PROMPT "         Produto Intermediario (sub-conjunto)."                            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 050, 005 SAY oSay7       PROMPT "    2 - Data-Base: Movimentação do inicio ao final do mes da"              SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 057, 005 SAY oSay8       PROMPT "         data informada."                                                  SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 065, 005 SAY oSay9       PROMPT "    3 - Recalculo efetuado: Quando o recalculo do custo medio"             SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 072, 005 SAY oSay10      PROMPT "         for   efetuado  para   acerto   de  custo  atual  ou  para  o "   SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 080, 005 SAY oSay11      PROMPT "         Fechamento do Mes."                                               SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+	 
+    @ 005, 203 BUTTON oButton1 PROMPT "Parametros"          SIZE 037, 015 OF oDlg PIXEL Action Pergunte(cPerg,.T.)
+    @ 025, 203 BUTTON oButton2 PROMPT "Gera Planilha"       SIZE 037, 015 OF oDlg PIXEL Action (nOpcA := 1 , oDlg:End())
+    @ 045, 203 BUTTON oButton3 PROMPT "Sair"                SIZE 037, 015 OF oDlg PIXEL Action (nOpcA := 2 , oDlg:End())
+
+	 ACTIVATE MSDIALOG oDlg CENTERED Valid nOpcA > 0
+
+IF ( nOpcA == 1 )
+	AADD(aStru,{"TB_TIPO"   , "C" , 02,0})
+	AADD(aStru,{"TB_GRUPO"  , "C" , 30,0})
+	AADD(aStru,{"TB_DATA"   , "D" , 08,0})
+	AADD(aStru,{"TB_CF"     , "C" , 06,0})
+	AADD(aStru,{"TB_DOC"    , "C" , 13,0})
+	AADD(aStru,{"TB_COD"    , "C" , 30,0})
+	AADD(aStru,{"TB_OP"     , "C" , 09,0})
+	AADD(aStru,{"TB_TM"     , "C" , 03,0})
+	AADD(aStru,{"TB_QUANT"  , "N" , 13,2})
+	AADD(aStru,{"TB_TOTAL"  , "N" , 15,2})
+	AADD(aStru,{"TB_CUSTO"  , "N" , 15,4})
+	AADD(aStru,{"TB_DESCRI" , "C" , 60,0})
+	AADD(aStru,{"TB_NREDUZ" , "C" , 20,0})
+	AADD(aStru,{"TB_EST"    , "C" , 02,0})
+	AADD(aStru,{"TB_OBS1"   , "C" , 80,0})
+	AADD(aStru,{"TB_OBS2"   , "C" , 40,0})
+
+	cArqTrab:=CriaTrab(aStru,.T.)
+	dbUseArea(.T.,,cArqTrab,"TMP",.F.,.F.)
+	cIndex := CriaTrab(NIL,.F.)
+	cKey   := 'TB_TIPO+TB_GRUPO+DTOS(TB_DATA)+TB_CF+TB_DOC+TB_COD'
+	IndRegua("TMP",cIndex,cKey,,," Criando Indice ...   ")
+
+	MsgRun( "Resumo - Extraindo e gravando movimentação do período", "Aguarde...", {|| f_geratxt() } )	
+	MsgRun( "Detalhe - gravando movimentação do período", "Aguarde...", {|| f_geradet() } )
+	
+	TMP->(dbCloseArea())
+	
+	MsAguarde( { || f_loadExcel() } , "Carregando o Excel."                )
+
+ENDIF
+	
+Return
+
+////////////////////////////////////////////
+Static Function f_LoadExcel()
+////////////////////////////////////////////
+Local oExcelApp
+
+   ///
+   ///Abre o Excel
+   ///
+
+	If ! ApOleClient( 'MsExcel' )                                          //Verifica se o Excel esta instalado
+		MsgStop( 'MsExcel nao instalado' )
+		Return
+	EndIf
+
+	oExcelApp := MsExcel():New()                                                               // Cria um objeto para o uso do Excel
+  	oExcelApp:WorkBooks:Open("C:\Relato\Fechamento_Mensal\Fechamento_Mensal_Producao.xls")     // Atribui à propriedade WorkBooks do Excel
+	oExcelApp:SetVisible(.T.)                                                                  // Abre o Excel com o arquivo criado exibido na Primeira planilha.
+	oExcelApp:Destroy()
+	
+Return
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function f_GeraTxt()
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Local cGrupo,cDescri,cTipo,cQry,cData,cCGCCli,fArq,mLinDet
+Local dEntrada,dEmissao
+Local nx,nv,i1,nVariac,n_Variac,nSeton
+Local V1,V2,V3,V4,V5,V6,aData
+Local lTriangular,lCGCCli
+Local X6DATA   := GETMV('MV_ULMES')
+Local nMes     := MONTH(mv_par02)
+Local cDatPro  := LEFT(dtos(mv_par02),6)
+Local dDatIni  := FirstDay( mv_par02 )
+Local dDatFin  := LastDay( dDatIni )
+Local cDatAnt  := ( dDatIni - 1 )
+Local dPerIni  := MonthSub(dDatIni,6)                                                               ///Subtrai 6 meses do periodo atual
+Local dPerFin  := cDatAnt     
+Local mvLocal  := IIF(M->cNumEmp=="0301", "02","01" )
+Local cArqNome := IIF(mv_par01==2,"PI","PA") + cDatPro
+//Local mvLocal  := IIF(M->cNumEmp=="0301", IIF(VAL(cDatPro) > 201501 , "02,60,62" , "02" ) , "01" )     ///"01,02,03,60,62" )              ///Cuidado! Nunca acrescentar novos almox's no inicio da constante desse parametro.
+
+Private cProduto
+
+X6DATA   := X6DATA +1
+X6DATA   := LEFT(DTOS(X6DATA),6)
+cDatAnt  := LEFT(DTOS(cDatAnt),6)
+cDatref  := Rtrim(Subs(Tabmes,(nMes*9)-8,9))+'/'+Left(cDatPro,4)
+cArqProc += cArqNome                                    ////Será utilizado pra montar o nome final do arquivo de detalhe do movimento.
+
+/*
+ASIZE(V4,19)
+V4[01] := {"11  ","CONT TEMPO               ","411 "}     
+V4[02] := {"12  ","PROTECAO                 ","412 "}
+V4[03] := {"13  ","NIVEL                    ","413 "}
+V4[04] := {"14  ","CONT DIG TEMP QUENTE     ","414 "}
+V4[05] := {"15  ","SENSORES                 ","415 "}
+V4[06] := {"16  ","DIVERSOS                 ","416 "}
+V4[07] := {"17  ","INDICADOR                ","417 "}
+V4[08] := {"18  ","CONTADOR DIGITAL         ","418 "}
+V4[09] := {"192 ","CONT DIG TEMP REFRIG     ","4192"}
+V4[10] := {"20  ","RELE DE TEMPO            ","420 "}
+V4[11] := {"21  ","INTERRUPTOR DIGITAL      ","421 "}
+V4[12] := {"211 ","INTERRUPTOR MECANICO     ","4211"}
+V4[13] := {"22  ","PLACAS EXCETO USO INFO   ","422 "}
+V4[14] := {"23  ","PLACAS USO INFO          ","423 "}
+V4[15] := {"24  ","RELE ELETR.DIGITAL       ","424 "}
+V4[16] := {"35  ","ACESSORIOS               ","435 "}           ///SAO PAULO
+V4[17] := {"MODU","MODULO                   ","4MOD"}           ///SAO PAULO
+V4[18] := {"999 ","A CLASSIFICAR            ","499 "}
+V4[19] := {"ZZ1 ","INTERMEDIARIO            ","498 "}
+*/
+SET(1,"OFF")
+V4       := {}
+V5       := {}
+V3       := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+mv_par01 := IIF(mv_par01==3,1,mv_par01)
+////
+////
+////
+cQry  := "SELECT B1_COD,B1_TIPO,B1_DESC,B1_CLCFAM FROM "+RetSqlName("SB1")
+cQry  += " WHERE D_E_L_E_T_ = ' '"
+cQry  += " AND B1_FILIAL = '"+xFilial("SB1")+"'"
+cQry  += " AND B1_TIPO IN ('PA','PI','PP') AND B1_COD NOT IN ('00000002','00000004')"
+cQry  += " ORDER BY B1_TIPO,B1_COD "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB3', .T., .T.)
+
+dbSelectArea("SZE")
+dbSetOrder(1)
+*
+dbSelectArea("SC2")
+dbSetOrder(1)
+*
+dbSelectArea("SC6")
+dbSetOrder(1)
+*
+dbSelectArea("SF1")
+dbSetOrder(1)
+*
+dbSelectArea("SF4")
+dbSetOrder(1)
+*
+dbSelectArea("SG2")
+dbSetOrder(3)
+*
+dbSelectArea("SH6")
+dbSetOrder(1)
+*
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+dbSelectArea("SB7")
+dbSetOrder(1)
+ProcRegua(Lastrec())
+*
+dbSelectArea("TB3")
+dbGoTop()
+DO WHILE !EOF()
+   IF LastKey()==286
+      TB3->(dbCloseArea())
+      Return
+   ENDIF
+   IncProc()
+   IF (  ( TB3->B1_TIPO $ "PA/PP" .AND. mv_par01 == 1 ) .OR. ( TB3->B1_TIPO == "PI" .AND. mv_par01 == 2 ) )
+		B1CLCFAM := IIF(TB3->B1_TIPO=="PI","ZZ1 ",IIF(EMPTY(TB3->B1_CLCFAM) , "999 " , TB3->B1_CLCFAM ) )
+      AADD(V5 , { B1CLCFAM, TB3->B1_COD , TB3->B1_DESC , TB3->B1_TIPO } )
+		////
+		////Monta array V4
+		////
+		nX := ASCAN(V4 , { |z| z[1] == B1CLCFAM } )
+		IF ( nX == 0 )
+			SZE->(dbSeek(xFilial("SZE")+B1CLCFAM))
+			IF ( SZE->(!EOF()) )
+				AADD(V4 , { B1CLCFAM                 , ;
+								SZE->ZE_DESCRIC+SPACE(5) , ;
+								"4"+B1CLCFAM } )
+			ENDIF					
+		ENDIF
+   ENDIF
+   dbSkip()
+ENDDO
+////
+////Adiciona Grupo de PI e A Classificar no array V4
+////
+nClas := ( LEN(V4) + 1 )                                   ///Identifica o indice, no array V4, de A Classificar
+AADD(V4 , {"999 ","A CLASSIFICAR            ","499  "} )
+AADD(V4 , {"ZZ1 ","INTERMEDIARIO            ","498  "} )
+
+TB3->(dbCloseArea())
+
+fArq    := fCreate("C:\RELATO\Resumo_Estoque.txt")     ///Resumo da Movimentacao de PA
+mLinDet := "|CB|"+IIF(mv_par01==2,"PI","PA")+"|RESUMO DE MOVIMENTAÇÃO DE PRODUTO-"+IIF(mv_par01==2,"INTERMEDIARIO","ACABADO")+" (SEM MOD+GGF) - "+RTRIM(cDatRef)
+mLinDet += " - COELMATIC/"+IIF(SM0->M0_CODFIL=="01","MANAUS   ","SAO PAULO" )
+mLinDet += SPACE(498-LEN(RTRIM(mLinDet)))
+mLinDet += "|"+Chr(13)+Chr(10)
+mLinDet := STUFF(mLinDet,121,9,"|"+cArqNome)
+FWrite(fArq,mLinDet)
+*
+mLinDet := "|CB|GRUPO                         |CODIGO                            |TP|T.PADRAO |S.I QTY   |S.I CUSTO       |PRD QTY  |PRD CUSTO      |FAT QTY  |FAT CUSTO      |AJI QTY  |AJI CUSTO      |DSM QTY  |DSM CUSTO      |O.E QTY  |O.E CUSTO      |AMOST QTY|AMOSTRA CUSTO  |REQ. QTY |REQ. CUSTO     |Q.PRD QTY|Q.PRD CUSTO    |CONS.PRD |CONS.PRD CUSTO |DSM. QTY |DSM. CUSTO     |O.S QTY  |O.S CUSTO      |S.F QTY   |S.F CUSTO       |DIF|VAR(%)  |DESCRICAO DO PRODUTO                                        |"
+mLinDet += Chr(13)+Chr(10)
+mLinDet += "|CB|==============================|==================================|==|=========|==========|================|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|=========|===============|==========|================|===|========|============================================================|"                        
+mLinDet += Chr(13)+Chr(10)                                                    ///    99.999999 9999999.99 999.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 999999.99 99.999.999,9999 9999999.99 999.999.999,9999  x  9999.999 x----------------------------------------------------------x|                           
+FWrite(fArq,mLinDet)
+*
+aSort(V5,,,{|x,y| x[1]+x[2] < y[1]+y[2] } )
+NX := 1
+DO WHILE NX <= LEN(V5)
+   cGrupo  := V5[NX,1]
+   nCount  := 0
+   V2      := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+   V6      := {}
+   I1      := ASCAN( V4 , { |xx| xx[1]==cGrupo } )
+	I1      := IIF(I1==0 , nClas , I1 )
+   cDesGrp := V4[I1,2]+V4[I1,3]
+	mGrupo  := space(4)
+   DO WHILE NX <= LEN(V5).AND.V5[NX,1]==cGrupo
+		IncProc("Processando "+STR(NX,4)+" de "+STR(LEN(V5),4))
+      cProduto := V5[NX,2]
+		cDescri  := LEFT(V5[NX,3],60)     //////
+		cTipo    := V5[NX,4]
+      V1       := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+      SB1->(dbSeek(xFilial("SB1")+cProduto))
+      IF ( X6DATA==cDatPro )
+			///nRetorno:=SaldoSB2(.F.,.F.,dDatFin,.F.)
+			dbSelectArea("SB2")
+         dbSetOrder(1)
+         dbSeek(xFilial("SB2")+cProduto,.T.)
+         DO WHILE !EOF().AND.B2_FILIAL==xFilial("SB2").AND.B2_COD==cProduto
+            IF ( SB2->B2_LOCAL $ mvLocal )
+	            IF ( mv_par03 == 1 )
+   	            aSaldo := { SB2->B2_QFIM , SB2->B2_VFIM1 }
+ 	   	      ELSE
+		   	     aSaldo := CalcEst(SB2->B2_COD,SB2->B2_LOCAL,(dDatFin+1))
+            	ENDIF
+	            V1[25] := ( V1[25] + aSaldo[1] )   //SB2->B2_QATU )
+   	         V1[26] := ( V1[26] + aSaldo[2] )   //SB2->B2_VATU1 )     
+            ENDIF
+            dbSkip()
+         ENDDO
+      ENDIF
+      dbSelectArea("SB9")
+      dbSetOrder(1)
+      dbSeek(xFilial("SB9")+cProduto,.T.)
+      DO WHILE !EOF().AND.B9_FILIAL==xFilial("SB9").AND.B9_COD==cProduto
+         IF ( SB9->B9_LOCAL $ mvLocal )
+	         cData := LEFT(DTOS(SB9->B9_DATA),6)
+   	      IF ( cData == cDatAnt )
+					IF ( SB9->B9_LOCAL <> LEFT(mvLocal,2) )
+						IF ( cDatPro == "201502" )                                    ///A partir desse Ano/Mes, todos os almoxarifados fazem parte da lista
+							V1[11] := ( V1[11] + B9_QINI )                             ///Serao adicionados em "Outras Entradas".
+							V1[12] := ( V1[12] + B9_VINI1 )       						
+						ELSEIF ( VAL(cDatPro) > 201502 )                                    ///A partir desse Ano/Mes, todos os almoxarifados fazem parte da lista
+							V1[1] := ( V1[1] + B9_QINI )                             ///Serao adicionados em "Outras Entradas".
+							V1[2] := ( V1[2] + B9_VINI1 )       						
+						ENDIF
+					ELSE	
+						V1[1] := ( V1[1] + SB9->B9_QINI )
+						V1[2] := ( V1[2] + SB9->B9_VINI1 )       
+					ENDIF
+	         ELSEIF ( cData == cDatPro )
+   	         V1[25] := ( V1[25] + SB9->B9_QINI )
+      	      V1[26] := ( V1[26] + SB9->B9_VINI1 )     
+         	ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+      dbSelectArea("SD1")
+      dbSetOrder(7)
+      dbSeek(xFilial("SD1")+cProduto,.T.)
+      DO WHILE !EOF().AND.D1_FILIAL==xFilial("SD1").AND.D1_COD==cProduto
+         IF ( SD1->D1_LOCAL $ mvLocal )
+	         cData := LEFT(DTOS(SD1->D1_DTDIGIT),6)
+   	      IF ( cData == cDatPro )
+      	      IF ( SD1->D1_TIPO $ 'BDNC' )
+               	SF4->(dbSeek(xFilial("SF4")+SD1->D1_TES))
+   	            IF ( SF4->F4_ESTOQUE == 'S' )                          ///.AND.!SF4->F4_PODER3 $ "RD"
+							SA2->(dbSeek(xFilial("SA2")+SD1->D1_FORNECE+SD1->D1_LOJA))
+							cNReduz := SA2->A2_NREDUZ
+							cUF     := SA2->A2_EST
+							cObs    := ""
+							nSeton  := 10
+							////
+							////Verifica se é nota cancelada de faturamento
+							////
+							IF ( SD1->D1_TIPO == "D".AND.SD1->D1_CF $ '1201 ,2201 ,2410 ,3201 ' )
+								SF1->(dbSeek(xFilial("SF1")+SD1->D1_DOC+SD1->D1_SERIE+SD1->D1_FORNECE+SD1->D1_LOJA+SD1->D1_TIPO))
+								SA1->(dbSeek(xFilial("SA1")+SD1->D1_FORNECE+SD1->D1_LOJA))
+								cNReduz := SA1->A1_NREDUZ
+								cUF     := SA1->A1_EST
+								cCGCCli := SUBS(SF1->F1_CHVNFE,7,14)
+								lCGCCli := ( SM0->M0_CGC <> cCGCCli )
+								dbSelectArea("SD2")
+								dbSetOrder(3)
+								dbSeek(xFilial("SD2")+SD1->D1_NFORI+SD1->D1_SERIORI+SD1->D1_FORNECE+SD1->D1_LOJA+SD1->D1_COD+SD1->D1_ITEMORI)
+								IF ( !EOF() )
+									dEntrada := LEFT(DTOS(SD1->D1_DTDIGIT),6)
+									dEmissao := LEFT(DTOS(SD2->D2_EMISSAO),6)
+									nSeton   := IIF(lCGCCli , 30 , IIF(dEntrada==dEmissao , 20 , nSeton ) )
+								ENDIF
+							ENDIF
+							IF ( nSeton == 10 )                                    ////Outras Entradas
+								IF ( SD1->D1_CF $ '1201 ,2201 ,2410 ,3201 ' )
+								   cTpMov := "DV"
+									cObs   := IIF(!lCGCCli , "DEVOL.FORA DO MES: REF.NF."+SD1->D1_NFORI+" DE "+DTOC(SD2->D2_EMISSAO) , "" )
+									V1[09] := ( V1[09] + SD1->D1_QUANT )
+									V1[10] := ( V1[10] + SD1->D1_CUSTO )  
+								ELSE
+									V1[11] := ( V1[11] + SD1->D1_QUANT )
+									V1[12] := ( V1[12] + SD1->D1_CUSTO )  
+									cTpMov := "OE"
+									IF ( SD1->D1_CF == "2151 " )
+										cObs := "TRANSF. DE ESTOQUE ENTRE FILIAIS"
+									ELSEIF ( SD1->D1_CF $ "1949 ,2949 ,3949 " )
+										cObs := SF4->F4_TEXTO
+									ENDIF	
+								ENDIF
+							ELSEIF ( nSeton == 20 )                                ////Cancelamento de Faturamento
+								V1[5]  := ( V1[5] - SD1->D1_QUANT )
+								V1[6]  := ( V1[6] - SD1->D1_CUSTO )       
+								cTpMov := "CF"
+								cObs   := IIF(!lCGCCli , "CANCEL. DENTRO DO MES: REF.NF."+SD1->D1_NFORI+" DE "+DTOC(SD2->D2_EMISSAO) , "" )
+							ELSE	                                                 ////Devolucao de Cliente
+								V1[09] := ( V1[09] + SD1->D1_QUANT )
+								V1[10] := ( V1[10] + SD1->D1_CUSTO )       
+								cTpMov := "DV"
+								cObs   := "DEVOLUÇÃO CLIENTE REF.NF."+SD1->D1_NFORI+" DE "+DTOC(SD2->D2_EMISSAO)
+								///IF ( M->cNumEmp == "0301" .AND. SD1->D1_LOCAL == "60" )         ////Essa saída é somente pra efeito de relatorio, pois esse valor será abatido ou não.
+								///	V1[23] := ( V1[23] + SD1->D1_QUANT )                        ////caso aconteça a transferencia do local 60 para o 02 dentro do mes.
+								///	V1[24] := ( V1[24] + SD1->D1_CUSTO )       									
+								///ENDIF
+							ENDIF
+							dbSelectArea("TMP")
+							RecLock("TMP",.T.)
+							TMP->TB_TIPO    := cTpMov
+							TMP->TB_GRUPO   := cDesGrp
+							TMP->TB_DATA    := SD1->D1_DTDIGIT
+							TMP->TB_CF      := SD1->D1_CF
+							TMP->TB_DOC     := SD1->D1_DOC+"/"+SD1->D1_SERIE
+							TMP->TB_COD     := SD1->D1_COD
+							TMP->TB_DESCRI  := V5[nX,3]
+							TMP->TB_TM      := SD1->D1_TES
+							TMP->TB_QUANT   := SD1->D1_QUANT
+							TMP->TB_TOTAL   := SD1->D1_TOTAL
+							TMP->TB_CUSTO   := SD1->D1_CUSTO
+							TMP->TB_NREDUZ  := cNReduz
+							TMP->TB_EST     := cUF
+							TMP->TB_OBS1    := cObs
+							MsUnLock()
+            	   ENDIF
+	               dbSelectArea("SD1")
+               ENDIF
+            ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+		
+      dbSelectArea("SD2")
+      dbSetOrder(6)
+      dbSeek(xFilial("SD2")+cProduto,.T.)
+      DO WHILE !EOF().AND.D2_FILIAL==xFilial("SD2").AND.D2_COD==cProduto
+         IF ( SD2->D2_LOCAL $ mvLocal )
+	         cData := LEFT(DTOS(D2_EMISSAO),6)
+   	      IF ( cData == cDatPro )
+            	SF4->(dbSeek(xFilial("SF4")+SD2->D2_TES))
+   	         IF ( SF4->F4_ESTOQUE == 'S' )
+						SA1->(dbSeek(xFilial("SA1")+SD2->D2_CLIENTE+SD2->D2_LOJA))
+						cNReduz := SA1->A1_NREDUZ
+						cUF     := SA1->A1_EST
+						cObs    := "PEDIDO COEL: "+SD2->D2_PEDIDO+"/"+SD2->D2_ITEMPV 
+						cTpMov  := "OS"
+      	         IF ( SD2->D2_TIPO $ "NC".AND.SD2->D2_CF $ "5101 /5102 /5107 /5109 /5401 /5405 /5901 /5949 /6101 /6102 /6107 /6109 /6401 /6405 /6949 /7101 /7102 /7107 " )
+							lTriangular := .T.
+							IF SD2->D2_CF $ "5949 /6949 "
+								SC5->(dbSeek(xFilial("SC5")+SD2->D2_PEDIDO))
+								cMsgSped    := UPPER(SC5->C5_CLMSPED)
+								lTriangular := AT("TRIANGULAR" , cMsgSped) > 0
+							ENDIF							
+							IF ( lTriangular )
+								IF ( SB1->B1_TIPO == "PI" )
+									V1[23] := ( V1[23] + SD2->D2_QUANT )
+									V1[24] := ( V1[24] + SD2->D2_CUSTO1 )      
+								ELSE
+									SC6->(dbSeek(xFilial("SC6")+SD2->D2_PEDIDO+SD2->D2_ITEMPV))
+									V1[5]  := ( V1[5] + SD2->D2_QUANT )
+									V1[6]  := ( V1[6] + SD2->D2_CUSTO1 )        
+									cTpMov := "FT"
+									cObs   += " - PEDIDO CLIENTE: "+SC6->C6_PEDCLI
+								ENDIF	
+							ELSE
+								V1[23] := ( V1[23] + SD2->D2_QUANT )
+								V1[24] := ( V1[24] + SD2->D2_CUSTO1 )      
+                     ENDIF
+               	ELSEIF ( SD2->D2_TIPO $ "NC" .AND. ( SD2->D2_CF $ "5911 ,6911 ,7911 " .OR. SD2->D2_TES == "739" ) )
+                  	V1[13] := ( V1[13] + SD2->D2_QUANT )
+	                  V1[14] := ( V1[14] + SD2->D2_CUSTO1 )      
+							cTpMov := "AM"
+               	ELSE
+                  	V1[23] := ( V1[23] + SD2->D2_QUANT )
+	                  V1[24] := ( V1[24] + SD2->D2_CUSTO1 )      
+							cObs   += " - "+SF4->F4_TEXTO
+   	            ENDIF
+						dbSelectArea("TMP")
+						RecLock("TMP",.T.)
+						TMP->TB_TIPO    := cTpMov
+						TMP->TB_GRUPO   := cDesGrp
+						TMP->TB_DATA    := SD2->D2_EMISSAO
+						TMP->TB_CF      := SD2->D2_CF
+						TMP->TB_DOC     := SD2->D2_DOC+"/"+SD2->D2_SERIE
+						TMP->TB_COD     := SD2->D2_COD
+						TMP->TB_DESCRI  := V5[nX,3]
+						TMP->TB_TM      := SD2->D2_TES
+						TMP->TB_QUANT   := SD2->D2_QUANT
+						TMP->TB_TOTAL   := SD2->D2_TOTAL
+						TMP->TB_CUSTO   := SD2->D2_CUSTO1
+						TMP->TB_NREDUZ  := cNReduz
+						TMP->TB_EST     := cUF
+						TMP->TB_OBS1    := cObs
+						MsUnLock()
+               ENDIF
+	            dbSelectArea("SD2")
+            ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+		
+      dbSelectArea("SD3")
+      dbSetOrder(7)
+      dbSeek(xFilial("SD3")+cProduto,.T.)
+      DO WHILE !EOF().AND.D3_FILIAL==xFilial("SD3").AND.D3_COD==cProduto
+         IF ( EMPTY(SD3->D3_ESTORNO) .AND. SD3->D3_LOCAL $ mvLocal )
+            cData := LEFT(DTOS(SD3->D3_EMISSAO),6)
+            IF ( cData == cDatPro )
+					cDoc   := SD3->D3_DOC
+					cObs   := SD3->D3_X_OBS
+					cTpMov := " "
+               IF SD3->D3_DOC == "INVENT   "                          ///AJUSTE DE INVENTARIO
+					
+						SB7->(dbSeek(xFilial("SB7")+DTOS(SD3->D3_EMISSAO)+SD3->D3_COD+SD3->D3_LOCAL))
+						
+						cDoc    := SB7->B7_DOC
+						D3QUANT := IIF(SD3->D3_CF=="DE0" , SD3->D3_QUANT  , ( SD3->D3_QUANT  * (-1) ) )
+						D3CUSTO := IIF(SD3->D3_CF=="DE0" , SD3->D3_CUSTO1 , ( SD3->D3_CUSTO1 * (-1) ) )
+                  V1[07]  += D3QUANT
+                  V1[08]  += D3CUSTO
+						cTpMov  := "AI"
+						
+               ELSEIF SD3->D3_CF $ "RE4|DE4"                          ///TRANSFERENCIA: ENTRE CODIGOS OU ENTRE ALMOXARIFADOS
+                  dbSelectArea("SD3")
+                  nRecSD3  := SD3->(RECNO())
+                  D3NUMSEQ := SD3->D3_NUMSEQ
+						D3CHAVE  := IIF(SD3->D3_CF == "RE4" , "E9" , "E0" )
+                  dbSetOrder(4)
+                  dbSeek(xFilial("SD3")+D3NUMSEQ+D3CHAVE)         ////E0 = RE4   ;  E9 = DE4
+                  xLocal   := SD3->D3_LOCAL
+						xProduto := SD3->D3_COD
+                  dbSetOrder(7)
+                  dbGoTo(nRecSD3)
+						IF ( xProduto <> cProduto .OR. cDatPro < "201503" )
+							IF ( SD3->D3_CF == "RE4" )
+								V1[23] += SD3->D3_QUANT
+								V1[24] += SD3->D3_CUSTO1
+								cTpMov := "OS"
+								cObs   := "TRANSF. DE ESTOQUE PARA O CODIGO: "+RTRIM(xProduto)
+							ELSE
+								V1[11] += SD3->D3_QUANT
+								V1[12] += SD3->D3_CUSTO1
+								cTpMov := "OE"
+								cObs   := "TRANSF. DE ESTOQUE DO CODIGO: "+RTRIM(xProduto)
+							ENDIF
+						ENDIF
+               ELSEIF SD3->D3_TM=="507"                               ///QUEBRA DE PRODUCAO
+                  V1[17] += SD3->D3_QUANT
+                  V1[18] += SD3->D3_CUSTO1
+						cTpMov := "QP"
+               ELSEIF SD3->D3_CF == 'PR0'                             ///PRODUCAO
+						SC2->(dbSeek(xFilial("SC2")+SD3->D3_OP))
+						cObs   := SC2->C2_OBS
+                  V1[3]  += SD3->D3_QUANT
+                  V1[4]  += SD3->D3_CUSTO1
+						cTpMov := "OP"
+               ELSEIF SD3->D3_CF == "DE6" .OR. SD3->D3_TM == "003"    ///OUTRAS ENTRADAS VALORIZADAS
+                  V1[11] += SD3->D3_QUANT
+                  V1[12] += SD3->D3_CUSTO1
+						cTpMov := "OE"
+               ELSEIF SD3->D3_CF == "DE7"                             ///DESMANCHE-ENTRADA
+						IF ( cTipo == "PI" )
+							V1[09] += SD3->D3_QUANT
+							V1[10] += SD3->D3_CUSTO1
+							cTpMov := "DM"
+						ELSE
+							V1[11] += SD3->D3_QUANT
+							V1[12] += SD3->D3_CUSTO1
+							cTpMov := "OE"
+							cObs   := "DESMANCHE DE PRODUTO"
+						ENDIF
+               ELSEIF SD3->D3_CF == "RE0"                             ///REQUISICAO
+                  V1[15] += SD3->D3_QUANT
+                  V1[16] += SD3->D3_CUSTO1
+						cTpMov := "RQ"
+               ELSEIF SD3->D3_CF == "RE6"                             ///OUTRAS SAIDAS VALORIZADAS
+                  V1[23] += SD3->D3_QUANT
+                  V1[24] += SD3->D3_CUSTO1
+						cTpMov := "OS"
+               ELSEIF SD3->D3_CF == "RE7"                             ///DESMANCHE-SAIDA
+                  V1[21] += SD3->D3_QUANT
+                  V1[22] += SD3->D3_CUSTO1
+						cTpMov := "OS"
+						cObs   := "DESMANCHE DE PRODUTO (TRANSFORMAÇÃO)"
+               ELSEIF SD3->D3_CF $ "RE1,RE2,RE5"                      ///CONSUMO EM O.P.
+                  V1[19] += SD3->D3_QUANT
+                  V1[20] += SD3->D3_CUSTO1
+						cTpMov := "CS"
+               ENDIF
+					IF ( !EMPTY(cTpMov) )
+						cNReduz := SD3->D3_USUARIO
+						cOP     := IIF(EMPTY(SD3->D3_OP) , " " , TRANSF(LEFT(SD3->D3_OP,8),"@R XXXXXX-XX") )
+						IF ( !EMPTY(SD3->D3_X_OBS2) )
+							IF ( !EMPTY(SUBS(SD3->D3_X_OBS2,9,9)) )							
+								cOP     := IIF(EMPTY(cOP) , SUBS(SD3->D3_X_OBS2,9,9) , cOP )		
+								cNReduz := IIF(!EMPTY(SUBS(SD3->D3_X_OBS2,26,2)) , SUBS(SD3->D3_X_OBS2,26,15) , cNReduz )
+							ENDIF
+						ELSEIF ( !EMPTY(cOP) )
+							SG2->(dbSeek(xFilial("SG2")+SD3->D3_COD+"zz",.T.))
+							SG2->(dbSkip(-1))
+							SH6->(dbSeek(xFilial("SH6")+SD3->D3_OP+SD3->D3_COD+SG2->G2_OPERAC,.T.))
+							cNReduz := SH6->H6_OPERADO
+						ENDIF
+						dbSelectArea("TMP")
+						RecLock("TMP",.T.)
+						TMP->TB_TIPO    := cTpMov
+						TMP->TB_GRUPO   := cDesGrp
+						TMP->TB_DATA    := SD3->D3_EMISSAO
+						TMP->TB_CF      := SD3->D3_CF
+						TMP->TB_DOC     := cDoc
+						TMP->TB_COD     := SD3->D3_COD
+						TMP->TB_OP      := cOP
+						TMP->TB_TM      := SD3->D3_TM 
+						TMP->TB_QUANT   := SD3->D3_QUANT
+						TMP->TB_CUSTO   := SD3->D3_CUSTO1
+						TMP->TB_DESCRI  := V5[nX,3]
+						TMP->TB_NREDUZ  := cNReduz
+						TMP->TB_EST     := IIF(M->cNumEmp=="0301", "AM" , "SP" )
+						TMP->TB_OBS1    := cObs
+						TMP->TB_OBS2    := SD3->D3_X_OBS2                           ///(DEF)OP:053183-02 - SOL: MARIA DE JESUS        ///(OUT)OP:          - SOL: SERGIO/FRANCISC
+						MsUnLock() 
+					ENDIF
+					dbSelectArea("SD3")
+            ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+		
+      FOR nv:=1 TO 27
+	       V2[nv] := ( V2[nv] + V1[nv] )
+      NEXT
+      IF ( V1[1]<>0.OR.V1[3]<>0.OR.V1[5]<>0.OR.V1[7]<>0.OR.V1[9]<>0.OR.V1[11]<>0.OR.V1[13]<>0.OR.V1[15]<>0.OR.V1[17]<>0.OR.V1[19]<>0.OR.V1[21]<>0.OR.V1[23]<>0.OR.V1[25]<>0 )
+			IF ( mGrupo <> cGrupo )
+				mGrupo  := cGrupo
+				mLinDet := "|GP|"+cDesGrp                                     //Familia do produto
+				mLinDet += "|                                  |  |         |          |                |         |               |         |               |         |               |         |               |         |               |         |               |         |               |         |               |         |               |         |               |         |               |          |                |   |        |                                                            |"                 
+				mLinDet += Chr(13)+Chr(10)
+				FWrite(fArq,mLinDet)			
+			ENDIF
+         cxQtd1 := ( V1[1] + V1[3] - V1[5] + V1[7] + V1[9] + V1[11] - V1[13] - V1[15] - V1[17] - V1[19] - V1[21] - V1[23] )
+         cxQtd1 := STRZERO(ABS(cxQtd1)*100,16)
+         cxQtd2 := STRZERO(ABS(V1[25])*100,16)
+			*
+         cxVlr1  := ( V1[2] + V1[4] - V1[6] + V1[8] + V1[10] + V1[12] - V1[14] - V1[16] - V1[18] - V1[20] - V1[22] - V1[24] )
+         cxVlr1  := STRZERO(ABS(cxVlr1)*10000,16)
+         cxVlr2  := STRZERO(ABS(V1[26])*10000,16)			
+         cStatus := IIF(cxQtd1 <> cxQtd2 .OR. cxVlr1 <> cxVlr2 , " # " , "   " )
+			nCount++
+         ///
+         ///Extrai o Tempo do Produto
+         ///
+         nTempo := f_TempoProd()
+			////
+			////Extrai o custo de producao do ultimo mes de producao anterior (periodo de 6 meses) para verificar a variacao em relacao a producao do mes atual.
+			////
+			nVariac := 0
+			IF ( V1[3] > 0 )
+				cQry  := "SELECT TOP 1 LEFT(D3_EMISSAO,6) D3_MES,SUM(D3_QUANT) D3_QUANT,SUM(D3_CUSTO1) D3_CUSTO1,ROUND((SUM(D3_CUSTO1)/SUM(D3_QUANT)) , 4) D3_CM1"
+				cQry  += " FROM "+RetSqlName("SD3")
+				cQry  += " WHERE D_E_L_E_T_ = ' '"
+				cQry  += " AND D3_FILIAL = '"+xFilial("SD3")+"'"
+				cQry  += " AND D3_COD = '"+cProduto+"'""
+				cQry  += " AND D3_CF  = 'PR0'"
+				cQry  += " AND D3_LOCAL = '"+mvLocal+"'"
+				cQry  += " AND D3_EMISSAO BETWEEN '"+DTOS(dPerIni)+"' AND '"+DTOS(dPerFin)+"'"
+				cQry  += " GROUP BY LEFT(D3_EMISSAO,6)"
+				cQry  += " ORDER BY D3_MES DESC "
+
+				cQry := ChangeQuery(cQry)
+
+				dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+			
+				dbGoTop()
+				IF ( TRB->D3_CM1 > 0 )
+					n_Variac := ROUND(V1[4] / V1[3] , 4)                   ///Custo unitario de producao no mes atual
+					IF ( n_Variac > TRB->D3_CM1 )                          ///Aumento de custo
+						nVariac := ROUND( n_Variac / TRB->D3_CM1 , 5 ) 
+						nVariac := ( ( nVariac - 1 ) * 100 )
+					ELSEIF ( n_Variac < TRB->D3_CM1 )                      ///Queda de custo
+					   nVariac := ROUND( TRB->D3_CM1 / n_Variac , 5 )
+						nVariac := ( ( ( nVariac - 1 ) * 100 ) * (-1) )
+					ENDIF	
+				ENDIF
+			
+				TRB->(dbCloseArea())
+			
+			ENDIF
+			///
+			///Grava linha Detalhe - Resumo geral
+			///
+			mLinDet := "|DT|"+cDesGrp                                                      //Familia do produto
+			mLinDet += "|"+cProduto+"    "                                                 //Codigo do Produto
+			mLinDet += "|"+cTipo                                                           //Tipo do Produto
+			mLinDet += "|"+STRTRAN(TRANSFORM(nTempo,"@E 99.999999"),",",".")               //Tempo de Fabricacao
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[01],"@E 9999999.99"),",",".")              //Saldo Inicial - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[02],"@E 99999999999.9999"),",",".")        //Saldo Inicial - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[03],"@E 999999.99"),",",".")               //Producao - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[04],"@E 9999999999.9999"),",",".")         //Producao - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[05],"@E 999999.99"),",",".")               //Faturamento - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[06],"@E 9999999999.9999"),",",".")         //Faturamento - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[07],"@E 999999.99"),",",".")               //Aj.Inventario - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[08],"@E 9999999999.9999"),",",".")         //Aj.Inventario - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[09],"@E 999999.99"),",",".")               //Entrada: Desmanche - Qty(PI) ou Dev.Cliente(PA)
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[10],"@E 9999999999.9999"),",",".")         //Entrada: Desmanche - Custo(PI) ou Dev.Cliente(PA)
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[11],"@E 999999.99"),",",".")               //Outras Entradas - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[12],"@E 9999999999.9999"),",",".")         //Outras Entradas - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[13],"@E 999999.99"),",",".")               //Amostra - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[14],"@E 9999999999.9999"),",",".")         //Amostra - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[15],"@E 999999.99"),",",".")               //Requisicao - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[16],"@E 9999999999.9999"),",",".")         //Requisicao - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[17],"@E 999999.99"),",",".")               //Quebra Producao - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[18],"@E 9999999999.9999"),",",".")         //Quebra Producao - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[19],"@E 999999.99"),",",".")               //Consumo em OP - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[20],"@E 9999999999.9999"),",",".")         //Consumo em OP - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[21],"@E 999999.99"),",",".")               //Saida: Desmanche - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[22],"@E 9999999999.9999"),",",".")         //Saida: Desmanche - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[23],"@E 999999.99"),",",".")               //Outras Saidas - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[24],"@E 9999999999.9999"),",",".")         //Outras Saidas - Custo
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[25],"@E 9999999.99"),",",".")              //Saldo Final - Qty
+			mLinDet += "|"+STRTRAN(TRANSFORM(V1[26],"@E 99999999999.9999"),",",".")        //Saldo Final - Custo
+			mLinDet += "|"+cStatus                                        						 //Status: Diferenca de valores
+			mLinDet += "|"+STRTRAN(TRANSFORM(nVariac,"@E 9999.999"),",",".")       			 //Variacao de custo de produto relativo ao mes anterior
+			mLinDet += "|"+cDescri                                        						 //Descricao do Produto
+			mLinDet += "|"+Chr(13)+Chr(10)
+			FWrite(fArq,mLinDet)
+		ENDIF
+		nx++
+	ENDDO
+   FOR nv:=1 TO 27
+	    V3[nv] := ( V3[nv] + V2[nv] )
+   NEXT
+	IF ( nCount > 1 )
+		mLinDet := "|ST|                              |**S U B - T O T A L               |  |         "
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[01],"@E 9999999.99"),",",".")              //Saldo Inicial - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[02],"@E 99999999999.9999"),",",".")        //Saldo Inicial - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[03],"@E 999999.99"),",",".")               //Producao - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[04],"@E 9999999999.9999"),",",".")         //Producao - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[05],"@E 999999.99"),",",".")               //Faturamento - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[06],"@E 9999999999.9999"),",",".")         //Faturamento - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[07],"@E 999999.99"),",",".")               //Aj.Inventario - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[08],"@E 9999999999.9999"),",",".")         //Aj.Inventario - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[09],"@E 999999.99"),",",".")               //Entrada: Desmanche - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[10],"@E 9999999999.9999"),",",".")         //Entrada: Desmanche - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[11],"@E 999999.99"),",",".")               //Outras Entradas - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[12],"@E 9999999999.9999"),",",".")         //Outras Entradas - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[13],"@E 999999.99"),",",".")               //Amostra - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[14],"@E 9999999999.9999"),",",".")         //Amostra - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[15],"@E 999999.99"),",",".")               //Requisicao - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[16],"@E 9999999999.9999"),",",".")         //Requisicao - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[17],"@E 999999.99"),",",".")               //Quebra Producao - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[18],"@E 9999999999.9999"),",",".")         //Quebra Producao - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[19],"@E 999999.99"),",",".")               //Consumo em OP - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[20],"@E 9999999999.9999"),",",".")         //Consumo em OP - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[21],"@E 999999.99"),",",".")               //Saida: Desmanche - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[22],"@E 9999999999.9999"),",",".")         //Saida: Desmanche - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[23],"@E 999999.99"),",",".")               //Outras Saidas - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[24],"@E 9999999999.9999"),",",".")         //Outras Saidas - Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[25],"@E 9999999.99"),",",".")              //Saldo Final - Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[26],"@E 99999999999.9999"),",",".")        //Saldo Final - Custo
+		mLinDet += "|   |        "                                    						 
+		mLinDet += "|"+SPACE(60)                                              			 
+		mLinDet += "|"+Chr(13)+Chr(10)
+		FWrite(fArq,mLinDet)
+	ENDIF	
+ENDDO
+mLinDet := "|TT|                              |**T O T A L   D O   M E S         |  |         "
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[01],"@E 9999999.99"),",",".")              //Saldo Inicial - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[02],"@E 99999999999.9999"),",",".")        //Saldo Inicial - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[03],"@E 999999.99"),",",".")               //Producao - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[04],"@E 9999999999.9999"),",",".")         //Producao - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[05],"@E 999999.99"),",",".")               //Faturamento - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[06],"@E 9999999999.9999"),",",".")         //Faturamento - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[07],"@E 999999.99"),",",".")               //Aj.Inventario - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[08],"@E 9999999999.9999"),",",".")         //Aj.Inventario - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[09],"@E 999999.99"),",",".")               //Entrada: Desmanche - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[10],"@E 9999999999.9999"),",",".")         //Entrada: Desmanche - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[11],"@E 999999.99"),",",".")               //Outras Entradas - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[12],"@E 9999999999.9999"),",",".")         //Outras Entradas - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[13],"@E 999999.99"),",",".")               //Amostra - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[14],"@E 9999999999.9999"),",",".")         //Amostra - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[15],"@E 999999.99"),",",".")               //Requisicao - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[16],"@E 9999999999.9999"),",",".")         //Requisicao - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[17],"@E 999999.99"),",",".")               //Quebra Producao - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[18],"@E 9999999999.9999"),",",".")         //Quebra Producao - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[19],"@E 999999.99"),",",".")               //Consumo em OP - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[20],"@E 9999999999.9999"),",",".")         //Consumo em OP - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[21],"@E 999999.99"),",",".")               //Saida: Desmanche - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[22],"@E 9999999999.9999"),",",".")         //Saida: Desmanche - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[23],"@E 999999.99"),",",".")               //Outras Saidas - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[24],"@E 9999999999.9999"),",",".")         //Outras Saidas - Custo
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[25],"@E 9999999.99"),",",".")              //Saldo Final - Qty
+mLinDet += "|"+STRTRAN(TRANSFORM(V3[26],"@E 99999999999.9999"),",",".")        //Saldo Final - Custo
+mLinDet += "|   |        "                                    						 
+mLinDet += "|"+SPACE(60)                                              			 
+mLinDet += "|"+Chr(13)+Chr(10)
+FWrite(fArq,mLinDet)
+*
+mLinDet := "|FIM|"
+mLinDet += Chr(13)+Chr(10)
+FWrite(fArq,mLinDet)
+fClose(fArq)
+*
+Inkey(2)
+
+Return
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function f_GeraDet()
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Local fArq,mLinDet
+Local cObserv
+Local nW,nX    
+Local cTipo   := IIF(mv_par01==2,"PI","PA")
+Local aTpMov  := { {"AI","AJUSTE DE INVENTARIO"}        , ;
+						 {"AM","AMOSTRA"}                     , ;
+						 {"CF","CANCELAMENTO DE FATURAMENTO"} , ;
+						 {"CS","CONSUMO EM OP"}               , ;
+						 {"DM","DESMANCHE"}                   , ;
+						 {"DV","DEVOLUCAO"}                   , ;
+						 {"FT","FATURAMENTO"}                 , ;
+						 {"OE","OUTRAS ENTRADAS"}             , ;
+						 {"OP","PRODUÇÃO"}                    , ;
+						 {"OS","OUTRAS SAIDAS"}               , ;
+						 {"QP","QUEBRA DE PRODUÇÃO"}          , ;
+						 {"RQ","REQUISIÇÃO"} }
+
+FOR nW:=1 TO LEN(aTpMov)
+	 mArq := cArqProc + "_" + aTpMov[nW,1] + ".TXT"
+	 IF ( FILE(mArq))
+		 FErase(mArq)
+	 ENDIF
+NEXT
+
+IF ( mv_par04 == 1 )
+	SET CENTURY ON
+	dbSelectArea("TMP")
+	dbGoTop()						 
+	DO WHILE !EOF()
+		cTpMov  := TMP->TB_TIPO	
+		nW      := ASCAN(aTpMov , { |x| x[1] == cTpMov } )
+		mArq    := cArqProc + "_" + cTpMov + ".TXT"
+		fArq    := fCreate(mArq)     
+		mLinDet := "|CB|"+cTipo+"|DETALHE DE MOVIMENTAÇÃO DE PRODUTO-"+IIF(mv_par01==2,"INTERMEDIARIO","ACABADO")+" (SEM MOD+GGF) - "+RTRIM(cDatRef)+" ("+aTpMov[nW,2]+")"
+		mLinDet += " - COELMATIC/"+IIF(SM0->M0_CODFIL=="01","MANAUS",IIF(SM0->M0_CODFIL=="02","SAO PAULO"," " ) )
+		mLinDet += SPACE(325-LEN(RTRIM(mLinDet)))
+		mLinDet += "|"+Chr(13)+Chr(10)
+		FWrite(fArq,mLinDet)
+		*
+		mLinDet := "|CB|GRUPO                         |CODIGO                            |TP|EMISSAO   |C.F.  |DOCUMENTO    |O.P.     |QUANT.   |CUSTO          |TOTAL         |UF|RAZAO SOCIAL/SOLICITANTE|OBSERVACAO                                                                      |DESCRICAO DO PRODUTO                                        |"
+		mLinDet += Chr(13)+Chr(10)
+		mLinDet += "|CB|==============================|==================================|==|==========|======|=============|=========|=========|===============|==============|==|========================|================================================================================|============================================================|"
+		mLinDet += Chr(13)+Chr(10)                                                    ///    99/99/9999 5.101  999999999/999 999999-99 99999,999 99.999.999,9999 999,999,999.99 99 X------------------X    |                                                                                |
+		FWrite(fArq,mLinDet)
+		*
+		V2 := {0,0,0}
+		DO WHILE !EOF().AND.TMP->TB_TIPO==cTpMov
+			cDesGrp := TMP->TB_GRUPO
+			nCount  := 0
+			V1      := {0,0,0}
+			mLinDet := "|GP|"+cDesGrp                                     //Familia do produto
+			mLinDet += "|                                  |  |          |      |             |         |         |               |              |  |                        |                                                                                |                                                            |"
+			mLinDet += Chr(13)+Chr(10)
+			FWrite(fArq,mLinDet)			
+			
+			DO WHILE !EOF().AND.TMP->TB_TIPO==cTpMov.AND.TMP->TB_GRUPO==cDesGrp
+				nCount++
+				cObserv := TMP->TB_OBS1
+				IF ( !EMPTY(TMP->TB_OBS2) )
+					nW      := ASCAN(aMovimen , { |x| x[1] == LEFT(TMP->TB_OBS2,5) } ) 
+					IF NW = 0
+					MSGINFO(TMP->TB_COD)
+					ENDIF
+					cObserv := aMovimen[nW,3] + " " + cObserv
+				ENDIF
+				///
+				///Grava linha Detalhe - Resumo geral
+				///
+				mLinDet := "|DT|"+TMP->TB_GRUPO                                                //Familia do produto
+				mLinDet += "|"+TMP->TB_COD+"    "                                              //Codigo do Produto
+				mLinDet += "|"+cTipo                                                           //Tipo do Produto
+				mLinDet += "|"+DTOC(TMP->TB_DATA)                                              //Data de Entrada/Emissao
+				mLinDet += "|"+TMP->TB_CF                                                      //C.F.
+				mLinDet += "|"+TMP->TB_DOC                                                     //Documento
+				mLinDet += "|"+TMP->TB_OP                                                      //O.P
+				mLinDet += "|"+STRTRAN(TRANSFORM(TMP->TB_QUANT,"@E 999999999"),",",".")        //Qty
+				mLinDet += "|"+STRTRAN(TRANSFORM(TMP->TB_CUSTO,"@E 9999999999.9999"),",",".")  //Custo
+				mLinDet += "|"+STRTRAN(TRANSFORM(TMP->TB_TOTAL,"@E 99999999999.99"),",",".")   //Total (faturamento)
+				mLinDet += "|"+TMP->TB_EST                                                     //Estado
+				mLinDet += "|"+TMP->TB_NREDUZ+SPACE(4)                                         //Razao social / solicitante / usuario
+				mLinDet += "|"+LEFT(cObserv,80)                                                //Observacao
+				mLinDet += "|"+TMP->TB_DESCRI                                 						 //Descricao do Produto
+				mLinDet += "|"+Chr(13)+Chr(10)
+				FWrite(fArq,mLinDet)
+
+				V1[1] += TMP->TB_QUANT
+				V1[2] += TMP->TB_CUSTO
+				V1[3] += TMP->TB_TOTAL
+				
+				dbSkip()
+				
+			ENDDO	
+			FOR nW:=1 TO 3
+				 V2[nW] += V1[nW]
+			NEXT
+			IF ( nCount > 1 )
+				mLinDet := "|ST|                              |**S U B - T O T A L               |  |          |      |             |         "
+				mLinDet += "|"+STRTRAN(TRANSFORM(V1[1],"@E 999999999"),",",".")        //Qty
+				mLinDet += "|"+STRTRAN(TRANSFORM(V1[2],"@E 9999999999.9999"),",",".")  //Custo
+				mLinDet += "|"+STRTRAN(TRANSFORM(V1[3],"@E 99999999999.99"),",",".")   //Total (faturamento)
+				mLinDet += "|"+SPACE(2)
+				mLinDet += "|"+SPACE(24)
+				mLinDet += "|"+SPACE(80)
+				mLinDet += "|"+SPACE(60)
+				mLinDet += "|"+Chr(13)+Chr(10)
+				FWrite(fArq,mLinDet)
+			ENDIF
+			*
+			Inkey(2)
+		ENDDO	
+		mLinDet := "|TT|                              |**T O T A L   D O   M E S         |  |          |      |             |         "
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[1],"@E 999999999"),",",".")        //Qty
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[2],"@E 9999999999.9999"),",",".")  //Custo
+		mLinDet += "|"+STRTRAN(TRANSFORM(V2[3],"@E 99999999999.99"),",",".")   //Total (faturamento)
+		mLinDet += "|"+SPACE(2)
+		mLinDet += "|"+SPACE(24)
+		mLinDet += "|"+SPACE(80)
+		mLinDet += "|"+SPACE(60)
+		mLinDet += "|"+Chr(13)+Chr(10)
+		FWrite(fArq,mLinDet)
+		*
+		mLinDet := "|FIM|"
+		mLinDet += Chr(13)+Chr(10)
+		FWrite(fArq,mLinDet)
+		fClose(fArq)
+	ENDDO	
+
+	SET CENTURY OFF
+ENDIF
+
+Return
+
+/////////////////////////////////////////////////////////
+Static Function f_TempoProd()
+/////////////////////////////////////////////////////////
+Local nxRecNo,cxComp,kx
+Local VS     := {}
+Local cMod   := SPACE(15)
+Local nMinut := 0
+
+dbSelectArea("SG1")
+dbSetOrder(1)
+dbSeek(xFilial("SG1")+cProduto)
+DO WHILE !EOF().AND.G1_FILIAL==xFilial("SG1").AND.G1_COD==cProduto.AND.EMPTY(cMod)
+   IF ( G1_INI <= ddatabase .AND. G1_FIM >= ddatabase )
+      nxRecNo := RECNO()
+      cxComp  := G1_COMP
+      dbSeek(xFilial("SG1")+cxComp,.T.)
+      IF ( G1_COD == cxComp )
+         AADD(VS,cxComp)
+      ENDIF
+      dbGoTo(nxRecNo)
+      IF ( LEFT(G1_COMP,3) == "MOD" )
+         cMod   := G1_COMP
+         nMinut := G1_QUANT   ///IIF(G1_FIM >= ddatabase,G1_QUANT,0)
+      ENDIF
+   ENDIF
+   dbSkip()
+ENDDO
+kx := 1
+DO WHILE kx <= LEN(VS)
+   cComponente := VS[kx]
+   dbSeek(xFilial("SG1")+cComponente)
+   DO WHILE !EOF().AND.G1_FILIAL==xFilial("SG1").AND.G1_COD==cComponente
+      IF ( G1_INI <= ddatabase .AND. G1_FIM >= ddatabase )
+         nxRecNo := RECNO()
+         cxComp  := G1_COMP
+         dbSeek(xFilial("SG1")+cxComp)
+         IF ( G1_COD == cxComp )
+            AADD(VS,cxComp)
+         ENDIF
+         dbGoTo(nxRecNo)
+         IF ( LEFT(G1_COMP,3) == "MOD" )   //( G1_COMP==cMod .AND. !LEFT(G1_COD,6) $ "426691|426782" )
+            nMinut := ( nMinut + G1_QUANT )
+         ENDIF
+      ENDIF
+      dbSkip()
+   ENDDO
+   kx := kx +1
+ENDDO
+nMinut := ROUND(nMinut*60,4)
+Return(nMinut)
+
+/////////////////////////////////////////////////////////////////////////////////////
+Static Function ValidPerg()
+/////////////////////////////////////////////////////////////////////////////////////
+Local i,j
+  
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Tipo do Produto             ?",   ""   ,  ""    , "mv_ch1" , "N" ,   01   ,   0   ,   3   , "C" , "          "  , "mv_par01", "Prod.Acabado" , "     " , "     " , "   " , "   " , "Prod.Intermed" , "     " , "     " , "   " , "   " , "Ambos " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Data-Base                   ?",   ""   ,  ""    , "mv_ch2" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Recalculo efetuado          ?",   ""   ,  ""    , "mv_ch3" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par03", "Sim         " , "     " , "     " , "   " , "   " , "Nao          " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "Processa Detalhes           ?",   ""   ,  ""    , "mv_ch4" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par04", "Sim         " , "     " , "     " , "   " , "   " , "Nao          " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+	
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		
+Return

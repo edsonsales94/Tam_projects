@@ -1,0 +1,1106 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR012A³ Autor ³ Carlos Nina           ³ Data ³ 04/08/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ BALANCO DE PRODUTO                                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico  - PCPM                                           ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+#include "rwmake.ch"
+#include "protheus.ch"
+#include "topconn.ch"
+
+User Function CESTR012A()
+
+Private oReport
+Private lPrint    := .F.
+Private cPerg     := "CESTR012  "
+///Private cSpaces   := IIF(M->cVersao=="11" , Space(30) , Space(15) )
+Private lPersonal := .F.
+Private Tabmes    := 'JANFEVMARABRMAIJUNJULAGOSETOUTNOVDEZ'
+Private lPljto    := SX3->(dbSeek("C7_CDTPLJT"))
+Private lC1Via    := SX3->(dbSeek("C1_CVIA"))
+Private lC7Via    := SX3->(dbSeek("C7_CVIA"))
+Private mvCq      := GETMV("MV_CQ")
+Private mvLocProc := GETMV("MV_LOCPROC")
+Private mvTpOp
+
+ValidPerg()
+
+SET(1,"OFF")
+
+//If FindFunction("TRepInUse") .And. TRepInUse()
+//EndIf
+
+lPersonal := .T.
+oReport   := ReportDef()
+If !Empty(oReport:uParam)
+   Pergunte(oReport:uParam,.F.)
+EndIf
+oReport:PrintDialog()
+
+cFile := oReport:cFile
+IF ( !EMPTY(cFile).AND.RIGHT(cFile,3)="xml" )
+  	cFile  := RTRIM(cFile)
+	cxFile := STRTRAN(cFile,"xml","xls")
+  	IF ( File(cxFile) )
+     	fErase(cxFile)
+      inkey(5)
+	ENDIF
+	fRename( cFile , cxFile)
+ELSE
+  	cxFile := cFile
+ENDIF
+
+Return
+
+Static Function ReportDef()
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Criacao do componente de impressao                                      ³
+		//³                                                                        ³
+		//³TReport():New                                                           ³
+		//³ExpC1 : Nome do relatorio                                               ³
+		//³ExpC2 : Titulo                                                          ³
+		//³ExpC3 : Pergunte                                                        ³
+		//³ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao  ³
+		//³ExpC5 : Descricao                                                       ³
+		//³                                                                        ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+      Local   oReport
+      Local   oParam
+	   Local   oSection
+      Local   cPict1
+      Local   cPict2
+	   //Local cPicQuant := PesqPictQt("G1_QUANT",13)
+	   //Local cPicUnit	 := PesqPict("SB1","B1_CUSTD",18)
+	   //Local cPicTot	 := PesqPict("SB1","B1_CUSTD",19)
+	   //TRCell():New(oSection,"CEL"		,"",/*Titulo*/,/*Picture*/,/*Tamanho*/,/*lPixel*/,/*{|| Code block }*/)
+
+      cCabec  := "BALANCO DE MATERIAL - MRP"
+	   oReport := TReport():New("CESTR012",cCabec,cPerg, {|oReport| ReportPrint(oReport)},"Relatorio do Balanço de Material, analisando o estoque, empenho e compras de Material mensal.")
+		oReport:SetTotalInLine(.F.)
+		oReport:SetLandScape()
+      *
+      cPict1 := "@E 99999,999.99"
+		cPict2 := "@E 99999999.999"
+      *
+	   oParam := TRSection():New(oReport,"Parametros")
+	   TRCell():New(oParam,"PARAM01"    ,"","PARAM1",,35)
+	   TRCell():New(oParam,"PARAM02"    ,"","PARAM2",,40)
+	   TRCell():New(oParam,"PARAM03"    ,"","",,12)
+	   TRCell():New(oParam,"PARAM04"    ,"","",,12)
+	   TRCell():New(oParam,"PARAM05"    ,"","PARAM5",,22)
+	   TRCell():New(oParam,"PARAM06"    ,"","PARAM6",,18)
+	   TRCell():New(oParam,"PARAM07"    ,"","",,22)
+	   TRCell():New(oParam,"PARAM08"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM09"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM10"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM11"    ,"","") //SET
+	   TRCell():New(oParam,"PARAM12"    ,"","") //SET
+	   TRCell():New(oParam,"PARAM13"    ,"","") //SET
+	   TRCell():New(oParam,"PARAM14"    ,"","") //OUT
+	   TRCell():New(oParam,"PARAM15"    ,"","") //OUT
+	   TRCell():New(oParam,"PARAM16"    ,"","") //OUT
+	   TRCell():New(oParam,"PARAM17"    ,"","") //NOV
+	   TRCell():New(oParam,"PARAM18"    ,"","") //NOV
+	   TRCell():New(oParam,"PARAM19"    ,"","") //NOV
+	   TRCell():New(oParam,"PARAM20"    ,"","") //DEZ
+	   TRCell():New(oParam,"PARAM21"    ,"","") //DEZ
+	   TRCell():New(oParam,"PARAM22"    ,"","") //DEZ
+	   TRCell():New(oParam,"PARAM23"    ,"","") //JAN
+	   TRCell():New(oParam,"PARAM24"    ,"","") //JAN
+	   TRCell():New(oParam,"PARAM25"    ,"","") //JAN
+	   TRCell():New(oParam,"PARAM26"    ,"","") //FEV
+	   TRCell():New(oParam,"PARAM27"    ,"","") //FEV
+	   TRCell():New(oParam,"PARAM28"    ,"","") //FEV
+	   TRCell():New(oParam,"PARAM29"    ,"","") //MAR
+	   TRCell():New(oParam,"PARAM30"    ,"","") //MAR
+	   TRCell():New(oParam,"PARAM31"    ,"","") //MAR
+	   TRCell():New(oParam,"PARAM32"    ,"","") //ABR
+	   TRCell():New(oParam,"PARAM33"    ,"","") //ABR
+	   TRCell():New(oParam,"PARAM34"    ,"","") //ABR
+	   TRCell():New(oParam,"PARAM35"    ,"","") //MAI
+	   TRCell():New(oParam,"PARAM36"    ,"","") //MAI
+	   TRCell():New(oParam,"PARAM37"    ,"","") //MAI
+	   TRCell():New(oParam,"PARAM38"    ,"","") //JUN
+	   TRCell():New(oParam,"PARAM39"    ,"","") //JUN
+	   TRCell():New(oParam,"PARAM40"    ,"","") //JUN
+	   TRCell():New(oParam,"PARAM41"    ,"","") //JUL
+	   TRCell():New(oParam,"PARAM42"    ,"","") //JUL
+	   TRCell():New(oParam,"PARAM43"    ,"","") //JUL
+	   TRCell():New(oParam,"PARAM44"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM45"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM46"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM47"    ,"","")
+	   TRCell():New(oParam,"PARAM48"    ,"","")
+	   TRCell():New(oParam,"PARAM49"    ,"","") //JAN
+	   TRCell():New(oParam,"PARAM50"    ,"","") //FEV
+	   TRCell():New(oParam,"PARAM51"    ,"","") //FEV
+	   TRCell():New(oParam,"PARAM52"    ,"","") //FEV
+	   TRCell():New(oParam,"PARAM53"    ,"","") //MAR
+	   TRCell():New(oParam,"PARAM54"    ,"","") //MAR
+	   TRCell():New(oParam,"PARAM55"    ,"","") //MAR
+	   TRCell():New(oParam,"PARAM56"    ,"","") //ABR
+	   TRCell():New(oParam,"PARAM57"    ,"","") //ABR
+	   TRCell():New(oParam,"PARAM58"    ,"","") //ABR
+	   TRCell():New(oParam,"PARAM59"    ,"","") //MAI
+	   TRCell():New(oParam,"PARAM60"    ,"","") //MAI
+	   TRCell():New(oParam,"PARAM61"    ,"","") //MAI
+	   TRCell():New(oParam,"PARAM62"    ,"","") //JUN
+	   TRCell():New(oParam,"PARAM63"    ,"","") //JUN
+	   TRCell():New(oParam,"PARAM64"    ,"","") //JUN
+	   TRCell():New(oParam,"PARAM65"    ,"","") //JUL
+	   TRCell():New(oParam,"PARAM66"    ,"","") //JUL
+	   TRCell():New(oParam,"PARAM67"    ,"","") //JUL
+	   TRCell():New(oParam,"PARAM68"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM69"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM70"    ,"","") //AGO
+	   TRCell():New(oParam,"PARAM71"    ,"","")
+	   TRCell():New(oParam,"PARAM72"    ,"","")
+	   TRCell():New(oParam,"PARAM73"    ,"","")
+	   TRCell():New(oParam,"PARAM74"    ,"","")
+	   TRCell():New(oParam,"PARAM75"    ,"","")
+	   TRCell():New(oParam,"PARAM76"    ,"","")
+	   TRCell():New(oParam,"PARAM77"    ,"","")
+	   TRCell():New(oParam,"PARAM78"    ,"","")
+	   TRCell():New(oParam,"PARAM79"    ,"","")
+      *
+	   oSection := TRSection():New(oParam,"Balanco Material")
+	   TRCell():New(oSection,"PRODUTO"  ,"","C O D I G O")
+	   TRCell():New(oSection,"DESCR"    ,"","DESCRICAO")
+	   TRCell():New(oSection,"U_M"      ,"","UM")
+	   TRCell():New(oSection,"TP"       ,"","TIPO")
+	   TRCell():New(oSection,"ULTPRC"   ,"","ULT.PREÇO")
+	   TRCell():New(oSection,"LE"       ,"","LT.ECONOM.")
+	   TRCell():New(oSection,"LM"       ,"","LT.MINIMO")
+	   TRCell():New(oSection,"EMIN"     ,"","PTO.PEDIDO")
+	   TRCell():New(oSection,"ESTSEG"   ,"","EST.SEG.")
+	   TRCell():New(oSection,"CONS3M"   ,"","CONS.ULT.3MES")
+	   TRCell():New(oSection,"CONS12M"  ,"","CONS.ULT.12MES")
+	   //TRCell():New(oSection,"ESTDISP"  ,"","(+)EST.DISP.)",cPict2)
+
+	   TRCell():New(oSection,"SDOANT1"  ,"","(+)EST.DISP.)")
+	   TRCell():New(oSection,"EMPENHO1" ,"","(-)EMPENHO",,22)
+	   TRCell():New(oSection,"RESERV1"  ,"","(+)SC/OC/OP",,22)
+	   TRCell():New(oSection,"BALANCO1" ,"","(=)SALDO",,22)
+	   TRCell():New(oSection,"NECESS1"  ,"","NECESSIDADE",,22)
+
+	   TRCell():New(oSection,"SDOANT2"  ,"","(+)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO2" ,"","(-)EMPENHO",,22)
+	   TRCell():New(oSection,"RESERV2"  ,"","(+)SC/OC/OP",,22)
+	   TRCell():New(oSection,"BALANCO2" ,"","(=)SALDO",,22)
+	   TRCell():New(oSection,"NECESS2"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT3"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO3" ,"","(-)EMPENHO",,22)
+	   TRCell():New(oSection,"RESERV3"  ,"","(+)SC/OC/OP",,22)
+	   TRCell():New(oSection,"BALANCO3" ,"","(=)SALDO",,22)
+	   TRCell():New(oSection,"NECESS3"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT4"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO4" ,"","(-)EMPENHO",,22)
+	   TRCell():New(oSection,"RESERV4"  ,"","(+)SC/OC/OP",,22)
+	   TRCell():New(oSection,"BALANCO4" ,"","(=)SALDO",,22)
+	   TRCell():New(oSection,"NECESS4"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT5"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO5" ,"","(-)EMPENHO",,22)
+	   TRCell():New(oSection,"RESERV5"  ,"","(+)SC/OC/OP",,22)
+	   TRCell():New(oSection,"BALANCO5" ,"","(=)SALDO",,22)
+	   TRCell():New(oSection,"NECESS5"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT6"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO6" ,"","(-)EMPENHO",,22)
+	   TRCell():New(oSection,"RESERV6"  ,"","(+)SC/OC/OP",,22)
+	   TRCell():New(oSection,"BALANCO6" ,"","(=)SALDO",,22)
+	   TRCell():New(oSection,"NECESS6"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT7"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO7" ,"","(-)EMPENHO",,22)     //FEV
+	   TRCell():New(oSection,"RESERV7"  ,"","(+)SC/OC/OP",,22)    //FEV
+	   TRCell():New(oSection,"BALANCO7" ,"","(=)SALDO",,22)     //FEV
+	   TRCell():New(oSection,"NECESS7"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT8"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO8" ,"","(-)EMPENHO",,22)     //MAR
+	   TRCell():New(oSection,"RESERV8"  ,"","(+)SC/OC/OP",,22)    //MAR
+	   TRCell():New(oSection,"BALANCO8" ,"","(=)SALDO",,22)     //MAR
+	   TRCell():New(oSection,"NECESS8"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANT9"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHO9" ,"","(-)EMPENHO",,22)     //ABR
+	   TRCell():New(oSection,"RESERV9"  ,"","(+)SC/OC/OP",,22)    //ABR
+	   TRCell():New(oSection,"BALANCO9" ,"","(=)SALDO",,22)     //ABR
+	   TRCell():New(oSection,"NECESS9"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANTA"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHOA" ,"","(-)EMPENHO",,22)     //MAI
+	   TRCell():New(oSection,"RESERVA"  ,"","(+)SC/OC/OP",,22)    //MAI
+	   TRCell():New(oSection,"BALANCOA" ,"","(=)SALDO",,22)     //MAI
+	   TRCell():New(oSection,"NECESSA"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANTB"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHOB" ,"","(-)EMPENHO",,22)     //JUN
+	   TRCell():New(oSection,"RESERVB"  ,"","(+)SC/OC/OP",,22)    //JUN
+	   TRCell():New(oSection,"BALANCOB" ,"","(=)SALDO",,22)     //JUN
+	   TRCell():New(oSection,"NECESSB"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANTC"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHOC" ,"","(-)EMPENHO",,22)     //JUL
+	   TRCell():New(oSection,"RESERVC"  ,"","(+)SC/OC/OP",,22)    //JUL
+	   TRCell():New(oSection,"BALANCOC" ,"","(=)SALDO",,22)     //JUL
+	   TRCell():New(oSection,"NECESSC"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"SDOANTD"  ,"","(=)SLD.ANTER",,22)
+	   TRCell():New(oSection,"EMPENHOD" ,"","(-)EMPENHO",,22)     //AGO
+	   TRCell():New(oSection,"RESERVD"  ,"","(+)SC/OC/OP",,22)    //AGO
+	   TRCell():New(oSection,"BALANCOD" ,"","(=)SALDO",,22)     //AGO
+	   TRCell():New(oSection,"NECESSD"  ,"","NECESSIDADE",,22)
+	   TRCell():New(oSection,"ESTCQ"    ,"","SDO. CQ")
+	   TRCell():New(oSection,"CODALT"   ,"","CODIGO ALTERNATIVO")
+	   TRCell():New(oSection,"FORNECE"  ,"","FORNECEDOR")
+
+      oParam:SetColSpace(0)
+		oSection:SetColSpace(0)
+
+Return(oReport)
+
+Static Function ReportPrint(oReport)
+   Local aSHA
+   Local oParam   := oReport:Section(1)
+   Local oSection := oReport:Section(1):Section(1)
+
+   Private nDecs2 := 2
+	Private nDesc3 := 3
+
+	lPrint := Proc_R012()
+
+	IF ( !lPrint )
+      TMP->(dbCloseArea())
+      Return
+	ENDIF
+   ////
+   ////Abertura do arquivo de trabalho do MRP - SHA/SH5
+   ////
+
+   ////1-Localiza o path do arquivo
+   ////
+	dbSelectArea("SX2")
+	dbSeek("SH")
+	cPath:=AllTrim(X2_PATH)
+	////
+	////2-Define o nome do arquivo SHA
+   ////
+	cArqSHA := RetArq("CTREECDX",cPath+"SHA"+Substr(cNumEmp,1,2)+"0",.t.)
+   ////
+   ////3-Abre o arquivo em modo compartilhado
+   ////
+   If MSFile(cArqSHA,,"CTREECDX")
+	   dbUseArea( .T.,"CTREECDX", cArqSHA, "SHA", .T., .F. )
+
+		cNameIdx := FileNoExt(cArqSHA)
+
+	   /// Checa o indice da tabela SHA, e cria se nao existir
+		If !File(cNameIdx+".cdx")
+			INDEX ON HA_PRODUTO+HA_OPC+HA_REVISAO+HA_TIPO 			  TAG &(cNameIdx+"1") TO &(cNameIdx)
+			INDEX ON HA_NIVEL+HA_PRODUTO+HA_OPC+HA_REVISAO+HA_TIPO  TAG &(cNameIdx+"2") TO &(cNameIdx)
+		EndIf
+
+		dbClearIndex()
+		dbSetIndex( cNameIdx+".cdx" )
+      dbSelectArea("SHA")
+      aSHA := Array(FCount())
+	Else
+		Help(" ",1,"A710SHA")
+		lPrint := .F.
+      TMP->(dbCloseArea())
+      Return
+	Endif
+   ///
+   ///=========================================================================================================
+   ///
+	////2-Define o nome do arquivo SH5
+   ////
+	cArqSH5 := RetArq("CTREECDX",cPath+"SH5"+Substr(cNumEmp,1,2)+"0",.t.)
+   ////
+   ////3-Abre o arquivo em modo compartilhado
+   ////
+   If MSFile(cArqSH5,,"CTREECDX")
+	   dbUseArea( .T.,"CTREECDX", cArqSH5, "SH5", .T., .F. )
+
+		cNameIdx := FileNoExt(cArqSH5)
+
+	   /// Checa o indice da tabela SHA, e cria se nao existir
+		If !File(cNameIdx+".cdx")
+			INDEX ON H5_PRODUTO+H5_OPC+H5_REVISAO+H5_PER 			  TAG &(cNameIdx+"1") TO &(cNameIdx)
+			INDEX ON H5_ALIAS+H5_NIVEL+H5_PRODUTO+H5_OPC+H5_REVISAO TAG &(cNameIdx+"2") TO &(cNameIdx)
+			INDEX ON H5_PRODUTO+H5_ALIAS+DTOS(H5_DATAORI) 			  TAG &(cNameIdx+"3") TO &(cNameIdx)
+		EndIf
+
+		dbClearIndex()
+		dbSetIndex( cNameIdx+".cdx" )
+      dbSelectArea("SH5")
+      dbGoTop()
+	Else
+		Help(" ",1,"A710SH5")
+		lPrint := .F.
+      TMP->(dbCloseArea())
+      Return
+	Endif
+	cParam1    := "R012-BAL. MATL. "+IIF(mv_par10==1 , "(MRP)" , "(EST)" )
+	cParam2    := "Periodo: " + DTOC(mv_par05) + " A " + DTOC(mv_par06)+" ("+IIF(mv_par07==1,"OP Firmes",IIF(mv_par07==2,"OP Prevista","OP Firmes+Prevista"))+")"
+   cParam4    := "Considera SC's? "+IIF(mv_par04==1,"Sim","Nao")
+   cParam5    := "Armazens: "+RTRIM(mv_par08)
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Inicio da impressao do fluxo do relatorio                               ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	//oTotais:Cell("TXTTOTAL"):SetTitle("** TOTAL GERAL..............")
+	oReport:NoUserFilter()  // Desabilita a aplicacao do filtro do usuario no filtro/query das secoes
+   oParam:Init()
+	oSection:Init()
+	oParam:SetTotalText("")
+   oParam:SetHeaderPage()
+	oParam:SetTotalInLine(.T.)
+   oSection:SetHeaderPage()
+	oSection:SetTotalInLine(.T.)
+	oReport:SetMeter(SB2->(LastRec()))
+	oParam:Cell("PARAM01"):SetTitle(cParam1)
+	oParam:Cell("PARAM02"):SetTitle(cParam2)
+	oParam:Cell("PARAM05"):SetTitle(cParam4)
+	oParam:Cell("PARAM06"):SetTitle(cParam5)
+   *
+   aMensal  := {}
+   nCtdMes  := 0
+   nCell    := 9
+   nPeriodo := 1
+   lTrue    := .T.
+   cExt     := ""
+   ///
+   ///Monta cabecalho do(s) periodo(s)
+   ///
+   IF ( mv_par10 == 2 )
+   	dxData  := mv_par05
+   	dxData2 := mv_par06
+   ELSE
+	   dxData  := SH5->H5_DATAORI
+		//dxData := ABS( SH5->H5_DATAORI - mv_par05 )
+   	dxData2 := dxData
+      dbSelectArea("SHA")
+	   For xj := 1 to FCount()
+   	    xCampo := Field(xj)
+      	 IF ( LEFT(xCampo,6) == "HA_PER".AND.xCampo<>"HA_PER001" )
+         	 dxData2 := ( LastDay(dxData2) + 1 )
+             nPeriodo++
+	       ENDIF
+   	Next
+   ENDIF
+   *
+   DO WHILE lTrue
+      nMes   := MONTH(dxData)
+      cAno   := LEFT(DTOS(dxData),4)
+      cExt   := Rtrim(Subs(Tabmes,(nMes*3)-2,3))+cAno
+      dxData := LastDay(dxData)
+      dxData := ( dxData + 1 )
+      lTrue  := ( VAL(LEFT(DTOS(dxData),6)) <= VAL(LEFT(DTOS(dxData2),6)) )
+      IF ( LEN(aMensal) < 12 )
+         AADD(aMensal , { cExt , 0 , 0 , 0 } )
+         cParam := "PARAM"+STRZERO(nCell,2)
+  	      oParam:Cell(cParam):SetTitle(TRANSF(cExt,"@R XXX/9999"))
+     	   nCell := ( nCell + 5 )
+        	cExt  := "APOS " + TRANSF(cExt,"@R XXX/9999")
+      ENDIF
+   ENDDO
+   *
+   nCtdMes := LEN(aMensal)
+	IF ( nCtdMes < 12 )
+      ix    := ( nCtdMes + 1 )
+      nCell := ( nCell - 2 )
+      FOR iw:=ix TO 13
+          cParam := "PARAM"+STRZERO(nCell,2)
+  	       oParam:Cell(cParam):Disable()
+          cParam := "PARAM"+STRZERO(nCell+1,2)
+  	       oParam:Cell(cParam):Disable()
+          cParam := "PARAM"+STRZERO(nCell+2,2)
+  	       oParam:Cell(cParam):Disable()
+          cParam := "PARAM"+STRZERO(nCell+3,2)
+  	       oParam:Cell(cParam):Disable()
+          cParam := "PARAM"+STRZERO(nCell+4,2)
+  	       oParam:Cell(cParam):Disable()
+	       cxCol1   := IIF(iw < 10 , STR(iw,1) , IIF(iw==10,"A",IIF(iw==11,"B",IIF(iw==12,"C","D"))))
+   	    cxCol2   := "SDOANT"+cxCol1
+			 oSection:Cell(cxCol2):Disable()
+			 //oSection:Cell(cxCol2):HideHeader()
+   	    cxCol2   := "EMPENHO"+cxCol1
+			 oSection:Cell(cxCol2):Disable()
+			 //oSection:Cell(cxCol2):HideHeader()
+          cxCol2 := "RESERV"+cxCol1
+			 oSection:Cell(cxCol2):Disable()
+			 //oSection:Cell(cxCol2):HideHeader()
+   	    cxCol2 := "BALANCO"+cxCol1
+			 oSection:Cell(cxCol2):Disable()
+			 //oSection:Cell(cxCol2):HideHeader()
+   	    cxCol2 := "NECESS"+cxCol1
+			 oSection:Cell(cxCol2):Disable()
+			 //oSection:Cell(cxCol2):HideHeader()
+          nCell := ( nCell + 5 )
+      NEXT
+   ELSE
+	   AADD(aMensal , { cExt,0,0,0 } )
+  	   oParam:Cell("PARAM69"):SetTitle(TRANSF(cExt,"@R XXX/9999"))
+   ENDIF
+	*
+   mvMrp    := VAL(GETMV("MV_NEXTMRP"))
+   mvMrp    := STRZERO((mvMrp-1),6)
+   nCtd     := IIF(LEN(aMensal) > 12 , 13 , nCtdMes )
+   mvpar08  := ALLTRIM(mv_par08)
+	//mvpar12  := FormatIn (mvpar12 , ";")
+	//cQry += "AND F4_CF IN "+mvpar12+" "
+   dbSelectArea("TMP")
+   dbGoTop()
+	Do While !oReport:Cancel() .And. !Eof()
+      nCtdFin := 0
+      nSdoEst := 0
+      nEmp    := 0
+      nSC     := 0
+	   nOC     := 0
+   	nPI     := 0
+      nSdoCQ  := 0
+	   aDet01  := {}
+		aDet02  := {}
+		aDet03  := {}
+		aDet04  := {}
+		aDet05  := {}
+		aDet06  := {}
+   	aDet07  := {}
+		aDet08  := {}
+		aDet09  := {}
+		aDet10  := {}
+		aDet11  := {}
+		aDet12  := {}
+	   aDet13  := {}
+		aDet14  := {}
+      ////
+      ////Ultimo preco de compra
+      ////
+      nUltPrc := 0.0000
+		nCtdFrn := 0
+		cUltFrn := ""
+		TBNOME  := SPACE(40)
+		
+		cQry := "SELECT D1_FORNECE,D1_LOJA,D1_VUNIT,A2_NOME FROM "+RetSqlName("SD1")+" D1,"+RetSqlName("SF4")+" F4,"+RetSqlName("SA2")+" A2"
+	   cQry += " WHERE D1_FILIAL = '"+xFilial("SD1")+"'"
+	   cQry += " AND   D1_COD = '"+TMP->D4_COD+"'"
+	   cQry += " AND   D1_CF IN ('101','102','201','301','1101','1102','2101','2102','3101')"
+      cQry += " AND   D1_LOCAL = '"+TMP->B1_LOCPAD+"'"
+      cQry += " AND   F4_CODIGO = D1_TES"
+   	cQry += " AND   F4_ESTOQUE = 'S'"
+      cQry += " AND   ( F4_DUPLIC = 'S' OR D1_CF = '3101' )"
+		cQry += " AND   A2_COD = D1_FORNECE AND A2_LOJA = D1_LOJA"
+		cQry += " AND   D1.D_E_L_E_T_  <> '*' AND F4.D_E_L_E_T_ <> '*' AND A2.D_E_L_E_T_ = ' '"
+		cQry += " ORDER BY D1_DTDIGIT DESC,A2_NOME "
+
+		cQry := ChangeQuery(cQry)
+
+		dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB3', .T., .T.)
+
+		TcSetField("TB3","D1_VUNIT","N",15,6)
+
+   	dbSelectArea("TB3")
+      dbGoTop()
+		DO WHILE !EOF().AND.nCtdFrn < 3
+			IF ( TB3->A2_NOME <> TBNOME )				
+				TBNOME  := TB3->A2_NOME
+				nUltPrc := IIF(nUltPrc = 0 , TB3->D1_VUNIT , nUltPrc )
+				nCtdFrn := ( nCtdFrn + 1 )
+				cUltFrn := ( cUltFrn + RTRIM(TBNOME)+";" )
+			ENDIF
+			dbSkip()
+		ENDDO
+	   TB3->(dbCloseArea())
+		iw := RAT("/" , cUltFrn)
+		IF ( iw > 0 )
+		   cUltFrn := STUFF(cUltFrn , iw , 1 , "")
+		ENDIF
+      *
+		oSection:Cell("PRODUTO"):SetValue(TMP->D4_COD)
+		oSection:Cell("DESCR"):SetValue(LEFT(TMP->B1_DESC,30))
+		oSection:Cell("U_M"):SetValue(TMP->B1_UM)
+		oSection:Cell("TP"):SetValue(TMP->B1_TIPO)
+		oSection:Cell("ULTPRC"):SetValue(nUltPrc)
+		oSection:Cell("LE"):SetValue(TMP->B1_LE)
+		//oSection:Cell("ESTCQ"):SetValue(SZF->ZF_VLFER)
+		oSection:Cell("PTOPED"):SetValue(TMP->B1_EMIN)		
+		oSection:Cell("CODALT"):SetValue(TMP->B1_ALTER)
+		oSection:Cell("FORNECE"):SetValue(cUltFrn)
+      *
+	   D4COD   := TMP->D4_COD
+	   D4DESC  := LEFT(TMP->B1_DESC,30)
+   	D4UM    := TMP->B1_UM
+      B1LE    := TMP->B1_LE          ///Qty. Lote Economico
+		B1EMIN  := TMP->B1_EMIN        ///Qty. Ponto de Pedido
+      *
+      DO CASE
+	      CASE ( mv_par10 == 1 )             ///Pelo saldo gerado pelo MRP (saldo no momento do processamento)
+		        dbSelectArea("SHA")
+      		  dbSetOrder(1)
+		        dbSeek(TMP->D4_COD,.T.)
+      		  DO WHILE !EOF().AND.HA_PRODUTO==TMP->D4_COD
+            	  IF ( HA_NUMMRP==mvMrp )
+                    IF ( HA_TIPO=="1" )
+			              nSdoEst := HA_PER001
+                    ELSEIF ( HA_TIPO $ "2,3,4,6" )
+	                    FOR xj:=1 TO nPeriodo
+                           cQuant := "HA_PER" + STRZERO(xj,3)
+                           IF ( HA_TIPO == "2" )
+	   	                     aMensal[xj,3] := ( aMensal[xj,3] + &cQuant )
+                           ELSEIF ( HA_TIPO $ "3,4" )
+   	                        aMensal[xj,2] := ( aMensal[xj,2] + &cQuant )
+		                     ELSEIF ( HA_TIPO == "6" )
+                              aMensal[xj,4] := &cQuant
+                           ENDIF
+      	              NEXT
+                    ENDIF
+   		        ENDIF
+         		  dbSkip()
+		        ENDDO
+              *
+		        dbSelectArea("SH5")
+      		  dbSetOrder(1)
+		        dbSeek(TMP->D4_COD,.T.)
+      		  DO WHILE !EOF().AND.H5_PRODUTO==TMP->D4_COD
+            	  IF ( H5_NUMMRP==mvMrp )
+                    IF ( H5_TIPO == "2" .AND. SH5->H5_ALIAS $ "SC7/SC1/SC2" )
+							  d_Data := IIF(SH5->H5_DATAORI < mv_par05 , mv_par05 , SH5->H5_DATAORI )
+						     nMes   := MONTH(d_Data)
+							  cExt   := Rtrim(Subs(Tabmes,(nMes*3)-2,3))+STR(YEAR(d_Data),4)
+							  iw     := ASCAN(aMensal , { |xy| xy[1] == cExt } )
+                       iw     := IIF(iw==0 , 13 , iw )
+                       nSC    := IIF(SH5->H5_ALIAS=="SC1" , ( nSC + SH5->H5_QUANT ) , nSC )
+                       nOC    := IIF(SH5->H5_ALIAS=="SC7" , ( nOC + SH5->H5_QUANT ) , nOC )
+                       nPI    := IIF(SH5->H5_ALIAS=="SC2" , ( nPI + SH5->H5_QUANT ) , nPI )
+                       cTipo  := IIF(SH5->H5_ALIAS=="SC7" , "OC" ,IIF(SH5->H5_ALIAS=="SC1" , "SC" , "OP" ))
+                       cDoc   := IIF(SH5->H5_ALIAS=="SC2" , RTRIM(SH5->H5_DOC) , RTRIM(SH5->H5_DOC)+"/"+SH5->H5_ITEM )
+                       cVetor := "aDet" +STRZERO(iw,2)
+                       AADD(&cVetor , { ( cTipo+"-"+cDoc ) , DTOC(SH5->H5_DATAORI) , SH5->H5_QUANT } )
+                    ENDIF
+   		        ENDIF
+         		  dbSkip()
+		        ENDDO
+              *
+              dbSelectArea("TMP")
+              dbSkip()
+         CASE ( mv_par10 == 2 )             ///Pelo saldo em Estoque
+			      dbSelectArea("SB2")
+				   dbSetOrder(1)
+		   		dbSeek(xFilial("SB2")+TMP->D4_COD,.T.)
+	   		   DO WHILE !EOF().AND.B2_FILIAL==xFilial("SB2").AND.B2_COD==TMP->D4_COD
+   	      		IF ( B2_LOCAL $ mvPar08.AND.B2_LOCAL<>mvCq )
+		      	      nSdoEst := ( nSdoEst + B2_QATU )
+   			   	ELSEIF ( B2_LOCAL == mvCq )
+			      	   nSdoCQ := ( nSdoCQ + B2_QATU )
+   			      ENDIF
+      	   		dbSkip()
+				   ENDDO
+			   	VC := {}
+			      IF ( mv_par04 == 1 )
+	   				dbSelectArea("SC1")
+			   	   dbSetOrder(2)
+	      			dbSeek(xFilial("SC1")+TMP->D4_COD,.T.)
+			   	   DO WHILE !EOF().AND.C1_FILIAL==xFilial("SC1").AND.C1_PRODUTO==TMP->D4_COD
+							If oReport:Cancel()
+								Exit
+						 	EndIf
+			  	   	   IF ( C1_DATPRF<=mv_par06.AND.EMPTY(C1_COTACAO).AND.C1_QUANT > C1_QUJE )
+	      			      nSdoSc := ( SC1->C1_QUANT - SC1->C1_QUJE )
+			   	      	nSC    := ( nSC + nSdoSc )
+			               IF ( SC1->C1_DATPRF < mv_par05 )
+         			         iw := 1
+			               ELSE
+									d_Data := IIF(SC1->C1_DATPRF < mv_par05 , mv_par05 , SC1->C1_DATPRF )
+								   nMes := MONTH(d_Data)
+							      cExt := Rtrim(Subs(Tabmes,(nMes*3)-2,3))+STR(YEAR(d_Data),4)
+							      iw   := ASCAN(aMensal , { |xy| xy[1] == cExt } )
+                           iw   := IIF(iw==0 , 13 , iw )
+			               ENDIF
+		         			aMensal[iw,3] := ( aMensal[iw,3] + nSdoSc )
+		                  nCtdFin       := MAX(nCtdFin , iw )
+                        cVetor        := "aDet" +STRZERO(iw,2)
+                        AADD(&cVetor , { ( "SC-"+SC1->C1_NUM+"/"+SC1->C1_ITEM ) , DTOC(SC1->C1_DATPRF) , nSdoSc } )
+			      		ENDIF
+         				dbSkip()
+				      ENDDO
+				   ENDIF
+			      *
+			   	dbSelectArea("SC7")
+			      dbSetOrder(7)
+			      dbSeek(xFilial("SC7")+TMP->D4_COD,.T.)
+				   DO WHILE !EOF().AND.C7_FILIAL==xFilial("SC7").AND.C7_PRODUTO==TMP->D4_COD
+         			dxData := IIF(lPljto , SC7->C7_CDTPLJT , SC7->C7_DATPRF )
+			   		IF ( dxData<=mv_par06.AND.EMPTY(C7_ENCER).AND.EMPTY(C7_RESIDUO).AND.C7_QUANT > C7_QUJE )
+         				nSdoPed   := ( SC7->C7_QUANT - SC7->C7_QUJE )
+			            nOC       := ( nOC + ( SC7->C7_QUANT - SC7->C7_QUJE ) )
+	      			   aTransito := {}
+			            /*
+   	   			   dbSelectArea("SZ5")
+			      	   dbSetOrder(3)
+         				dbSeek(xFilial("SZ5")+SC7->C7_NUM,.T.)
+			            DO WHILE !EOF().AND.Z5_PC==SC7->C7_NUM
+         			   	IF ( Z5_PRO==SC7->C7_PRODUTO.AND.Z5_ITEM==SC7->C7_ITEM )
+               				AADD(aTransito,"TR" + STRZERO(Z5_QUANT * 100,16) + DTOC(Z5_NSAIDA) + Z5_VIA )
+			                  nSdoPed := ( nSdoPed - Z5_QUANT )
+	      			      ENDIF
+			   	         dbSkip()
+      				   ENDDO
+			            */
+         				IF ( QTDCOMP(nSdoPed) > 0 )
+			               cxVia  := IIF(lC7Via , SC7->C7_CVIA , "0" )
+         			   	AADD(aTransito , "OC" + STRZERO(nSdoPed * 100,16) + DTOC(SC7->C7_DATPRF) + cxVia )
+				         ENDIF
+   	   			   FOR iw:=1 TO LEN(aTransito)
+						   	 dbSelectArea("SX5")
+   						    dbSetOrder(1)
+			      			 dbSeek(xFilial("SX5")+"ZV"+SUBS(aTransito[iw],27,1))
+         			       C7TIPO := SUBS(aTransito[iw],1,2)
+			                C7QTY  := ( VAL(SUBS(aTransito[iw],3,16)) / 100 )
+         			       C7DT   := CTOD(SUBS(aTransito[iw],19,8))
+				             Y      := IIF(SX5->(EOF()) , 0 , VAL(SubStr(SX5->X5_DESCRI,1,2)))
+   	   			       C7DATA := ( C7DT + Y )
+								 d_Data := IIF(C7DATA < mv_par05 , mv_par05 , C7DATA )
+			                IF ( C7DATA < mv_par05 )
+         			          iw := 1
+			                ELSE
+								    nMes := MONTH(d_Data)
+							       cExt := Rtrim(Subs(Tabmes,(nMes*3)-2,3))+STR(YEAR(d_Data),4)
+							       iw   := ASCAN(aMensal , { |xy| xy[1] == cExt } )
+                            iw   := IIF(iw==0 , 13 , iw )
+			                ENDIF
+		         			 aMensal[iw,3] := ( aMensal[iw,3] + C7QTY )
+		                   nCtdFin       := MAX(nCtdFin , iw )
+                         cVetor        := "aDet" +STRZERO(iw,2)
+								 AADD(&cVetor , { ( C7TIPO+"-"+SC7->C7_NUM+"/"+SC7->C7_ITEM ) , DTOC(C7DATA) , C7QTY } )
+				         NEXT
+   	   			   dbSelectArea("SC7")
+			      	ENDIF
+         			dbSkip()
+				   ENDDO
+			      *
+			   	dbSelectArea("SC2")
+			      dbSetOrder(2)
+			      dbSeek(xFilial("SC2")+TMP->D4_COD,.T.)
+				   DO WHILE !EOF().AND.C2_FILIAL==xFilial("SC2").AND.C2_PRODUTO==TMP->D4_COD
+                  ///dData := IIF(SC2->C2_DATPRI < SC2->C2_DATPRF , SC2->C2_DATPRI , SC2->C2_DATPRF )
+                  dData := IIF(SC2->C2_DATPRF < mv_par05 , mv_par05 , SC2->C2_DATPRF )
+			   		IF ( dData<=mv_par06.AND.EMPTY(SC2->C2_DATRF).AND.SC2->C2_QUANT > SC2->C2_QUJE )
+      					IF ( mv_par07==3.OR.SC2->C2_TPOP==mvTpOP )
+								nSdoPi   := SC2->( C2_QUANT - C2_QUJE )
+   	   			   	nPI      := ( nPI + nSdoPi )
+			               IF ( dData < mv_par05 )
+         			         iw := 1
+			               ELSE
+								   nMes := MONTH(dData)
+							      cExt := Rtrim(Subs(Tabmes,(nMes*3)-2,3))+STR(YEAR(dData),4)
+							      iw   := ASCAN(aMensal , { |xy| xy[1] == cExt } )
+                           iw   := IIF(iw==0 , 13 , iw )
+			               ENDIF
+		         			aMensal[iw,3] := ( aMensal[iw,3] + nSdoPi )
+		                  nCtdFin       := MAX(nCtdFin , iw )
+                        cVetor        := "aDet" +STRZERO(iw,2)
+                        AADD(&cVetor , { ( "OP-"+SC2->C2_NUM+"."+SC2->C2_ITEM+"."+SC2->C2_SEQUEN ) , DTOC(SC2->C2_DATPRI) , nSdoPi } )
+				   	   ENDIF
+         			ENDIF
+				      dbSkip()
+					ENDDO
+				   *
+			   	dbSelectArea("TMP")
+				   DO WHILE !EOF().AND.TMP->D4_COD==D4COD
+						If oReport:Cancel()
+							Exit
+		 				EndIf
+						oReport:IncMeter()
+      				nEmp  := ( nEmp + TMP->D4_QUANT )
+						d_Data := IIF(TMP->D4_DATA < mv_par05 , mv_par05 , TMP->D4_DATA )
+					   nMes  := MONTH(d_Data)
+      				cExt  := Rtrim(Subs(Tabmes,(nMes*3)-2,3))+STR(YEAR(d_Data),4)
+				      iw    := ASCAN(aMensal , { |xy| xy[1] == cExt } )
+                  iw    := IIF(iw==0 , 13 , iw )
+   	   			IF ( iw > 0 )
+			      	   aMensal[iw,2] := ( aMensal[iw,2] + TMP->D4_QUANT )
+         				nCtdFin       := MAX(nCtdFin , iw )
+				      ENDIF
+						dbSkip()
+			   	ENDDO
+				   *
+			   	nScOcOp := ( nSc + nOc + nPI )
+				   IF ( ( nEmp + nScOcOp ) = 0 )
+		   			LOOP
+				   ENDIF
+			   	*
+				   ASORT(VC)
+
+      ENDCASE
+      ///
+		///oSection:Cell("ESTDISP"):SetValue(nSdoEst)
+      ///
+      lFalta   := .F.
+   	nBalanco := nSaldo := nSdoEst
+   	FOR iw:=1 TO nCtd
+          cxCol1  := IIF(iw < 10 , STR(iw,1) , IIF(iw==10,"A",IIF(iw==11,"B",IIF(iw==12,"C","D"))))
+  	       cxCol2  := "SDOANT"+cxCol1
+		    oSection:Cell(cxCol2):SetValue(nSaldo)
+      	 nBalanco := ( nBalanco - aMensal[iw,2] + aMensal[iw,3] )
+			 nBaseNec := Max(B1LE,B1EMIN)
+          nNecessi := IIF(nBalanco < 0 , ABS(nBalanco) , 0 )
+          nSaldo   := ( nBalanco + nNecessi )
+          lFalta   := IIF(nBalanco < 0 , .T. , lFalta )
+			 IF ( nBaseNec > 0 .AND. nBalanco < 0 )
+		       IF ( nBaseNec > ABS(nBalanco) )
+                nSaldo   := ( nBalanco + nBaseNec )   
+                nNecessi := nBaseNec
+		       ELSE
+                nDifer1  := ( nBalanco + nBaseNec )
+                nDifer2  := ( ABS(nBalanco) + nBaseNec )
+                nNecessi := ( nDifer1 + nDifer2 )
+                DO WHILE ( nNecessi < ABS(nBalanco) )
+                   nNecessi := ( nNecessi + nBaseNec )
+                ENDDO
+                nSaldo := ( nBalanco + nNecessi )
+             ENDIF
+          ENDIF
+			 /*
+			 IF ( B1LE > 0 .AND. nBalanco < 0 )
+		       IF ( B1LE > ABS(nBalanco) )
+                nSaldo   := ( nBalanco + B1LE )    //Saldo = Balanco - Lote Economico
+                nNecessi := B1LE
+		       ELSE
+                nDifer1  := ( nBalanco + B1LE )
+                nDifer2  := ( ABS(nBalanco) + B1LE )
+                nNecessi := ( nDifer1 + nDifer2 )
+                DO WHILE ( nNecessi < ABS(nBalanco) )
+                   nNecessi := ( nNecessi + B1LE )
+                ENDDO
+                nSaldo := ( nBalanco + nNecessi )
+             ENDIF
+          ENDIF
+          */
+  	       cxCol2 := "EMPENHO"+cxCol1
+		    oSection:Cell(cxCol2):SetValue(aMensal[iw,2])
+        	 cxCol2 := "RESERV"+cxCol1
+		    oSection:Cell(cxCol2):SetValue(aMensal[iw,3])
+  	       cxCol2 := "BALANCO"+cxCol1
+		    oSection:Cell(cxCol2):SetValue(nBalanco)
+  	       cxCol2 := "NECESS"+cxCol1
+		    oSection:Cell(cxCol2):SetValue(nNecessi)
+        	 aMensal[iw,2] := 0
+          aMensal[iw,3] := 0
+          aMensal[iw,4] := 0
+          nBalanco      := nSaldo
+	   NEXT
+   	*
+      IF ( mv_par09 = 3 ).OR.( mv_par09==1.AND.!lFalta ).OR.( mv_par09==2.AND.lFalta )
+		 	//oSection:Cell("ACMESANT"):SetPicture(Tm ( VV[1],oSection:Cell("ACMESANT"):nSize,nDecs ) )
+
+			oSection:PrintLine()
+
+         IF ( mv_par11 = 1 .AND. ( nPI + nOC + nSC ) > 0 )
+            ////
+            ////Detalhamento das reservas: SC/OC/OP
+            ////
+            nMax := 0
+            FOR ix:=1 TO 13
+                cVetor := "aDet"+STRZERO(ix,2)
+                IF ( LEN(&cVetor) = 0 )
+                   AADD(&cVetor , {"","",0} )
+                ENDIF
+	             nMax := MAX(nMax , Len(&cVetor))
+            NEXT
+         	IF ( nMax > 0 )
+               FOR ix:=1 TO 13
+                   cVetor := "aDet"+STRZERO(ix,2)
+                   iz := ( LEN(&cVetor) + 1 )
+                   FOR iw:=iz TO nMax
+  		                 AADD(&cVetor , {"","",0} )
+                   NEXT
+               NEXT
+               *
+					//oSection:Cell("PRODUTO"):SetValue(" ")
+					oSection:Cell("DESCR"):SetValue(" ")
+					oSection:Cell("U_M"):SetValue(" ")
+					oSection:Cell("TP"):SetValue(" ")
+					oSection:Cell("ULTPRC"):SetValue(" ")
+					oSection:Cell("LE"):SetValue(" ")
+					//oSection:Cell("ESTCQ"):SetValue(" ")
+					oSection:Cell("CODALT"):SetValue(" ")
+               *
+        		   FOR ix:=1 TO nMax           //Nro. de itens das Reservas
+
+	        		    FOR iw:=1 TO nCtd       //Periodo
+	                    cVetor := "aDet"+STRZERO(iw,2)
+				           cxCol1 := IIF(iw < 10 , STR(iw,1) , IIF(iw==10,"A",IIF(iw==11,"B",IIF(iw==12,"C","D"))))
+				  	        cxCol2 := "SDOANT"+cxCol1
+						     oSection:Cell(cxCol2):SetValue(&cVetor[ix,1])
+				  	        cxCol2 := "EMPENHO"+cxCol1
+						     oSection:Cell(cxCol2):SetValue(&cVetor[ix,2])
+				        	  cxCol2   := "RESERV"+cxCol1
+                       cReserva := IIF(&cVetor[ix,3] = 0 , " " , &cVetor[ix,3] )
+						     oSection:Cell(cxCol2):SetValue(cReserva)
+				  	        cxCol2 := "BALANCO"+cxCol1
+						     oSection:Cell(cxCol2):SetValue(" ")
+				        	  cxCol2 := "NECESS"+cxCol1
+						     oSection:Cell(cxCol2):SetValue(" ")
+                   NEXT
+
+						 oSection:PrintLine()
+
+               NEXT ix
+            ENDIF
+         ENDIF
+		ENDIF
+	   dbSelectArea("TMP")
+	Enddo
+	oSection:Finish()
+	TMP->(dbCloseArea())
+   SHA->(dbCloseArea())
+   SH5->(dbCloseArea())
+
+RETURN NIL
+
+***************************
+Static Function Proc_R012()
+***************************
+Local aStru  := {}
+Local mvTpOp := IIF(mv_par07==1,"F","P")
+
+DO CASE
+   CASE mv_par01==1
+	     cEmp     := SM0->M0_CODIGO+"0"
+		  cArq     := "SB1"+cEmp+" "
+		  cQry := "SELECT *"
+		  cQry += " FROM "+RetSqlName("SB1")
+		  cQry += " WHERE B1_FILIAL = '"+xFilial("SB1")+"'"
+		  cQry += " AND B1_TIPO = 'PA'"
+		  cQry += " AND B1_COD >= '"+mv_par02+"'"
+		  cQry += " AND B1_COD <= '"+mv_par03+"'"
+		  cQry += " AND D_E_L_E_T_  <> '*'"
+		  cQry += " ORDER BY B1_COD "
+
+		  cQry := ChangeQuery(cQry)
+
+		  dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+		  aEval(SB1->(dbStruct()),{|x| If(x[2]!="C" , TcSetField("TMP",x[1],x[2],x[3],x[4]),Nil)})
+
+	CASE mv_par01 == 3
+			  
+		  IF ( M->cVersao=="11" )
+			  AADD(aStru,{"D4_COD"    , "C" , 30,0})
+		  ELSE
+			  AADD(aStru,{"D4_COD"    , "C" , 15,0})
+		  ENDIF
+		  AADD(aStru,{"D4_OP"     , "C" , 13,0})
+		  AADD(aStru,{"D4_LOCAL"  , "C" , 02,0})
+		  AADD(aStru,{"D4_QUANT"  , "N" , 13,2})
+		  AADD(aStru,{"D4_DATA"   , "D" , 08,0})
+		  AADD(aStru,{"B1_DESC"   , "C" , 30,0})
+		  AADD(aStru,{"B1_LOCPAD" , "C" , 02,0})
+		  AADD(aStru,{"B1_ALTER"  , "C" , 15,0})
+		  AADD(aStru,{"B1_TIPO"   , "C" , 02,0})
+		  AADD(aStru,{"B1_UM"     , "C" , 02,0})
+		  AADD(aStru,{"B1_LE"     , "N" , 13,2})
+		  AADD(aStru,{"B1_EMIN"   , "N" , 13,2})
+		  AADD(aStru,{"C2_TPOP"   , "C" , 01,0})
+		  AADD(aStru,{"C2_QUANT"  , "N" , 13,2})
+		  
+		  cArqTrab:=CriaTrab(aStru,.T.)
+		  dbUseArea(.T.,,cArqTrab,"TMP",.F.,.F.)
+		  cIndex := CriaTrab(NIL,.F.)
+		  cKey   := 'D4_COD+DTOS(D4_DATA)'
+		  IndRegua("TMP",cIndex,cKey,,," Criando Indice ...   ")
+			  
+		  aPai   := {}
+		  aEstru := {}
+		  dbSelectArea("SG1")
+		  dbSetOrder(1)
+		  dbSeek(xFilial("SG1")+mv_par02,.T.)
+		  DO WHILE !EOF().AND.G1_FILIAL==xFilial("SG1").AND.G1_COD<=mv_par03
+			  nScan := aScan(aPai,SG1->G1_COD)
+			  If nScan == 0
+				  AADD(aPai,SG1->G1_COD)
+				  nReg := SG1->(Recno())
+				  Explode(SG1->G1_COD)
+				  dbSelectArea("SG1")
+				  dbGoTo(nReg)
+			  EndIf	  
+			  dbSkip()
+		  ENDDO
+		  IF ( Len(aEstru) > 0 )
+			  FOR iw:=1 TO LEN(aEstru)
+					cQry := "SELECT D4_OP,D4_COD,D4_LOCAL,D4_QUANT,D4_DATA,B1_DESC,B1_LOCPAD,B1_ALTER,B1_TIPO,B1_UM,B1_LE,B1_EMIN,C2_TPOP,C2_QUANT "
+					cQry += "FROM "+RetSqlName("SB1")+" B1,"+RetSqlName("SD4")+" D4,"+RetSqlName("SC2")+" C2 "
+					cQry += "WHERE D4_FILIAL = '"+xFilial("SD4")+"' "
+					cQry += "AND C2_FILIAL = '"+xFilial("SC2")+"' "
+					cQry += "AND B1_FILIAL = '"+xFilial("SB1")+"' "
+					cQry += "AND D4_COD = '"+aEstru[iw,1]+"' "
+					cQry += "AND D4_QUANT > 0 "
+					cQry += "AND  ( D4_DATA BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' ) "
+					///cQry += "AND C2_PRODUTO = '"+aEstru[iw,4]+"' "
+					cQry += "AND ( C2_NUM+C2_ITEM+C2_SEQUEN ) = LEFT(D4_OP,11) "
+					IF ( mv_par07 <> 3 )
+						cQry += "AND C2_TPOP = '"+mvTpOp+"' "
+					ENDIF
+					cQry += "AND C2_DATRF = ' ' "
+					///cQry += "AND  ( C2_DATPRF BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' ) "
+					cQry += "AND B1_COD = D4_COD "
+					cQry += "AND B1_TIPO IN ('MP','PI') "
+					cQry += "AND D4.D_E_L_E_T_  <> '*' AND B1.D_E_L_E_T_ = ' ' AND C2.D_E_L_E_T_ = ' ' "
+					cQry += "ORDER BY D4_COD,D4_DATA "
+
+					cQry := ChangeQuery(cQry)
+
+					dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TPR', .T., .T.)
+
+					TcSetField("TPR","D4_QUANT","N",15,2)
+					TcSetField("TPR","B1_LE"   ,"N",15,2)
+					TcSetField("TPR","B1_EMIN" ,"N",15,2)
+					TcSetField("TPR","D4_DATA" ,"D",08,0)
+
+					dbSelectArea("TPR")
+					dbGoTop()
+					DO WHILE !EOF()
+						RecLock("TMP",.T.)
+						TMP->D4_OP      := TPR->D4_OP            
+						TMP->D4_COD     := TPR->D4_COD
+						TMP->D4_LOCAL   := TPR->D4_LOCAL
+						TMP->D4_QUANT   := TPR->D4_QUANT
+						TMP->D4_DATA    := TPR->D4_DATA
+						TMP->B1_DESC    := TPR->B1_DESC
+						TMP->B1_LOCPAD  := TPR->B1_LOCPAD
+						TMP->B1_ALTER   := TPR->B1_ALTER
+						TMP->B1_TIPO    := TPR->B1_TIPO
+						TMP->B1_UM      := TPR->B1_UM
+						TMP->B1_LE      := TPR->B1_LE
+						TMP->B1_EMIN    := TPR->B1_EMIN
+						TMP->C2_TPOP    := TPR->C2_TPOP
+						TMP->C2_QUANT   := TPR->C2_QUANT
+						MsUnlock()
+						dbSelectArea("TPR")
+						dbSkip()
+					ENDDO
+					TPR->(dbCloseArea())
+					Inkey(1)
+			  NEXT
+		  ENDIF
+		  
+   CASE mv_par01 == 4
+	
+	OTHERWISE
+
+        IF ( mv_par10 == 2 )
+			  cQry := "SELECT D4_OP,D4_COD,D4_LOCAL,D4_QUANT,D4_DATA,B1_DESC,B1_LOCPAD,B1_ALTER,B1_TIPO,B1_UM,B1_LE,B1_EMIN,C2_TPOP,C2_QUANT "
+			  cQry += "FROM "+RetSqlName("SB1")+" B1,"+RetSqlName("SD4")+" D4,"+RetSqlName("SC2")+" C2 "
+			  cQry += "WHERE D4_FILIAL = '"+xFilial("SD4")+"' "
+   	     cQry += "AND C2_FILIAL = '"+xFilial("SC2")+"' "
+   	     cQry += "AND B1_FILIAL = '"+xFilial("SB1")+"' "
+			  cQry += "AND D4_COD BETWEEN '"+mv_par02+"' AND '"+mv_par03+"' "
+			  cQry += "AND D4_DATA BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' "
+      	  cQry += "AND D4_QUANT > 0 "
+	        cQry += "AND ( C2_NUM+C2_ITEM+C2_SEQUEN ) = LEFT(D4_OP,11) "
+   	     IF ( mv_par07 <> 3 )
+	   	     cQry += "AND C2_TPOP = '"+mvTpOp+"' "
+   	     ENDIF
+			  cQry += "AND C2_DATRF = ' ' "
+           //cQry += "AND  ( C2_DATPRF BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' ) "
+           //cQry += "OR    ( C2_DATPRF BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' ) ) "
+			  cQry += "AND B1_COD = D4_COD "
+           cQry += "AND B1_TIPO IN ('MP','PI') "
+			  cQry += "AND D4.D_E_L_E_T_  <> '*' AND B1.D_E_L_E_T_ = ' ' AND C2.D_E_L_E_T_ = ' ' "
+		  	  cQry += "ORDER BY D4_COD,D4_DATA "
+        ELSE
+			  cQry := "SELECT D4_COD,B1_DESC,B1_LOCPAD,B1_ALTER,B1_TIPO,B1_UM,B1_LE,B1_EMIN,SUM(D4_QUANT) D4_QUANT "
+			  cQry += "FROM "+RetSqlName("SB1")+" B1,"+RetSqlName("SD4")+" D4 "
+			  cQry += "WHERE D4_FILIAL = '"+xFilial("SD4")+"' "
+   	     cQry += "AND B1_FILIAL = '"+xFilial("SB1")+"' "
+			  cQry += "AND D4_COD BETWEEN '"+mv_par02+"' AND '"+mv_par03+"' "
+			  cQry += "AND D4_DATA BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' "
+	        cQry += "AND B1_COD = D4_COD "
+           cQry += "AND B1_TIPO IN ('MP','PI') "
+			  cQry += "AND D4.D_E_L_E_T_  <> '*' AND B1.D_E_L_E_T_ = ' ' "
+			  cQry += "GROUP BY D4_COD,B1_DESC,B1_LOCPAD,B1_ALTER,B1_TIPO,B1_UM,B1_LE,B1_EMIN "
+		  	  cQry += "ORDER BY D4_COD "
+        ENDIF
+		  cQry := ChangeQuery(cQry)
+
+		  dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+	     TcSetField("TMP","D4_QUANT","N",15,2)
+	     TcSetField("TMP","B1_LE"   ,"N",15,2)
+	     TcSetField("TMP","B1_EMIN" ,"N",15,2)
+	     TcSetField("TMP","D4_DATA" ,"D",08,0)
+
+ENDCASE
+
+Return(.T.)
+
+/////////////////////////////////////////////////////
+STATIC Function Explode(cProduto)
+/////////////////////////////////////////////////////
+LOCAL nRegi
+
+dbSelectArea("SG1")
+dbSetOrder(1)
+dbSeek(xFilial("SG1")+cProduto)
+
+While !Eof() .And. G1_FILIAL+G1_COD == xFilial("SG1")+cProduto
+
+	nRegi:=Recno()
+
+	nProcura:=aScan(aEstru,{|nn| nn[1]==G1_COMP})
+	If nProcura  = 0
+		AADD(aEstru,{G1_COMP,G1_QUANT,G1_NIV,G1_COD})
+	EndIf
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Verifica se existe sub-estrutura                ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	nRecno:=Recno()
+	If dbSeek(xFilial("SG1")+G1_COMP,.F.)
+		Explode(G1_COD)
+	Else
+		dbGoto(nRecno)
+		nProcura:=aScan(aEstru,{|nn| nn[1]==G1_COMP})
+		If nProcura  = 0
+			AADD(aEstru,{G1_COMP,G1_QUANT,G1_NIV,G1_COD})
+		EndIf
+	Endif
+
+	dbGoto(nRegi)
+	dbSkip()
+
+Enddo
+
+Return //(aEstru)
+
+
+***************************
+Static Function ValidPerg()
+***************************
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01             | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03        | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Tipo do Produto             ?",   ""   ,  ""    , "mv_ch1" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par01", "Produto-Acabado" , "     " , "     " , "   " , "   " , "Materia-Prima" , "     " , "     " , "   " , "   " , "Estrutura " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch2" , "C" ,   30   ,   0   ,   1   , "G" , "          "  , "mv_par02", "               " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Até o Produto               ?",   ""   ,  ""    , "mv_ch3" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par03", "               " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "Considera SC's              ?",   ""   ,  ""    , "mv_ch4" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par04", "Sim            " , "     " , "     " , "   " , "   " , "Não          " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"05" , "Do Período                  ?",   ""   ,  ""    , "mv_ch5" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par05", "               " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"06" , "Até o Período               ?",   ""   ,  ""    , "mv_ch6" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par06", "               " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"07" , "Tipo O.P.                   ?",   ""   ,  ""    , "mv_ch7" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par07", "Firme          " , "     " , "     " , "   " , "   " , "Prevista     " , "     " , "     " , "   " , "   " , "Ambas     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"08" , "Considera Saldo no Armazem  ?",   ""   ,  ""    , "mv_ch8" , "C" ,   20   ,   0   ,   0   , "G" , "          "  , "mv_par08", "               " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"09" , "Lista                       ?",   ""   ,  ""    , "mv_ch9" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par09", "Positivos      " , "     " , "     " , "   " , "   " , "Negativos    " , "     " , "     " , "   " , "   " , "Ambos     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"10" , "Balanço pelo                ?",   ""   ,  ""    , "mv_cha" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par10", "MRP            " , "     " , "     " , "   " , "   " , "Saldo Atual  " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"11" , "Detalha Reservas            ?",   ""   ,  ""    , "mv_chb" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par11", "Sim            " , "     " , "     " , "   " , "   " , "Nao          " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

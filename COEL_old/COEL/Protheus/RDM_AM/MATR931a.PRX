@@ -1,0 +1,2266 @@
+#INCLUDE "Matr931.ch"
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³Matr931      ³Autor³ Juan Jose Pereira    ³ Data ³ 18.12.96 		³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Imprime Registro de Entradas P1 e Saidas P2                  		³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ ATUALIZACOES SOFRIDAS DESDE A CONSTRUCAO INICIAL.                     		³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ PROGRAMADOR  ³ DATA   ³ BOPS ³  MOTIVO DA ALTERACAO                   		³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Marcos Simidu³26/11/97³XXXXXX³Impressao de itens com Tes do livro ='Z'		³±±
+±±³ Marcos Simidu³23/12/97³13597A³Acertos nas quebras de pagina.          		³±±
+±±³ Marcos Simidu³23/12/97³13855A³Correcao nas totalizacoes mes/periodos. 		³±±
+±±³ Marcos Simidu³24/03/98³14621A³Inclusao parametro Totaliza por dia.    		³±±
+±±³ Rodrigo Sart.³25/03/98³10385A³Alteracao do parametro mv_par04  Lista: 		³±±
+±±³              ³        ³      ³(1)Livros (2)Termos (3)Livros e Termos  		³±±
+±±³ Rodrigo Sart.³27/03/98³14810A³ Tratamento do estado origem no Resumo varia-	³±±
+±±³              ³        ³14810A³vel (lLisEstOri).                 			³±±
+±±³ Marcos Simidu³02/04/98³15022A³Impr. de Termo Encerr. quando o periodo inofor³±±
+±±³              ³        ³15022A³mado nao possuir movimento. 	    			³±±
+±±³ Marcos Simidu³06/05/98³XXXXXX³Acertos na impressao do termo de encerramento	³±±
+±±³              ³        ³      ³no livro de saidas.             				³±±
+±±³ Eduardo      ³02/06/98³xxxxxx³Desenvolvimento do CIAP                 		³±±
+±±³ Marcos Simidu³02/07/98³XXXXXX³Acertos de dbSelectArea(0) - CIAP.      		³±±
+±±³ Marcos Simidu³11/08/98³XXXXXX³Zera array acumulador dos resumos.      		³±±
+±±³ Marcos Simidu³22/10/98³18419A³Acertos no param.consid.UF no demonstrativo 	³±±
+±±³              ³22/10/98³18419A³vo por estado de origem.                 		³±±
+±±³ Marcos Simidu³03/11/98³XXXXXX³Acertos no ano com 4 bytes.             		³±±
+±±³ Marcos Simidu³24/11/98³10986A³Acertos na totalizacao do vlr.contabil. 		³±±
+±±³ Andreia      ³29/01/99³xxxxxx³Alteracao do lay-out devido ao aumento do cam-³±±
+±±³              ³        ³      ³po conta contabil.                			³±±
+±±³ Andreia      ³11/03/99³xxxxxx³Tratamento da especie das notas fiscais cance-³±±
+±±³              ³        ³      ³ladas atraves do parametro MV_ESPECIE			³±±
+±±³ Andreia      ³10/08/99³22553A³Tratamento do parametro MV_PAR21 que define em³±±
+±±³              ³        ³      ³qual coluna sera impresso o imposto retido 	³±±
+±±³ Andreia      ³14/12/99³19277A³No resumo por CFOP,trocar TOTAL por SUB-TOTAL	³±± 
+±±³              ³        ³      ³e TOTAL GERAL por TOTAL(Portaria CAT 08/90).	³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+User FUNCTION Matr931a()
+
+Local cArqCiap := ""
+Private cArqSF3   :=""
+Private cIndxSF3  :=""
+Private nCredAtivo :=0
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Flag de Movimentacao            ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+lHouveMov:=.F.
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Largura do campo de observacoes ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+nLargObs:=If(nTipoMov=1,21,47)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Pictures de campos numericos - Colunas Valores    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+cPictVl:=If(nTipoMov==1,"@E 999,999,999.99","@E 999,999,999,999.99")
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Recebe layout do modelo escolhido ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aL:=NIL
+R931LayOut()
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ So trata arquivo quando for imprimir Livros ou Livros e Termos³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If nImpTerm == 1 .Or. nImpTerm == 3
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Cria Arquivo a ser Impresso com um indice de mesmo nome            ³
+	//³ Ordem (1) = F3_FILIAL+DTOS(F3_ENTRADA)+F3_SERIE+F3_NFISCAL+F3_CFO  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	cArqTemp:=EmiteLivro1(If(nTipoMov==1,"E","S"),dDtIni,dDtFim,lLacuna,lServico,lDesconto,cNrLivro,cFilterUser,@cArqCiap)
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Salva periodos de Apuracao ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	nSvApurICM:=DefPeriodo(F3_ENTRADA,nApurICM)
+	nSvApurIPI:=DefPeriodo(F3_ENTRADA,nApurIPI)
+EndIf
+If !lAbortPrint
+	If nTipoMov==1
+		R931RegEntradas()
+	Else
+		R931RegSaidas()
+	Endif
+Endif
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Restaura area ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ So trata arquivo quando for imprimir Livros ou Livros e Termos³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If nImpTerm == 1 .Or. nImpTerm == 3
+	dbSelectArea(cArqTemp)
+	dbCloseArea()
+    Ferase(cArqTemp+GetDbExtension())
+	Ferase(cArqTemp+OrdBagExt())
+EndIf
+If ( Select("CIAP")!=0 )
+	dbSelectArea("CIAP")
+	dbCloseArea()
+        Ferase(cArqCiap+GetDbExtension())
+	Ferase(cArqCiap+OrdBagExt())
+EndIf
+If ( Select(cArqSF3)!=0 )
+	dbSelectArea(cArqSF3)
+	dbCloseArea()
+	Ferase(cArqSF3+GetDbExtension())
+	Ferase(cIndxSF3+OrdBagExt())
+EndIf
+dbSelectArea(aSvArea[1])
+dbSetOrder(aSvArea[2])
+dbGoto(aSvArea[3])
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931RegEntradas³Autor³ Juan Jose Pereira  ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Imprime Registro de Entradas                                ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931RegEntradas()
+Local lExist:= IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+aGrade:=NIL
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ So trata arquivo quando for imprimir Livros ou Livros e Termos³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If nImpTerm == 1 .Or. nImpTerm == 3
+	dbSelectArea(cArqTemp)
+	dDiaAnt:=F3_ENTRADA
+	dDia:=dDiaAnt
+	SetRegua(LastRec())
+	While !Eof()
+		lTotGrade:=.F.
+		IncRegua()
+		If Interrupcao(@lAbortPrint)
+			Exit
+		Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Considera filtro do usuario                     ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cFilterUser).and.!(&cFilterUser)
+			dbSkip()
+			Loop
+		EndIf
+		//ÚÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cabecalho ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+		If nLin>nLimPag
+			R931Cabec(dDia)
+		Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Contador de Tamanho de nota ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		nTamNota:=nLin
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Posiciona nos cadastros de Clientes/Fornecedores³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		cClieFor:=F3_CLIEFOR+F3_LOJA
+		If(F3_TIPO$"DB",dbSelectArea("SA1"),dbSelectArea("SA2"))
+		dbSeek(xFilial()+cClieFor)
+		dbSelectArea(cArqTemp)
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aObs:=LivrArrayObs(nLargObs)
+		R931IniGrade()
+		If lImpZer.or.F3_BASEICM+F3_VALICM>0
+			aGrade[1,1]:="1"
+			aGrade[1,2]:=F3_BASEICM
+			aGrade[1,3]:=F3_VALICM
+		Else
+			aGrade[1,1]:=""
+		Endif
+		If lImpZer.or.F3_ISENICM>0
+			nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","2")})
+			aGrade[nx,1]:="2"
+			aGrade[nx,2]:=F3_ISENICM
+		Endif
+		If lImpZer.or.F3_OUTRICM>0
+			nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","3")})
+			aGrade[nx,1]:="3"
+			aGrade[nx,2]:=F3_OUTRICM
+		Endif
+		If lImpZer.or.F3_BASEIPI+F3_VALIPI>0
+			aGrade[1,4]:="1"
+			aGrade[1,5]:=F3_BASEIPI
+			aGrade[1,6]:=F3_VALIPI
+		Else
+			aGrade[1,4]:=""
+		Endif
+		If lImpZer.or.F3_ISENIPI>0
+			nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","2")})
+			aGrade[nx,4]:="2"
+			aGrade[nx,5]:=F3_ISENIPI
+		Endif
+		If lImpZer.or.F3_OUTRIPI>0
+			nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","3")})
+			aGrade[nx,4]:="3"
+			aGrade[nx,5]:=F3_OUTRIPI
+		Endif
+		aDados:=Array(18)
+		aDados[1]:=DTOC(F3_ENTRADA)
+		aDados[2] := IIf(Empty(F3_ESPECIE),R930CFOTra(F3_CFO,F3_SERIE),F3_ESPECIE)
+		aDados[3]:=F3_SERIE
+		aDados[4]:=F3_NFISCAL
+		aDados[5]:=DTOC(F3_EMISSAO)
+		aDados[6]:=(F3_CLIEFOR+"-"+F3_LOJA)
+		aDados[7]:=F3_ESTADO
+		aDados[8]:=F3_VALCONT
+		aDados[9]:=EvalMacro(cContaContabil)
+        aDados[10]:=If(substr(F3_CFO,1,3)$"999#000",,Transform(F3_CFO,PESQPICT("SF3","F3_CFO")))
+		aDados[13]:=Transform(F3_ALIQICM,"@ZE 99.99")
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Linhas de detalhe              ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		R931ImpGrade()
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+			Endif
+		End
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Para atender legislacao Fomentar de GO ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro) .and. F3_ICMSRET-IIF(lExist,F3_OBSSOL,0) >0
+			aDados[11]:="ST"
+			aDados[12]:=F3_BASERET
+			If nColuna ==1
+				aDados[18]:=STR0001+Alltrim(Transform(F3_ICMSRET-IIF(lExist,F3_OBSSOL,0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[14]:=F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+			ElseIf nColuna == 3	
+	            If F3_TIPO == "D"
+				   aDados[14]:=F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+				Else
+				   aDados[18]:=STR0001+Alltrim(Transform(F3_ICMSRET-IIF(lExist,F3_OBSSOL,0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+		ElseIf nColuna ==2 .and. F3_ICMSRET-IIF(lExist,F3_OBSSOL,0) >0
+			aDados[11]:="ST"
+			aDados[12]:=F3_BASERET
+			aDados[13]:=Transform(F3_ALIQICM,"@ZE 99.99")
+			aDados[14]:=F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+			FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+		ElseIf nColuna ==3 .and. F3_ICMSRET-IIF(lExist,F3_OBSSOL,0) >0
+            If F3_TIPO == "D"
+			   aDados[11]:="ST"
+			   aDados[12]:=F3_BASERET
+			   aDados[13]:=Transform(F3_ALIQICM,"@ZE 99.99")
+			   aDados[14]:=F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+            Else
+			   aDados[11] :="ST"
+			   aDados[12] :=F3_BASERET
+			   aDados[18] :=STR0001+Alltrim(Transform(F3_ICMSRET-IIF(lExist,F3_OBSSOL,0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			Endif   
+			FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+		Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Acumula valores ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		nLinNec:=nLin-nTamNota+If(lImpZer,1,0)
+		aTamNotas[1]:=Max(aTamNotas[1],nLinNec)
+		LivrAcumula(cArqTemp,@aTotDia,@aTotPerICM,@aTotPerIPI,@aTotMes,@aTransp,@aResumo,@aResCFO,cArqSF3)
+		dDiaAnt:=F3_ENTRADA
+		********************* CIAP **********************
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atualiza a Manutencao do CIAP                   ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+        If lEmiteCiap
+		   If Select("CIAP") > 0
+			  dbSelectArea("CIAP")
+			  If ( dbSeek(&(cArqTemp)->(Recno())) )
+				 While ( !Eof() .And. CIAP->SF3==&(cArqTemp)->(Recno()) )
+					   dbSelectArea("SF9")
+					   dbGoto(CIAP->SF9)
+					   Begin Transaction
+						     RecLock("SF9",.F.)
+						     SF9->F9_NLRE := Val(cLivro)
+						     SF9->F9_FLRE := nPagina
+						     MsUnlock()
+					   End Transaction
+					   dbSelectArea("CIAP")
+					   dbSkip()
+				 EndDo
+			  Endif
+		   EndIf
+		Endif   
+		********************* CIAP **********************
+		dbSelectArea(cArqTemp)
+		dbSkip()
+		If !Eof()
+			dDia:=F3_ENTRADA
+		Else
+			dDia:=UltimoDia(dDia)+1
+		EndIf
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Totais e finaliza relatorio ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		lTotGrade:=.T.
+		lHouveMov:=.T.
+		R931Totais()
+	End
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Quando nao ha movimento                                      ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If !lHouveMov
+		dDia:=dDtIni
+		R931Cabec(dDia)
+		cLinha:=FmtLin(Array(18),aL[17],,,nLin,.F.)
+		R93xFillPage(cLinha,STR0002,@nLin,nLimPag) //"*** NAO HOUVE MOVIMENTO ***"
+		FmtLin(,aL[1],,,@nLin)
+		R931TermEnc()
+	Endif
+Else
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Imprime Termo de Abertura    ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	R931TermIni()
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Imprime Termo de Encerramento³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	R931TermEnc()
+EndIf
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931RegSaidas³Autor³Juan Jose Pereira     ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Imprime Registro de Saidas                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931RegSaidas()
+Local lExist:= IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+PRIVATE aGrade := {}
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ So trata arquivo quando for imprimir Livros ou Livros e Termos³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If nImpTerm == 1 .Or. nImpTerm == 3
+	dbSelectArea(cArqTemp)
+	dDiaAnt:=F3_ENTRADA
+	dDia:=dDiaAnt
+	SetRegua(LastRec())
+	While !Eof()
+		IncRegua()
+		If Interrupcao(@lAbortPrint)
+			Exit
+		Endif
+        If (!lLacuna .AND. !Empty(F3_DTCANC))
+     	   dbSelectArea(cArqTemp)
+		   dbSkip()
+		   If Eof() .And. lHouveMov
+				dDia:=F3_ENTRADA
+				R931Totais()
+		   EndIf
+         loop
+        Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cabecalho ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+		If nLin>nLimPag
+			R931Cabec(dDia)
+		Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Posiciona nos cadastros de Clientes/Fornecedores ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		cClieFor:=F3_CLIEFOR+F3_LOJA
+		If(F3_TIPO$"DB",dbSelectArea("SA2"),dbSelectArea("SA1"))
+		dbSeek(xFilial()+cClieFor)
+		dbSelectArea(cArqTemp)
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Contador de Tamanho de nota ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		nTamNota:=nLin
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aObs:=LivrArrayObs(nLargObs)
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Linhas de Detalhe³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aDados:=Array(15)
+		aDados[1] := IIf(Empty(F3_ESPECIE),R930CFOTra(F3_CFO,F3_SERIE),F3_ESPECIE)
+		aDados[2]:=F3_SERIE
+      IF lAglutina        
+		   aDados[3]:=F3_NFISCAL+" A "+IF(!EMPTY(F3_DTCANC),F3_NFISCAL,F3_DOCOR)
+		ELSE   
+		   aDados[3]:=F3_NFISCAL+" A "+IF(F3_TIPO$"LC",F3_DOCOR,F3_NFISCAL)
+		ENDIF   
+		aDados[4]:=StrZero(Day(F3_ENTRADA),2)
+		aDados[5]:=F3_ESTADO
+		aDados[6]:=F3_VALCONT
+		aDados[7]:=EvalMacro(cContaContabil)
+      aDados[8]:=If(substr(F3_CFO,1,3)$"999#000",,Transform(F3_CFO,PESQPICT("SF3","F3_CFO")))
+		aDados[9]:=If(F3_TIPO=="S".OR.F3_FORMUL=="S",,"ICMS")
+		aDados[10]:=F3_BASEICM
+		aDados[11]:=Transform(F3_ALIQICM,"@E 99.99")
+		aDados[12]:=F3_VALICM
+		aDados[13]:=F3_ISENICM
+		aDados[14]:=F3_OUTRICM
+		R931LoadObs()
+		FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+		If !(F3_TIPO=="S".OR.F3_FORMUL=="S")
+			aDados[9]:="IPI"
+			aDados[10]:=F3_BASEIPI
+			aDados[12]:=F3_VALIPI
+			aDados[13]:=F3_ISENIPI
+			aDados[14]:=F3_OUTRIPI
+			R931LoadObs()
+			FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+		Endif
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+			Endif
+		End
+	 	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro).and. F3_ICMSRET-IIF(lExist,F3_OBSSOL,0) >0
+			aDados[9]:="ST"
+			aDados[10]:=F3_BASERET
+			If nColuna ==1
+				aDados[15]:=STR0001+Alltrim(Transform(F3_ICMSRET-IIF(lExist,F3_OBSSOL,0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[12]:= F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+			ElseIf nColuna == 3	
+                If F3_TIPO <> "D"
+				   aDados[12]:= F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+                Else
+				   aDados[15]:=STR0001+Alltrim(Transform(F3_ICMSRET-IIF(lExist,F3_OBSSOL,0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+		elseIf nColuna ==2 .and. F3_ICMSRET-IIF(lExist,F3_OBSSOL,0) >0
+			aDados[09]:="ST"
+			aDados[10]:=F3_BASERET
+			aDados[11]:=Transform(F3_ALIQICM,"@E 99.99")
+			aDados[12]:= F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+			FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+		elseIf nColuna ==3 .and. F3_ICMSRET-IIF(lExist,F3_OBSSOL,0) >0
+            If F3_TIPO <> "D"
+			   aDados[09]:="ST"
+			   aDados[10]:=F3_BASERET
+			   aDados[15]:=STR0001+Alltrim(Transform(F3_ICMSRET-IIF(lExist,F3_OBSSOL,0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+            Else
+			   aDados[09]:="ST"
+			   aDados[10]:=F3_BASERET
+			   aDados[11]:=Transform(F3_ALIQICM,"@E 99.99")
+			   aDados[12]:= F3_ICMSRET-IIF(lExist,F3_OBSSOL,0)
+			Endif   
+			FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+		Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Acumula valores ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		nLinNec:=nLin-nTamNota+If(lImpZer,1,0)
+		aTamNotas[1]:=Max(aTamNotas[1],nLinNec)
+		LivrAcumula(cArqTemp,@aTotDia,@aTotPerICM,@aTotPerIPI,@aTotMes,@aTransp,@aResumo,@aResCFO,cArqSF3)
+		dDiaAnt:=F3_ENTRADA
+		dbSelectArea(cArqTemp)
+		dbSkip()
+		If !Eof()
+			dDia:=F3_ENTRADA
+		Else
+			dDia:=UltimoDia(dDia)+1
+		EndIf
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Totais e finaliza relatorio ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		lHouveMov:=.T.
+		R931Totais()
+	End
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Quando nao ha movimento                                      ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If !lHouveMov
+		dDia:=dDtIni
+		R931Cabec(dDia)
+		cLinha:=FmtLin(Array(15),aL[19],,,nLin,.F.)
+		R93xFillPage(cLinha,STR0002,@nLin,nLimPag) //"*** NAO HOUVE MOVIMENTO ***"
+		FmtLin(,aL[1],,,@nLin)
+		R931TermEnc()
+	Endif
+Else
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Imprime Termo de Abertura    ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	R931TermIni()
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Imprime Termo de Encerramento³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	R931TermEnc()
+EndIf
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931Cabec ³Autor ³ Juan Jose Pereira     ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Impressao de Cabecalho                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931Cabec(dData)
+
+dData:=IIf(dData==NIL,dDiaAnt,dData)
+
+cPeriodo:=aMeses[Month(dData)]+" / "+Str(Year(dData),4)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Imprime Termos de Abertura/Encerramento³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aPagTerm:=CtrlPg(@nPagina,nQtFeixe,lReiniPg)
+cPagina :=Transform(StrZero(nPagina,6),"@R 999.999")
+If (nImpTerm == 2 .Or. nImpTerm == 3).and.aPagTerm[1]+aPagTerm[2]>0
+	If nTipoMov==1
+		ImprimeTermo(aPagTerm[1],nPagIni,nQtFeixe,GetMv("MV_LENTEN"),nLargMax,cPerg)
+		nPagIni:=ImprimeTermo(aPagTerm[2],nPagIni,nQtFeixe,GetMv("MV_LENTAB"),nLargMax,cPerg)
+	Else
+		ImprimeTermo(aPagTerm[1],nPagIni,nQtFeixe,GetMv("MV_LSAIEN"),nLargMax,cPerg)
+		nPagIni:=ImprimeTermo(aPagTerm[2],nPagIni,nQtFeixe,GetMv("MV_LSAIAB"),nLargMax,cPerg)
+	Endif
+Endif
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Imprime Cabecalho  ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+nLin:=3
+FmtLin(,AvalImp(nLargMax),,,@nLin)
+FmtLin(,aL[1],,,@nLin)
+FmtLin({cTitLivro},aL[2],,,@nLin)
+FmtLin(,aL[3],,,@nLin)
+FmtLin({cNome},aL[4],,,@nLin)
+FmtLin(,aL[5],,,@nLin)
+FmtLin({"06.300.298-1",cCGC},aL[6],,,@nLin)
+FmtLin(,aL[7],,,@nLin)
+FmtLin({cPagina,cPeriodo},aL[8],,,@nLin)
+FmtLin(,{aL[9],aL[10],aL[11],aL[12],aL[13],aL[14],aL[15],aL[16]},,,@nLin)
+If nTipoMov==2
+	FmtLin(,{aL[17],aL[18]},,,@nLin)
+Endif
+
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931LayOut³Autor ³ Juan Jose Pereira     ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Layout dos modelos P1 e P2                                 ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931LayOut
+
+If nTipoMov==1
+	aL:=Array(18)
+	aL[01]:="+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+"
+	aL[02]:=STR0003 //|                                                                  REGISTRO DE ENTRADAS #                                                                     |                  (*) CODIGO DE VALORES FISCAIS             |"
+	aL[03]:="|                                                                                                                                                             |------------------------------------------------------------|"
+	aL[04]:=STR0004//"| FIRMA: #############################                                                                                                                        |                                                            |"
+	aL[05]:=STR0005//"|                                                                                                                                                             |1-OPERACOES COM CREDITO DO IMPOSTO                          |" 
+	aL[06]:=STR0006//"| INSC.EST: ###########           C.N.P.J.: ##############                                                                                                    |                                                            |" 
+	aL[07]:=STR0007//"|                                                                                                                                                             |2-OPERACOES SEM CREDITO DO IMPOSTO-ISENTAS OU NAO TRIBUTADAS|" 
+	aL[08]:=STR0008//"| FOLHA: #######                   MES OU PERIODO/ANO: #######                                                                                                |                                                            |" 
+	aL[09]:=STR0009//"|                                                                                                                                                             |3-OPERACOES SEM CREDITO DO IMPOSTO - OUTRAS                 |" 
+	aL[10]:="|                                                                                                                                                             |                                                            |"
+	aL[11]:="|==========================================================================================================================================================================================================================|"
+	aL[12]:=STR0010//"|          |                    DOCUMENTOS FISCAIS                          |              |        CODIFICACAO          |            ICMS - VALORES FISCAIS      |       IPI - VALORES FISCAIS      |                     |"
+	aL[13]:="|          |----------------------------------------------------------------|              |----------------------|-----------------------------------------------|----------------------------------|                     |"
+	aL[14]:=STR0011//"|DATA DE   |ESPE |  SERIE  |      |DATA      |                         | UF |              |                      |      |COD| BASE DE CALCULO  |     |  IMPOSTO  |COD| BASE DE CALCULO  |  IMPOSTO  |                     |"
+	aL[15]:=STR0012//"|ENTRADA   |CIE  |SUB-SERIE|NUMERO|DOCUMENTO |   CODIGO DO EMITENTE    |ORIG|VALOR CONTABIL|       CONTABIL       |FISCAL|(*)|VALOR DA OPERACAO |ALIQ.| CREDITADO |(*)|VALOR DA OPERACAO | CREDITADO |      OBSERVACOES    |"
+	aL[16]:="|==========|=====+=========+======+==========+=========================+====|==============|======================+======|===+===============+=====+==============|===+===============+==============|=====================|"
+    aL[17]:="|##########|#####|   ###   |######|##########|#########################| ## |##############|######################|######| # |###############|#####|##############| # |###############|##############|#####################|"
+    aL[18]:="|# # # #   |# #########################################################| ## |##############|######################|######| # |###############|#####|##############| # |###############|##############|#####################|"
+Else                                                                                                                                                                                                
+	aL:=Array(20)
+	aL[01]:="+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+"
+	aL[02]:=STR0013 //"|                                                                                                     REGISTRO DE SAIDAS #                                                                                                 |"
+	aL[03]:="|                                                                                                                                                                                                                          |"
+	aL[04]:=STR0014 //"| FIRMA: #########################                                                                                                                                                                                         |"
+	aL[05]:="|                                                                                                                                                                                                                          |"
+	aL[06]:=STR0015 //"| INSC.EST: #########             C.N.P.J.: ##############                                                                                                                                                                 |"
+	aL[07]:="|                                                                                                                                                                                                                          |"
+	aL[08]:=STR0016 //"| FOLHA: #######                   MES OU PERIODO/ANO: #######                                                                                                                                                             |"
+	aL[09]:="|                                                                                                                                                                                                                          |"
+	aL[10]:="|                                                                                                                                                                                                                          |"
+	aL[11]:="|==========================================================================================================================================================================================================================|"
+	aL[12]:=STR0017 //"|         DOCUMENTOS FISCAIS         |                  |      CODIFICACAO          |                                      VALORES FISCAIS                                 |                                               |"
+	aL[13]:=STR0018 //"|------------------------------------|                  |---------------------------|--------------------------------------------------------------------------------------|                                               |"
+	aL[14]:=STR0019 //"|     |     |               |   |    |                  |                    |      |    |      OPERACOES COM DEBITO DO IMPOSTO      |   OPERACOES SEM DEBITO DO IMPOSTO   |                                               |"
+	aL[15]:=STR0020 //"|     |SERIE|               |   |    |                  |                    |      |ICMS|-------------------------------------------|-------------------------------------|                                               |"
+	aL[16]:=STR0021 //"|ESPE | SUB-|               |   | UF |      VALOR       |                    |      |    |     BASE DE      |     |     IMPOSTO      |    ISENTAS OU    |                  |                                               |"
+	aL[17]:=STR0022 //"|CIE  |SERIE|    NUMERO     |DIA|DEST|     CONTABIL     |   CONTABIL         |FISCAL|IPI |     CALCULO      |ALIQ |     DEBITADO     |  NAO TRIBUTADAS  |      OUTRAS      |                  OBSERVACOES                  |"
+	aL[18]:="|=====+=====+===============+===+====|==================|====================+======|====+==================+=====+==================|==================+==================|===============================================|"
+	aL[19]:="|#####| ### |###############| ##| ## |##################|####################| #### |####|##################|#####|##################|##################|##################|###############################################|"
+	aL[20]:="|# #  |#####################| ##| ## |##################|####################| #### |####|##################|#####|##################|##################|##################|###############################################|"
+Endif
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931Transp³Autor ³ Juan Jose Pereira     ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime linhas de transporte                               ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931Transp(lTotal)
+Local nTamTransp := Len(LivrArrayObs(nLargObs,aTotMes))+If(nTipoMov==1,Len(aGrade)+2,4)
+Local lExist := IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+
+lTotal :=If(lTotal==Nil,.F.,lTotal)
+If lTotal
+   nTamTransp*=2
+EndIf
+nMaior:=0
+AEval(aTamNotas,{|x|nMaior:=Max(nMaior,x)})
+aTamNotas[2]:=nMaior
+
+nLinNec:=aTamNotas[2]
+lTransp:=(nLimPag<=(nLin+nLinNec+2))
+
+If lTransp
+	nTamTransp:=nLin
+	If nTipoMov==1
+
+		aObs:=LivrArrayObs(nLargObs,aTotMes)
+
+		R931IniGrade()
+
+		aGrade[1,1]:="1"
+		aGrade[1,2]:=aTransp[ColF3("F3_BASEICM")]
+		aGrade[1,3]:=aTransp[ColF3("F3_VALICM")]
+		nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","2")})
+		aGrade[nx,1]:="2"
+		aGrade[nx,2]:=aTransp[ColF3("F3_ISENICM")]
+		nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","3")})
+		aGrade[nx,1]:="3"
+		aGrade[nx,2]:=aTransp[ColF3("F3_OUTRICM")]
+		aGrade[1,4]:="1"
+		aGrade[1,5]:=aTransp[ColF3("F3_BASEIPI")]
+		aGrade[1,6]:=aTransp[ColF3("F3_VALIPI")]
+		nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","2")})
+		aGrade[nx,4]:="2"
+		aGrade[nx,5]:=aTransp[ColF3("F3_ISENIPI")]
+		nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","3")})
+		aGrade[nx,4]:="3"
+		aGrade[nx,5]:=aTransp[ColF3("F3_OUTRIPI")]
+
+		aDados:=Array(18)
+		FmtLin(@aDados,aL[18],,,@nLin)
+		aDados[6]:=STR0023 //"A TRANSPORTAR"
+		aDados[8]:=aTransp[ColF3("F3_VALCONT")]
+
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Linhas de detalhe              ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		R931ImpGrade()
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+            If nPosObs>0
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			Endif
+		End
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Para atender legislacao Fomentar de GO ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro) .and. aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aTransp[ColF3("F3_BASERET")]
+			If nColuna ==1
+				aDados[18]:=STR0001+Alltrim(Transform(aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[14]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+                If F3_TIPO == "D"
+				   aDados[14]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+                Else
+				   aDados[18]:=STR0001+Alltrim(Transform(aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		ElseIf nColuna ==2 .and. aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aTransp[ColF3("F3_BASERET")]
+			aDados[14]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+		ElseIf nColuna ==3 .and. aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0) >0
+            If aTransp[ColF3("F3_TIPO")] == "D"
+			   aDados[11]:="ST"
+			   aDados[12]:=aTransp[ColF3("F3_BASERET")]
+			   aDados[14]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+			Else
+			   aDados[11]:="ST"
+			   aDados[12]:=aTransp[ColF3("F3_BASERET")]
+			   aDados[18]:=STR0001+Alltrim(Transform(aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			Endif   
+			FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+		Endif
+		nLinNec:=nLin-nTamTransp+If(lImpZer,1,0)
+		aTamNotas[2]:=Max(aTamNotas[2],nLinNec)
+
+		R931Filler()
+	   R931Cabec()
+	Else
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aObs:=LivrArrayObs(nLargObs,aTransp)
+		aDados:=Array(15)
+		FmtLin(@aDados,aL[20],,,@nLin)
+		aDados[3]:=STR0023 //"A TRANSPORTAR"
+		aDados[6]:=aTransp[ColF3("F3_VALCONT")]
+		aDados[9]:="ICMS"
+		aDados[10]:=aTransp[ColF3("F3_BASEICM")]
+		aDados[12]:=aTransp[ColF3("F3_VALICM")]
+		aDados[13]:=aTransp[ColF3("F3_ISENICM")]
+		aDados[14]:=aTransp[ColF3("F3_OUTRICM")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		aDados[9]:="IPI"
+		aDados[10]:=aTransp[ColF3("F3_BASEIPI")]
+		aDados[12]:=aTransp[ColF3("F3_VALIPI")]
+		aDados[13]:=aTransp[ColF3("F3_ISENIPI")]
+		aDados[14]:=aTransp[ColF3("F3_OUTRIPI")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			Endif
+		End
+ 		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro) .and. aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aTransp[ColF3("F3_BASERET")]
+			If nColuna ==1
+				aDados[15]:=STR0001+Alltrim(Transform(aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[12]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+                If F3_TIPO <> "D"
+				   aDados[12]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+                Else
+				   aDados[15]:=STR0001+Alltrim(Transform(aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		ElseIf nColuna ==2 .and. aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aTransp[ColF3("F3_BASERET")]
+			aDados[12]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		ElseIf nColuna ==3 .and. aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0) >0
+            If aTransp[ColF3("F3_TIPO")] <> "D"
+			   aDados[9]:="ST"
+			   aDados[10]:=aTransp[ColF3("F3_BASERET")]
+			   aDados[12]:=aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0)
+			Else
+			   aDados[9]:="ST"
+			   aDados[10]:=aTransp[ColF3("F3_BASERET")]
+			   aDados[15]:=STR0001+Alltrim(Transform(aTransp[ColF3("F3_ICMSRET")]-IIF(lExist,aTransp[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			Endif   
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Endif
+
+		nLinNec:=nLin-nTamTransp+If(lImpZer,1,0)
+		aTamNotas[2]:=Max(aTamNotas[2],nLinNec)
+
+		R931Filler()
+	    R931Cabec()
+	Endif
+Endif
+
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931Totdia³Autor ³ Juan Jose Pereira     ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime total do dia                                       ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931TotDia
+Local lExist:= IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+Local nX := 0
+lTotDia:=(dDiaAnt!=dDia)
+
+If (lTotDia .And. !Empty(dDia)) .Or. Eof()
+	aTamNotas[3]:=Max(aTamNotas[3],If(nLin>=nLimPag,nLinNec+(nLin-nLimPag),nLinNec))
+	nLinNec:=aTamNotas[3]
+
+	If nLimPag<=nLin+((nLinNec+1)*2)
+		R931Transp(.T.)
+	Endif
+
+	nTamTotDia:=nLin
+	If nTipoMov==1
+
+		aObs:=LivrArrayObs(nLargObs,aTotDia)
+
+		R931IniGrade()
+
+		If lImpZer.Or.(aTotDia[ColF3("F3_BASEICM")]>0.Or.aTotDia[ColF3("F3_VALICM")]>0)
+			aGrade[1,1]:="1"
+			aGrade[1,2]:=aTotDia[ColF3("F3_BASEICM")]
+			aGrade[1,3]:=aTotDia[ColF3("F3_VALICM")]
+		Else
+			aGrade[1,1]:=""
+		Endif
+		If lImpZer.Or.(aTotDia[ColF3("F3_ISENICM")]>0)
+			nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","2")})
+			aGrade[nx,1]:="2"
+			aGrade[nx,2]:=aTotDia[ColF3("F3_ISENICM")]
+		Endif
+		If lImpZer.Or.aTotDia[ColF3("F3_OUTRICM")]>0
+			nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","3")})
+			aGrade[nx,1]:="3"
+			aGrade[nx,2]:=aTotDia[ColF3("F3_OUTRICM")]
+		Endif
+
+		If lImpZer.Or.(aTotDia[ColF3("F3_BASEIPI")]>0.Or.aTotDia[ColF3("F3_VALIPI")]>0)
+			aGrade[1,4]:="1"
+			aGrade[1,5]:=aTotDia[ColF3("F3_BASEIPI")]
+			aGrade[1,6]:=aTotDia[ColF3("F3_VALIPI")]
+		Else
+			aGrade[1,4]:=""
+		Endif
+		If lImpZer.Or.aTotDia[ColF3("F3_ISENIPI")]>0
+			nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","2")})
+			aGrade[nx,4]:="2"
+			aGrade[nx,5]:=aTotDia[ColF3("F3_ISENIPI")]
+		Endif
+		If lImpZer.Or.aTotDia[ColF3("F3_OUTRIPI")]>0
+			nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","3")})
+			aGrade[nx,4]:="3"
+			aGrade[nx,5]:=aTotDia[ColF3("F3_OUTRIPI")]
+		Endif
+
+		aDados:=Array(18)
+		FmtLin(@aDados,aL[18],,,@nLin)
+		aDados[6]:=STR0024+StrZero(Day(dDiaAnt),2) //"TOTAL DO DIA "
+		aDados[8]:=aTotDia[ColF3("F3_VALCONT")]
+
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Linhas de detalhe              ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		R931ImpGrade()
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			Endif
+		End
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Para atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro) .and. aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aTotDia[ColF3("F3_BASERET")]
+			If nColuna == 1
+				aDados[18]:=STR0001+Alltrim(Transform(aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[14] := aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+                If F3_TIPO == "D"
+				   aDados[14] := aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+				Else
+				   aDados[18]:=STR0001+Alltrim(Transform(aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Elseif nColuna ==2 .and. aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aTotDia[ColF3("F3_BASERET")]
+			aDados[14]:= aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Elseif nColuna ==3 .and. aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0) >0
+            If aTotDia[ColF3("F3_TIPO")]=="D"
+			   aDados[11]:="ST"
+			   aDados[12]:=aTotDia[ColF3("F3_BASERET")]
+			   aDados[14]:=aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+			Else
+			   aDados[11]:="ST"
+			   aDados[12]:=aTotDia[ColF3("F3_BASERET")]
+			   aDados[18]:=STR0001+Alltrim(Transform(aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			Endif   
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Endif
+		FmtLin(@aDados,aL[18],,,@nLin)
+		nLinNec:=nLin-nTamTotDia+If(lImpZer,1,0)
+		aTamNotas[3]:=Max(aTamNotas[3],nLinNec)
+	Else
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aObs:=LivrArrayObs(nLargObs,aTotDia)
+		aDados:=Array(15)
+		FmtLin(@aDados,aL[20],,,@nLin)
+		aDados[3]:=STR0024+StrZero(Day(dDiaAnt),2) //"TOTAL DO DIA "
+		aDados[6]:=aTotDia[ColF3("F3_VALCONT")]
+		aDados[9]:="ICMS"
+		aDados[10]:=aTotDia[ColF3("F3_BASEICM")]
+		aDados[12]:=aTotDia[ColF3("F3_VALICM")]
+		aDados[13]:=aTotDia[ColF3("F3_ISENICM")]
+		aDados[14]:=aTotDia[ColF3("F3_OUTRICM")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		aDados[9]:="IPI"
+		aDados[10]:=aTotDia[ColF3("F3_BASEIPI")]
+		aDados[12]:=aTotDia[ColF3("F3_VALIPI")]
+		aDados[13]:=aTotDia[ColF3("F3_ISENIPI")]
+		aDados[14]:=aTotDia[ColF3("F3_OUTRIPI")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			Endif
+		End
+ 		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro).and. aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aTotDia[ColF3("F3_BASERET")]
+			If nColuna == 1
+				aDados[15]:=STR0001+Alltrim(Transform(aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[12]:=aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+                If F3_TIPO <> "D"
+				   aDados[12]:=aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+                Else
+				   aDados[15]:=STR0001+Alltrim(Transform(aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		ElseIf nColuna == 2 .and. aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aTotDia[ColF3("F3_BASERET")]
+			aDados[12]:=aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		ElseIf nColuna == 3 .and. aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0) >0
+	        If aTotDia[ColF3("F3_TIPO")]<>"D"
+			   aDados[9]:="ST"
+			   aDados[10]:=aTotDia[ColF3("F3_BASERET")]
+			   aDados[15]:=STR0001+Alltrim(Transform(aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+            Else
+			   aDados[9]:="ST"
+			   aDados[10]:=aTotDia[ColF3("F3_BASERET")]
+			   aDados[12]:=aTotDia[ColF3("F3_ICMSRET")]-IIF(lExist,aTotDia[ColF3("F3_OBSSOL")],0)
+			Endif
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Endif
+		FmtLin(@aDados,aL[20],,,@nLin)
+		nLinNec:=nLin-nTamTotDia+If(lImpZer,1,0)
+		aTamNotas[3]:=Max(aTamNotas[3],nLinNec)
+	Endif
+Endif
+If lTotDia
+	For nX := 1 to Len(aTotDia)
+	Do Case
+		Case ValType(aTotDia[nX]) == "C"
+			aTotDia[nX] := ""
+		Case ValType(aTotDia[nX]) == "N"
+			aTotDia[nX] := 0
+		OtherWise
+			aTotDia[nX] := Nil				
+		End Case
+	Next nX		
+Endif
+
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931TotMes³Autor ³ Juan Jose Pereira     ³ Data ³ 18.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime total do Mes                                       ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931TotMes
+Local xx :=1
+Local nPosicao :=0
+Local lExist := IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+********************* CIAP **********************
+If lEmiteCiap
+   nPosicao :=Ascan((cArqTemp)->(dbstruct()),{ |x| ( "F3_VALICM" $ x[1] ) })
+   if nTipoMov==1 .and. lTotMes
+      If nLin>=nLimPag.and.lImpMes
+		 R931Transp()
+	  Endif
+	
+	  dData := LastDay(MV_PAR01)
+	  SFA->(dbSetOrder(2))
+	  If SFA->(dbSeek(xFilial("SFA")+dTos( dData )))
+		 While SFA->(!EOF()) .and. SFA->FA_FILIAL == xFilial("SFA") .and. Dtos(SFA->FA_DATA)== dTos(ddata)
+			   If ( SFA->FA_TIPO == "1" ) .and. (SFA->FA_CREDIT =="1")  			      
+				  cMensagem:=Trim("Credito ICMS Ativo")+If(lColCiap,PADL(Transform(SFA->FA_VALOR,"@E 9,999,999.99"),21),"")
+				  For xx:=1 to MlCount(cMensagem,nLargObs)
+					  AADD(aObs,{MemoLine(cMensagem,nLargObs,xx),.T.})
+				  Next xx
+						
+				  SF9->(dbSeek(xFilial()+SFA->FA_CODIGO))
+				  R931IniGrade()
+				  aGrade[1,1]:="1"
+                  If !lColCiap
+				     aGrade[1,3]:=SFA->FA_VALOR
+				  Endif
+				  nCredAtivo  +=SFA->FA_VALOR
+				  
+				  aDados:=Array(18)				
+
+    		      If nLin>=nLimPag
+			         R931Filler()
+			         R931Cabec()
+		          Endif
+				  
+				  FmtLin(@aDados,aL[18],,,@nLin)
+                  aDados[10]	:= SF9->F9_CFOENT
+				  R931ImpGrade()
+				  nPosObs:=Ascan(aObs,{|x|x[2]})
+				  While nPosObs>0
+					    R931LoadObs()
+					    If nPosObs>0
+						   FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+					    Endif
+				  Enddo
+			   EndIf				
+			   SFA->(dBSkip())
+		 EndDo
+		 aTotMes[nPosicao] +=nCredAtivo
+	  EndIf
+   EndIf
+Endif   
+******************* CIAP FIM *********************
+If lTotMes.and.lImpMes
+	If nLin>=nLimPag.and.lImpMes
+		R931Transp()
+	Endif
+	If nTipoMov==1
+
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Tam. Max. da totalizacao do mes - 3    ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If (nLin+3)>=nLimPag
+			R931Filler()
+			R931Cabec()
+		Endif
+
+		aObs:=LivrArrayObs(nLargObs,aTotMes)
+
+		R931IniGrade()
+
+		aGrade[1,1]:="1"
+		aGrade[1,2]:=aTotMes[ColF3("F3_BASEICM")]
+		aGrade[1,3]:=aTotMes[ColF3("F3_VALICM")]
+		nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","2")})
+		aGrade[nx,1]:="2"
+		aGrade[nx,2]:=aTotMes[ColF3("F3_ISENICM")]
+		nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","3")})
+		aGrade[nx,1]:="3"
+		aGrade[nx,2]:=aTotMes[ColF3("F3_OUTRICM")]
+		aGrade[1,4]:="1"
+		aGrade[1,5]:=aTotMes[ColF3("F3_BASEIPI")]
+		aGrade[1,6]:=aTotMes[ColF3("F3_VALIPI")]
+		nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","2")})
+		aGrade[nx,4]:="2"
+		aGrade[nx,5]:=aTotMes[ColF3("F3_ISENIPI")]
+		nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","3")})
+		aGrade[nx,4]:="3"
+		aGrade[nx,5]:=aTotMes[ColF3("F3_OUTRIPI")]
+
+		aDados:=Array(18)
+		FmtLin(@aDados,aL[18],,,@nLin)
+		aDados[6]:=STR0025 //"TOTAL DO MES"
+		aDados[8]:=aTotMes[ColF3("F3_VALCONT")]
+
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Linhas de detalhe              ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		R931ImpGrade()
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			Endif
+		End
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Para atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro).and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+			if nColuna ==1
+				aDados[18]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[14]:= aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+                If F3_TIPO == "D"
+				   aDados[14]:= aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+                Else
+				   aDados[18]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			EndIf
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Elseif nColuna ==2 .and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+			aDados[14]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Elseif nColuna ==3 .and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+		    If aTotMes[ColF3("F3_TIPO")] == "D"
+			   aDados[11]:="ST"
+			   aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+			   aDados[14]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			Else
+			   aDados[11]:="ST"
+			   aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+			   aDados[18]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			Endif   
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Endif
+		FmtLin(@aDados,aL[18],,,@nLin)
+	Else
+		If (nLin+3)>=nLimPag
+			R931Filler()
+			R931Cabec()
+		Endif
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aObs:=LivrArrayObs(nLargObs,aTotMes)
+		aDados:=Array(15)
+		FmtLin(@aDados,aL[20],,,@nLin)
+		aDados[3]:=STR0025 //"TOTAL DO MES"
+		aDados[6]:=aTotMes[ColF3("F3_VALCONT")]
+		aDados[9]:="ICMS"
+		aDados[10]:=aTotMes[ColF3("F3_BASEICM")]
+		aDados[12]:=aTotMes[ColF3("F3_VALICM")]
+		aDados[13]:=aTotMes[ColF3("F3_ISENICM")]
+		aDados[14]:=aTotMes[ColF3("F3_OUTRICM")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		aDados[9]:="IPI"
+		aDados[10]:=aTotMes[ColF3("F3_BASEIPI")]
+		aDados[12]:=aTotMes[ColF3("F3_VALIPI")]
+		aDados[13]:=aTotMes[ColF3("F3_ISENIPI")]
+		aDados[14]:=aTotMes[ColF3("F3_OUTRIPI")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			Endif
+		End
+ 		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atender legislacao Fomentar de GO ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro).and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aTotMes[ColF3("F3_BASERET")]
+			If nColuna == 1
+				aDados[15]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[12]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+			    If F3_TIPO <> "D"
+				   aDados[12]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			    Else
+				   aDados[15]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			endif
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		ElseIf nColuna ==2 .and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aTotMes[ColF3("F3_BASERET")]
+			aDados[12]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		ElseIf nColuna ==3 .and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+            If aTotMes[ColF3("F3_TIPO")] <> "D"
+			   aDados[9]:="ST"
+			   aDados[10]:=aTotMes[ColF3("F3_BASERET")]
+			   aDados[12]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+			Else
+			   aDados[9]:="ST"
+			   aDados[10]:=aTotMes[ColF3("F3_BASERET")]
+			   aDados[15]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			Endif   
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Endif
+		FmtLin(@aDados,aL[20],,,@nLin)
+	Endif
+Else
+	If lTotMes
+		R931Filler()
+	Endif
+Endif
+If lTotMes
+	For xx := 1 to Len(aTransp)
+		If ValType(aTransp[xx]) == "N"
+			aTransp[xx] := 0
+		Else
+			aTransp[xx] := "NULL"
+		Endif
+	Next
+
+	For xx := 1 to Len(aTotMes)
+		If ValType(aTotMes[xx]) == "N"
+			aTotMes[xx] := 0
+		Else
+			aTotMes[xx] := "NULL"
+		Endif
+	Next
+
+	For xx := 1 to Len(aTamNotas)
+		If ValType(aTamNotas[xx]) == "N"
+			aTamNotas[xx] := 0
+		Else
+			aTamNotas[xx] := "NULL"
+		Endif
+	Next
+Endif
+
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931TotPer³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime total do periodo de apuracao                       ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931TotPer
+Local nCntFor :=1
+Local lExist  := IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+nLinNec2:=0
+
+
+If lTotPerICM
+	aTamNotas[4]:=Max(aTamNotas[4],nLinNec)
+	nLinNec2:=nLinNec2+aTamNotas[4]
+Endif
+If lTotPerIPI
+	aTamNotas[5]:=Max(aTamNotas[5],nLinNec)
+	nLinNec2:=nLinNec2+aTamNotas[5]
+Endif
+
+If lTotPerICM.or.lTotPerIPI
+	nLinNec:=nLinNec2
+	If nLimPag<=nLin+nLinNec
+		R931Transp()
+	Endif
+
+	If nTipoMov==1
+		aObs:={}
+
+		R931IniGrade()
+
+		If lTotPerIcm
+			aObs := LivrArrayObs(nLargObs,aTotPerIcm)
+			If (aTotPerIcm[ColF3("F3_BASEICM")]>0.Or.aTotPerIcm[ColF3("F3_VALICM")]>0)
+				aGrade[1,1]:="1"
+				aGrade[1,2]:=aTotPerIcm[ColF3("F3_BASEICM")]
+				aGrade[1,3]:=aTotPerIcm[ColF3("F3_VALICM")]
+			Else
+				aGrade[1,1]:=""
+			Endif
+
+			If aTotPerIcm[ColF3("F3_ISENICM")]>0
+				nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","2")})
+				aGrade[nx,1]:="2"
+				aGrade[nx,2]:=aTotPerIcm[ColF3("F3_ISENICM")]
+			Endif
+
+			If aTotPerIcm[ColF3("F3_OUTRICM")]>0
+				nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","3")})
+				aGrade[nx,1]:="3"
+				aGrade[nx,2]:=aTotPerIcm[ColF3("F3_OUTRICM")]
+			Endif
+		Endif
+
+		If lTotPerIPI
+			If (aTotPerIPI[ColF3("F3_BASEIPI")]>0 .Or.aTotPerIPI[ColF3("F3_VALIPI")]>0)
+				aGrade[1,4]:="1"
+				aGrade[1,5]:=aTotPerIPI[ColF3("F3_BASEIPI")]
+				aGrade[1,6]:=aTotPerIPI[ColF3("F3_VALIPI")]
+			Else
+				aGrade[1,4]:=""
+			Endif
+
+			If aTotPerIPI[ColF3("F3_ISENIPI")]>0
+				nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","2")})
+				aGrade[nx,4]:="2"
+				aGrade[nx,5]:=aTotPerIPI[ColF3("F3_ISENIPI")]
+			Endif
+
+			If aTotPerIPI[ColF3("F3_OUTRIPI")]>0
+				nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","3")})
+				aGrade[nx,4]:="3"
+				aGrade[nx,5]:=aTotPerIPI[ColF3("F3_OUTRIPI")]
+			Endif
+
+		Endif
+
+		aDados:=Array(18)
+
+		If lTotPerICM .Or. lTotPerIPI
+			FmtLin(@aDados,aL[18],,,@nLin)
+			aDados[6]:=STR0026 //"TOTAL DO PERIODO "
+			If lTotPerIcm
+				aDados[8]:=aTotPerICM[ColF3("F3_VALCONT")]
+			Endif
+			If lTotPerIPI
+				aDados[8]:=aTotPerIPI[ColF3("F3_VALCONT")]
+			Endif
+			//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+			//³ Imprime Linhas de detalhe              ³
+			//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+			R931ImpGrade()
+
+			nPosObs:=Ascan(aObs,{|x|x[2]})
+			While nPosObs>0
+				R931LoadObs()
+				If nPosObs>0
+					FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+				Endif
+			End
+		Endif
+
+		aDados:=Array(18)
+
+		nTamTotPer:=nLin
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Para atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If lTotPerICM
+			If !Empty(cTitLivro).and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+				aDados[11]:="ST"
+				aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+				if nColuna ==1
+					aDados[18]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				ElseIf nColuna == 2
+					aDados[14]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+				ElseIf nColuna == 3
+					If F3_TIPO == "D"
+					   aDados[14]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+					Else
+					   aDados[18]:=STR0001+Alltrim(Transform(aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+					Endif   
+				endif
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			elseIf nColuna == 2 .and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+				aDados[11]:="ST"
+				aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+				aDados[14]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			elseIf nColuna == 3 .and. aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0) >0
+				aDados[11]:="ST"
+				aDados[12]:=aTotMes[ColF3("F3_BASERET")]
+				aDados[14]:=aTotMes[ColF3("F3_ICMSRET")]-IIF(lExist,aTotMes[ColF3("F3_OBSSOL")],0)
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			Endif
+		Endif
+		If lTotPerICM
+			nLinNec:=nLin-nTamTotPer
+			aTamNotas[4]:=Max(aTamNotas[4],nLinNec)
+		Endif
+		If lTotPerIPI
+			nLinNec:=nLin-nTamTotPer
+			aTamNotas[5]:=Max(aTamNotas[5],nLinNec)
+		Endif
+		FmtLin(@aDados,aL[18],,,@nLin)
+	Else
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		nTamTotPer:=nLin
+		aObs:={}
+		aDados:=Array(15)
+		aDados[3]:=STR0027 //"TOTAL DO PERIODO"
+		If lTotPerICM
+			aObs:=LivrArrayObs(nLargObs,aTotPerICM)
+			aDados[6]:=aTotPerICM[ColF3("F3_VALCONT")]
+			aDados[9]:="ICMS"
+			aDados[10]:=aTotPerICM[ColF3("F3_BASEICM")]
+			aDados[12]:=aTotPerICM[ColF3("F3_VALICM")]
+			aDados[13]:=aTotPerICM[ColF3("F3_ISENICM")]
+			aDados[14]:=aTotPerICM[ColF3("F3_OUTRICM")]
+			R931LoadObs()
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Endif
+		If lTotPerIPI
+			aDados[6]:=aTotPerIPI[ColF3("F3_VALCONT")]
+			aDados[9]:="IPI"
+			aDados[10]:=aTotPerIPI[ColF3("F3_BASEIPI")]
+			aDados[12]:=aTotPerIPI[ColF3("F3_VALIPI")]
+			aDados[13]:=aTotPerIPI[ColF3("F3_ISENIPI")]
+			aDados[14]:=aTotPerIPI[ColF3("F3_OUTRIPI")]
+			R931LoadObs()
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Endif
+		If lTotPerICM
+			nPosObs:=Ascan(aObs,{|x|x[2]})
+			While nPosObs>0
+				R931LoadObs()
+				If nPosObs>0
+					FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+				Endif
+			End
+		Endif
+ 		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If lTotPerICM
+			If !Empty(cTitLivro) .and. aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0) >0
+				aDados[9]:="ST"
+				aDados[10]:=aTotPerICM[ColF3("F3_BASERET")]
+				if nColuna ==1
+					aDados[15]:=STR0001+Alltrim(Transform(aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				ElseIf nColuna == 2
+					aDados[12]:=aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0)
+				ElseIf nColuna == 3
+                    If F3_TIPO <> "D"
+				  	   aDados[12]:=aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0)
+                    Else
+					   aDados[15]:=STR0001+Alltrim(Transform(aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+					Endif   
+				Endif
+				FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			ElseIf nColuna ==2 .and. aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0) >0
+				aDados[9]:="ST"
+				aDados[10]:=aTotPerICM[ColF3("F3_BASERET")]
+				aDados[12]:=aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0)
+				FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			ElseIf nColuna ==3 .and. aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0) >0
+                If aTotPerICM[ColF3("F3_TIPO")] <> "D"
+				   aDados[9]:="ST"
+				   aDados[10]:=aTotPerICM[ColF3("F3_BASERET")]
+				   aDados[12]:=aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0)
+				Else
+				   aDados[9]:="ST"
+				   aDados[10]:=aTotPerICM[ColF3("F3_BASERET")]
+				   aDados[15]:=STR0001+Alltrim(Transform(aTotPerICM[ColF3("F3_ICMSRET")]-IIF(lExist,aTotPerICM[ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+				FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			Endif
+		EndIf
+		FmtLin(@aDados,aL[20],,,@nLin)
+		If lTotPerICM
+			nLinNec:=nLin-nTamTotPer
+			aTamNotas[4]:=Max(aTamNotas[4],nLinNec)
+		Endif
+		If lTotPerIPI
+			nLinNec:=nLin-nTamTotPer
+			aTamNotas[5]:=Max(aTamNotas[5],nLinNec)
+		Endif
+	Endif
+	If lTotPerICM.Or.!(Month(dDia)==Month(dDiaAnt))
+		For nCntFor := 1 to Len(aTotPerICM)
+			If ValType(aTransp[nCntFor]) == "N"
+				aTotPerICM[nCntFor] := 0
+			Else
+				aTotPerICM[nCntFor] := "NULL"
+			Endif
+		Next
+		nSvApurICM:=DefPeriodo(dDia,nApurICM)
+	Endif
+	If lTotPerIPI.Or.!(Month(dDia)==Month(dDiaAnt))
+		For nCntFor := 1 to Len(aTotPerIPI)
+			If ValType(aTotPerIPI[nCntFor]) == "N"
+				aTotPerIPI[nCntFor] := 0
+			Else
+				aTotPerIPI[nCntFor] := "NULL"
+			Endif
+		Next
+		nSvApurIPI:=DefPeriodo(dDia,nApurIPI)
+	Endif
+Endif
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931ResCfo³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Resumo por CFO                                             ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931ResCfo
+
+Local lExist:= IIF(SF3->(FieldPos("F3_OBSSOL"))>0,.T.,.F.)
+
+If Len(aResCFO)==0 .Or. !(lTotPerIcm .Or. lTotPerIPI)
+	Return
+Endif
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Ordena CFOs³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aResCFO:=Asort(aResCFO,,,{|x,y|x[ColF3("F3_CFO")]<y[ColF3("F3_CFO")]})
+
+aCFOS:={STR0028,; //"1.00 ENTRADAS DO ESTADO"
+		STR0029,; //"2.00 ENTRADAS DE FORA DO ESTADO"
+		STR0030,; //"3.00 ENTRADAS DO EXTERIOR"
+		"",;
+		STR0031,; //"5.00 SAIDAS PARA O ESTADO"
+		STR0032,; //"6.00 SAIDAS PARA FORA DO ESTADO"
+		STR0033} //"7.00 SAIDAS PARA O EXTERIOR"
+
+cSvCFO:="X"
+
+If nLin<nLimPag
+   R931Filler()
+Endif   
+
+nLin:=80
+For i:=1 to Len(aResCFO)
+	If nLin>=nLimPag
+        R931Filler()
+		R931Cabec()
+	EndIf
+	aObs:=LivrArrayObs(nLargObs,aResCFO[i])
+	cCFO:=Trim(aResCFO[i,ColF3("F3_CFO")])
+	If nTipoMov==1
+
+		If i==1
+			FmtLin(@aDados,aL[18],,,@nLin)
+			aDados[6]:=STR0034 //"RESUMO DAS OPERACOES E PRESTACOES POR CODIGO FISCAL DE OPERACAO"
+			FmtLin(@aDados,aL[18],,,@nLin)
+			aDados[6]:="==============================================================="
+			FmtLin(@aDados,aL[18],,,@nLin)
+		EndIf
+
+		If lImpZer .And. (nLin+4)>=nLimPag
+			R931Filler()
+			R931Cabec()
+		Endif
+
+		R931IniGrade()
+
+		If (aResCFO[i,ColF3("F3_BASEICM")]>0.Or.aResCFO[i,ColF3("F3_VALICM")]>0)
+			aGrade[1,1]:="1"
+			aGrade[1,2]:=aResCFO[i,ColF3("F3_BASEICM")]
+			aGrade[1,3]:=aResCFO[i,ColF3("F3_VALICM")]
+		Else
+			aGrade[1,1]:=""
+		Endif
+		If aResCFO[i,ColF3("F3_ISENICM")]>0
+			nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","2")})
+			aGrade[nx,1]:="2"
+			aGrade[nx,2]:=aResCFO[i,ColF3("F3_ISENICM")]
+		Endif
+		If aResCFO[i,ColF3("F3_OUTRICM")]>0
+			nx:=Ascan(aGrade,{|x|x[1]==If(!lImpZer,"","3")})
+			aGrade[nx,1]:="3"
+			aGrade[nx,2]:=aResCFO[i,ColF3("F3_OUTRICM")]
+		Endif
+
+		If (aResCFO[i,ColF3("F3_BASEIPI")]>0.Or.aResCFO[i,ColF3("F3_VALIPI")]>0)
+			aGrade[1,4]:="1"
+			aGrade[1,5]:=aResCFO[i,ColF3("F3_BASEIPI")]
+			aGrade[1,6]:=aResCFO[i,ColF3("F3_VALIPI")]
+		Else
+			aGrade[1,4]:=""
+		Endif
+		If aResCFO[i,ColF3("F3_ISENIPI")]>0
+			nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","2")})
+			aGrade[nx,4]:="2"
+			aGrade[nx,5]:=aResCFO[i,ColF3("F3_ISENIPI")]
+		Endif
+		If aResCFO[i,ColF3("F3_OUTRIPI")]>0
+			nx:=Ascan(aGrade,{|x|x[4]==If(!lImpZer,"","3")})
+			aGrade[nx,4]:="3"
+			aGrade[nx,5]:=aResCFO[i,ColF3("F3_OUTRIPI")]
+		Endif
+
+		aDados:=Array(18)
+        If !(Substr(cCFO,1,1)==cSvCFO).and.!(ALLTRIM(cCFO)=="TTT")
+			FmtLin(@aDados,aL[18],,,@nLin)
+			cSvCFO:=Substr(cCFO,1,1)
+			aDados[6]:=If(cSvCFO="0",,aCFOS[Val(cSvCFO)])
+			FmtLin(@aDados,aL[18],,,@nLin)
+			aDados[6]:=Replic("=",If(cSvCFO="0",3,Len(aCFOS[Val(cSvCFO)])))
+			FmtLin(@aDados,aL[18],,,@nLin)
+		Endif
+
+		If (nLin+4)>=nLimPag
+			R931Filler()
+			R931Cabec()
+		Endif
+
+		If ("TT"$cCFO)
+			FmtLin(@aDados,aL[18],,,@nLin)
+            aDados[6]:=If(ALLTRIM(cCFO)=="TTT",STR0035,STR0036) //"TOTAL"###"SUB-TOTAL"
+		Else
+            aDados[10]:=TransForm(cCFO,PESQPICT("SF3","F3_CFO"))
+		Endif
+		aDados[8]:=aResCFO[i,ColF3("F3_VALCONT")]
+
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Imprime Linhas de detalhe              ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		R931ImpGrade()
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+				FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+			Endif
+		End
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Para atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro) .and. aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aResCFO[i,ColF3("F3_BASERET")]
+			if nColuna ==1
+				aDados[18]:=STR0001+Alltrim(Transform(aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[14]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+			    If F3_TIPO == "D"
+				   aDados[14]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			    Else
+				   aDados[18]:=STR0001+Alltrim(Transform(aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		ElseIf nColuna ==2 .and. aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0) >0
+			aDados[11]:="ST"
+			aDados[12]:=aResCFO[i,ColF3("F3_BASERET")]
+			aDados[14]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		ElseIf nColuna ==3 .and. aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0) >0
+            If aResCFO[i,ColF3("F3_TIPO")] == "D"
+			   aDados[11]:="ST"
+			   aDados[12]:=aResCFO[i,ColF3("F3_BASERET")]
+			   aDados[14]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			 Else
+			   aDados[11]:="ST"
+			   aDados[12]:=aResCFO[i,ColF3("F3_BASERET")]
+			   aDados[18]:=STR0001+Alltrim(Transform(aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			 Endif  
+			FmtLin(@aDados,aL[18],cPictVl,,@nLin)
+		Endif
+	Else
+       //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+       //³Controla a impressao de CFO's de Saida.³
+       //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	    If Val(Substr(cCFO,1,1))<5 .AND. !(ALLTRIM(cCFO)=="TTT")
+	       Loop
+	    Endif                      
+		If i==1
+			If mv_par27 == 1 .And. nTotIcmDeb > 0
+				FmtLin(@aDados,aL[20],,,@nLin)
+				aDados[15]:= STR0042+Transform(nTotIcmDeb,PESQPICT("SF3","F3_ICMSRET")) //"ICMS A SER DEBITADO: "
+				FmtLin(@aDados,aL[20],,,@nLin)
+			Endif
+
+			FmtLin(@aDados,aL[20],,,@nLin)
+			aDados[3]:=STR0034 //"RESUMO DAS OPERACOES E PRESTACOES POR CODIGO FISCAL DE OPERACAO"
+			FmtLin(@aDados,aL[20],,,@nLin)
+			aDados[3]:="==============================================================="
+			FmtLin(@aDados,aL[20],,,@nLin)
+		EndIf
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Cria Array com mensagens a serem impressas na coluna de Observacao³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		aDados:=Array(15)
+
+        If !(Substr(cCFO,1,1)==cSvCFO).and.!(ALLTRIM(cCFO)=="TTT")
+			If (nLin+3)>=nLimPag
+			   R931Filler()
+			   R931Cabec()
+			Endif
+			FmtLin(@aDados,aL[20],,,@nLin)
+			cSvCFO:=Substr(cCFO,1,1)
+			aDados[3]:=If(cSvCFO="0",,aCFOS[Val(cSvCFO)])
+			FmtLin(@aDados,aL[20],,,@nLin)
+			aDados[3]:=Replic("=",If(cSvCFO="0",3,Len(aCFOS[Val(cSvCFO)])))
+			FmtLin(@aDados,aL[20],,,@nLin)
+		Endif
+		If ("TT"$cCFO)
+			FmtLin(@aDados,aL[20],,,@nLin)
+            aDados[3]:=If(ALLTRIM(cCFO)=="TTT",STR0035,STR0036) //"TOTAL"###"SUB-TOTAL"
+		Else
+            aDados[8]:=TransForm(cCFO,PESQPICT("SF3","F3_CFO"))
+		Endif
+		aDados[6]:=aResCFO[i,ColF3("F3_VALCONT")]
+		aDados[9]:="ICMS"
+		aDados[10]:=aResCFO[i,ColF3("F3_BASEICM")]
+		aDados[12]:=aResCFO[i,ColF3("F3_VALICM")]
+		aDados[13]:=aResCFO[i,ColF3("F3_ISENICM")]
+		aDados[14]:=aResCFO[i,ColF3("F3_OUTRICM")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		aDados[9]:="IPI"
+		aDados[10]:=aResCFO[i,ColF3("F3_BASEIPI")]
+		aDados[12]:=aResCFO[i,ColF3("F3_VALIPI")]
+		aDados[13]:=aResCFO[i,ColF3("F3_ISENIPI")]
+		aDados[14]:=aResCFO[i,ColF3("F3_OUTRIPI")]
+		R931LoadObs()
+		FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+
+		nPosObs:=Ascan(aObs,{|x|x[2]})
+		While nPosObs>0
+			R931LoadObs()
+			If nPosObs>0
+     		   FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+			Endif
+		End
+
+ 		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Atender legislacao Fomentar de GO³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !Empty(cTitLivro) .and. aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aResCFO[i,ColF3("F3_BASERET")]
+			if nColuna ==1
+				aDados[15]:=STR0001+Alltrim(Transform(aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+			ElseIf nColuna == 2
+				aDados[12]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			ElseIf nColuna == 3
+                If F3_TIPO == "D"
+				   aDados[12]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+                Else
+				   aDados[15]:=STR0001+Alltrim(Transform(aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0),PESQPICT("SF3","F3_ICMSRET"))) //"ICMS RETIDO: "
+				Endif   
+			Endif
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Elseif nColuna == 2 .and. aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aResCFO[i,ColF3("F3_BASERET")]
+			aDados[12]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Elseif nColuna == 3 .and. aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0) >0
+			aDados[9]:="ST"
+			aDados[10]:=aResCFO[i,ColF3("F3_BASERET")]
+			aDados[12]:=aResCFO[i,ColF3("F3_ICMSRET")]-IIF(lExist,aResCFO[i,ColF3("F3_OBSSOL")],0)
+			FmtLin(@aDados,aL[20],cPictVl,,@nLin)
+		Endif
+	Endif
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Completa preenchimento da folha ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If i==Len(aResCFO)
+		If nTipoMov==1
+			FmtLin(@aDados,aL[18],,,@nLin)
+		Else
+			FmtLin(@aDados,aL[20],,,@nLin)
+		Endif
+		aResCFO:={}
+		R931Filler()
+	Endif
+Next i
+
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931ResEst³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Resumo por Estado                                          ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931ResEst
+Local i:=1
+Local lFirstCO:=.T.
+Local lFirstNC:=.T.
+Local nTotvlrctb:=0
+Local nTotvlrbsc:=0
+Local nTotimpdeb	:=0
+Local nTotisenta	:=0
+Local nTotoutras	:=0
+Local nTotIcmCre	:=0
+Local nTotIPICre	:=0
+Local nTotBasIPI	:=0
+
+If Len(aResumo)==0 .Or. !(lTotPerIcm .Or. lTotPerIPI)
+	Return
+Endif
+
+nLin:=80
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Arranja o resumo em ordem de CFO e Estado³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aResumo:=ASort(aResumo,,,{|x,y|x[1]+x[2]<y[1]+y[2]})
+lFirstCO:=.T.
+lFirstNC:=.T.
+For i:=1 to Len(aResumo)
+   If nLin>nLimPag
+		R931Cabec()
+	Endif
+	If nTipoMov==1
+		aDados:=Array(18)
+		If (lLisEstOri.Or.(!lLisEstOri.And.cMV_Estado!=aResumo[i,2]))
+			If i==1
+				FmtLin(@aDados,aL[17],,,@nLin)
+				aDados[8]:=STR0037 //"DEMONSTRATIVO POR ESTADO DE ORIGEM DA MERCADORIA OU DE INICIO DA PRESTACAO DE SERVICO"
+				FmtLin(@aDados,aL[17],,,@nLin)
+				aDados[8]:="====================================================================================="
+				FmtLin(@aDados,aL[17],,,@nLin)
+				FmtLin(@aDados,aL[17],,,@nLin)
+			Endif
+         
+		    aGrade:={}
+
+
+			If mv_par26 == 1
+	           aDados[07]:=aResumo[i,2] 		// Estado
+			   aDados[08]:=aResumo[i,3] 		//Valor Contabil
+
+			   If aResumo[i,4]>0 //Base de Calculo
+				  AADD(aGrade,{"1",aResumo[i,4]})
+			   Endif
+               If aResumo[i,7]>0 .And. lLisIsenta //ICMS Isentas
+                  AADD(aGrade,{"2",aResumo[i,7]})
+               EndIf
+               If aResumo[i,5]>0 //ICMS Outras
+				  AADD(aGrade,{"3",aResumo[i,5]})
+			   Endif
+
+               If aResumo[i,8]>0          		//Valor Icms
+				  aDados[14] :=aResumo[i,8]
+               EndIf
+               If aResumo[i,9]>0 				// Base de Calculo IPI
+				  aDados[16] :=aResumo[i,9]
+			   Endif
+               If aResumo[i,10]>0          		//Valor IPI
+				  aDados[17] :=aResumo[i,10]
+               EndIf
+			Else
+	           aDados[7]:=aResumo[i,2] // Estado
+			   aDados[8]:=aResumo[i,3] //Valor Contabil
+			   If aResumo[i,4]>0 //Base de Calculo
+				  AADD(aGrade,{"1",aResumo[i,4]})
+			   Endif
+               If aResumo[i,7]>0 .And. lLisIsenta //ICMS Isentas
+                  AADD(aGrade,{"2",aResumo[i,7]})
+               EndIf
+               If aResumo[i,5]>0 //ICMS Outras
+				  AADD(aGrade,{"3",aResumo[i,5]})
+			   Endif
+            Endif			
+			If aResumo[i,6]>0 .and. nColuna ==1   //ICMS Retido
+				aDados[18]:=STR0038+Alltrim(Transform(aResumo[i,6],PESQPICT("SF3","F3_ICMSRET")))
+			Endif 
+
+			 //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄX¿
+             //³criar totalizador de resumo por estado. quando o parametro  mv_par24 for sim ³
+             //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄXÙ
+
+			IF MV_PAR25 == 1                
+     		   nTotvlrctb +=aResumo[i,3] //Valor Contabil
+	    	   nTotvlrbsc +=aResumo[i,4] //Base de Calculo
+	    	   If mv_par26 == 1
+				  nTotIcmCre	+=aResumo[i,08] //Total Icm Creditado
+				  nTotIPICre	+=aResumo[i,10] //Total Ipi Creditado
+				  nTotBasIPI	+=aResumo[i,09] //Base de Calculo IPI
+	    	   Endif
+			endif 
+
+			if len(aGrade) > 0
+				For j:=1 to Len(aGrade)
+					aDados[11]:=aGrade[j,1]
+					aDados[12]:=aGrade[j,2]
+					FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+				Next j
+			Else
+				FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+			Endif	
+			If aResumo[i,13]>0 .and. nColuna ==1   //ICMS NORMAL
+				aDados[18]:=STR0043+Alltrim(Transform(aResumo[i,13],PESQPICT("SF3","F3_OBSICM")))
+				FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+			Endif			
+			If aResumo[i,14]>0 .and. nColuna ==1   //ICMS ST. INT.
+				aDados[18]:=STR0044+Alltrim(Transform(aResumo[i,14],PESQPICT("SF3","F3_OBSSOL")))
+				FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+			Endif	
+		Endif
+	Else
+		aDados:=Array(15)
+		If (lLisEstOri.Or.(!lLisEstOri.And.cMV_Estado!=aResumo[i,2]))
+			If i==1
+				FmtLin(@aDados,aL[19],,,@nLin)
+				aDados[7]:=STR0039 //"DEMONSTRATIVO POR ESTADO DE DESTINO DA MERCADORIA OU DA PRESTACAO DE SERVICO"
+				FmtLin(@aDados,aL[19],,,@nLin)
+				aDados[7]:="============================================================================"
+				FmtLin(@aDados,aL[19],,,@nLin)
+				FmtLin(@aDados,aL[19],,,@nLin)
+			Endif
+			If lFirstCO.and.aResumo[i,1]=="CO"
+				lFirstCO:=.F.
+				aDados[9]:=STR0040 //"OPERACOES REALIZADAS COM CONTRIBUINTES"
+				FmtLin(@aDados,aL[19],,,@nLin)
+				aDados[9]:="======================================"
+				FmtLin(@aDados,aL[19],,,@nLin)
+			Endif
+			If lFirstNC.and.aResumo[i,1]=="NC"
+				lFirstNC:=.F.
+				aDados[9]:=STR0041 //"OPERACOES REALIZADAS COM NAO CONTRIBUINTES"
+				FmtLin(@aDados,aL[19],,,@nLin)
+				aDados[9]:="=========================================="
+				FmtLin(@aDados,aL[19],,,@nLin)
+			Endif
+
+			If mv_par26 == 1
+			   aDados[05]:=aResumo[i,2]
+			   aDados[06]:=aResumo[i,3]
+			   aDados[09]:="ICMS"
+			   aDados[10]:=aResumo[i,4]
+			   aDados[12]:=aResumo[i,8]
+			   aDados[13]:=aResumo[i,7]            
+			   aDados[14]:=aResumo[i,5]            
+			Else
+			   aDados[5]:=aResumo[i,2]
+			   aDados[6]:=aResumo[i,3]
+			   aDados[9]:="ICMS"
+			   aDados[10]:=aResumo[i,4]
+			Endif   
+
+            IF mv_par25 == 1                
+     		   nTotvlrctb +=aResumo[i,3] //Valor Contabil
+	    	   nTotvlrbsc +=aResumo[i,4] //Base de Calculo
+	    	   If mv_par26 == 1
+				  nTotimpdeb	+=aResumo[i,8]
+				  nTotisenta	+=aResumo[i,7]
+				  nTotoutras	+=aResumo[i,5]
+	    	   Endif
+     		endif 
+
+			If aResumo[i,6]>0 .and. nColuna == 1
+				aDados[15]:=STR0038+Alltrim(Transform(aResumo[i,6],PESQPICT("SF3","F3_ICMSRET"))	) //"ICMS RETIDO...: "
+			Endif
+			FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+			If aResumo[i,13]>0 .and. nColuna ==1   //ICMS NORMAL
+				aDados[15]:=STR0043+Alltrim(Transform(aResumo[i,13],PESQPICT("SF3","F3_OBSICM")))
+				FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+			Endif			
+			If aResumo[i,14]>0 .and. nColuna ==1   //ICMS ST. INT.
+				aDados[15]:=STR0044+Alltrim(Transform(aResumo[i,14],PESQPICT("SF3","F3_OBSSOL")))
+				FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+			EndIf
+		Endif
+	Endif
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Completa preenchimento da folha ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If i==Len(aResumo)
+
+	   IF nTipoMov==1 .AND. MV_PAR25 == 1
+          aDados[5]		:= STR0035
+          aDados[8]		:= nTotvlrctb //TOTAL Valor Contabil
+          aDados[12]	:= nTotvlrbsc //TOTAL Base de Calculo    
+          If mv_par26 == 1
+	   	     aDados[14]	:= nTotIcmCre
+		     aDados[17]	:= nTotIPICre
+		     aDados[16]	:= nTotBasIPI
+		  Endif   
+
+			FmtLin(@aDados,aL[17],cPictVl,,@nLin)
+		ELSE
+          IF  nTipoMov == 2  .AND. MV_PAR25 == 1
+              aDados[03]	:=	STR0035
+              aDados[06]	:=	nTotvlrctb //TOTAL Valor Contabil
+              aDados[10]	:=	nTotvlrbsc //TOTAL Base de Calculo
+              If mv_par26 == 1
+		         aDados[12]	:=	nTotimpdeb
+			     aDados[13]	:=	nTotisenta
+			     aDados[14]	:=	nTotoutras
+			  Endif   
+              FmtLin(@aDados,aL[19],cPictVl,,@nLin)
+          ENDIF
+       ENDIF
+	   
+	   R931Filler()
+	Endif
+Next i
+aResumo:={}
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931LoadObs³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Carrega observacao para ser impressa                       ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931LoadObs
+
+nPosObs:=Ascan(aObs,{|x|x[2]})
+If nPosObs>0
+	aDados[If(nTipoMov==1,18,15)]:=aObs[nPosObs,1]
+	aObs[nPosObs,2]:=.F.
+Endif
+
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931Totais ³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Aciona funcoes de totalizacao                              ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931Totais
+R931Transp()
+If lTotalDia
+	R931TotDia()
+	R931Transp()
+Endif
+
+lTotPerICM:=(nSvApurICM!=DefPeriodo(dDia,nApurICM)) .Or. IIf(nApurIcm==3,Month(dDia)!=Month(dDiaAnt),.F.)
+lTotPerIPI:=(nSvApurIPI!=DefPeriodo(dDia,nApurIPI)) .Or. IIf(nApurIpi==3,Month(dDia)!=Month(dDiaAnt),.F.)
+lTotMes:=(Month(dDiaAnt)!=Month(dDia))
+
+
+R931TotPer()
+R931TotMes()
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Termino do Relatorio³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If lTotMes
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Imprime Resumo por CFO ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	R931ResCfo()
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Imprime Resumo por Estado ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+    R931ResEst()
+Endif
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Imprime Termo de Encerramento³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+R931TermEnc()
+If nLin<=nLimPag .And. (cArqTemp)->(EOF())
+   R931Filler()
+Endif   
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931TermIni³Autor ³ Rodrigo de A. Sartorio³ Data ³ 25.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime termo de abertura no caso de so listar termos      ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931TermIni()
+nPagina:=1
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Imprime Termos de Abertura/Encerramento³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aPagTerm:=CtrlPg(@nPagina,nQtFeixe,lReiniPg)
+cPagina :=Transform(StrZero(nPagina,6),"@R 999.999")
+If (nImpTerm == 2 .Or. nImpTerm == 3).and.aPagTerm[1]+aPagTerm[2]>0
+	If nTipoMov==1
+		ImprimeTermo(aPagTerm[1],nPagIni,nQtFeixe,GetMv("MV_LENTEN"),nLargMax,cPerg)
+		nPagIni:=ImprimeTermo(aPagTerm[2],nPagIni,nQtFeixe,GetMv("MV_LENTAB"),nLargMax,cPerg)
+	Else
+		ImprimeTermo(aPagTerm[1],nPagIni,nQtFeixe,GetMv("MV_LSAIEN"),nLargMax,cPerg)
+		nPagIni:=ImprimeTermo(aPagTerm[2],nPagIni,nQtFeixe,GetMv("MV_LSAIAB"),nLargMax,cPerg)
+	Endif
+Endif
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931TermEnc³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime termo de encerramento no fim do relatorio          ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931TermEnc()
+If ((Eof().Or.!lHouveMov).and. nImpTerm == 3) .Or. (nImpTerm == 2)
+	If nTipoMov==1
+		ImprimeTermo(nPagina,nPagIni,nQtFeixe,GetMv("MV_LENTEN"),nLargMax,cPerg)
+	Else
+		ImprimeTermo(nPagina,nPagIni,nQtFeixe,GetMv("MV_LSAIEN"),nLargMax,cPerg)
+	Endif
+Endif
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ R931Filler³Autor ³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Preenche folha com linha vazias                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931Filler
+
+IF nLin < 67        
+
+   While nLin<nLimPag
+     	FmtLin(@aDados,If(nTipoMov==1,aL[17],aL[19]),,,@nLin) 
+   End                       
+   If nLin>=nLimPag
+      FmtLin(@aDados,aL[1],,,@nLin)
+   ENdif   
+
+ENDIF
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931IniGrade³Autor³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Inicializa array aGrade do registro de entradas            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931IniGrade
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Monta grade de impressao            ³
+//³ [1]=Codigo de Operacao de ICMS      ³
+//³ [2]=Base de ICMS / Isentas / Outras ³
+//³ [3]=Valor do ICMS                   ³
+//³ [4]=Codigo de Operacao de IPI       ³
+//³ [5]=Base de IPI / Isentas / Outras  ³
+//³ [6]=Valor do IPI                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If !lImpZer
+	aGrade:={{"",0,0,"",0,0},{"",0,0,"",0,0},{"",0,0,"",0,0}}
+Else
+	aGrade:={{"1",0,0,"1",0,0},{"2",0,0,"2",0,0},{"3",0,0,"3",0,0}}
+Endif
+Return
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³R931ImpGrade³Autor³ Juan Jose Pereira     ³ Data ³ 23.12.96 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime aGrade do registro de entradas                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+STATIC FUNCTION R931ImpGrade
+
+Local lImprimiu :=.F.
+Local nLinhas   :=3
+
+For nx:=1 to Len(aGrade)
+	If !lImpZer.and.(aGrade[nx,2]+aGrade[nx,3]+aGrade[nx,5]+aGrade[nx,6])==0
+		Loop
+	Endif
+	lImprimiu:=.T.
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Colunas de ICMS ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	aDados[11]:=aGrade[nx,1]
+	aDados[12]:=aGrade[nx,2]
+	aDados[14]:=aGrade[nx,3]
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Colunas de IPI  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If aGrade[nx,5]+aGrade[nx,6]>0
+        nLinha :=6
+		aDados[15]:=aGrade[nx,4]
+		aDados[16]:=aGrade[nx,5]
+		aDados[17]:=aGrade[nx,6]
+	Endif
+	R931LoadObs()
+	FmtLin(@aDados,If(!lTotGrade,aL[17],aL[18]),cPictVl,,@nLin)
+Next nx
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Imprime itens com lancamento no livro fiscal zerado   ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If !lImprimiu .And. !Empty(aDados[1]) .And. F3_VALCONT>0
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Colunas de ICMS ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	aDados[11]:="1"
+	aDados[12]:=0
+	aDados[14]:=0
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Colunas de IPI  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	aDados[15]:="1"
+	aDados[16]:=0
+	aDados[17]:=0
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Coluna de Observacoes ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	R931LoadObs()
+	FmtLin(@aDados,If(!lTotGrade,aL[17],aL[18]),cPictVl,,@nLin)
+Endif
+
+Return

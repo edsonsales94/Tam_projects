@@ -1,0 +1,31 @@
+#INCLUDE "URZUM.CH" 
+/*/{protheus.doc}mt120ok
+PE para validação ao Clicar no 'OK'
+@author aFill Tecnologia
+@since 20/02/2008
+/*/
+//+-----------------------------------------------------------------------------------//
+//|Empresa...: aFill Tecnologia
+//|Funcao....: U_MT120OK()
+//|Autor.....: aFill Tecnologia - suporte@afill.com.br
+//|Data......: 20 de Fevereiro de 2008, 08:00
+//|Uso.......: SIGACOM   
+//|Versao....: Protheus - 10
+//|Descricao.: PE para validação ao Clicar no 'OK'
+//|Observação: 
+//+-----------------------------------------------------------------------------------//
+*-----------------------------------------*
+User Function MT120OK()
+*-----------------------------------------*
+
+lRet := .T.
+
+If !IsBlind()
+	lRet := U_UZPCVIMP("GERAL")
+
+	If !lRet
+		MsgStop(MSGPI1,"Pedido Importado")
+	EndIf
+EndIf
+
+Return(lRet)

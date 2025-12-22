@@ -1,0 +1,32 @@
+#include "rwmake.ch"  
+
+/*/{Protheus.doc} PagCLivre
+
+Retorna o Campo Livre conforme o Código de Barras ou Linha Digitável.
+
+@type function
+@author Honda Lock
+@since 01/11/2017
+
+@return Caracter, Campo Livre.
+
+/*/
+
+//////////////////////////////////////////////////////////////////////////////
+//                              											//
+//  Retorna o Campo Livre conforme o Código de Barras ou Linha Digitável.  	//
+//                              											//
+//////////////////////////////////////////////////////////////////////////////
+
+User Function PagCLivre()
+
+// Declaração das Variáveis.
+Local _cLivre	:= ""
+
+If !Empty(SE2->E2_CODBAR)
+	_cLivre := Substr(SE2->E2_CODBAR,20,25)
+Else
+	_cLivre	:= Substr(SE2->E2_ZZIPTE,5,5)+Substr(SE2->E2_ZZIPTE,11,10)+Substr(SE2->E2_ZZIPTE,22,10)
+EndIf
+
+Return(_cLivre)

@@ -1,0 +1,414 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+#IFNDEF WINDOWS
+    #DEFINE PSAY SAY
+#ENDIF
+#DEFINE DESLOC_ETQ  57
+
+User Function Matr710()        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP6 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("TITULO,CDESC1,CDESC2,CDESC3,WNREL,TAMANHO")
+SetPrvt("CSTRING,AORD,AIMP,ARETURN,NOMEPROG,ALINHA")
+SetPrvt("NLASTKEY,CPERG,LEND,CBTXT,NTIPO,NORDEM")
+SetPrvt("CBCONT,CABEC1,CABEC2,LIMITE,LCONTINUA,NVOLUME")
+SetPrvt("NVOLUMEX,AETIQ,NETIQUETA,I,J,NESTAOK")
+SetPrvt("NCONTCOL,CPEDI,LRET,CCADASTRO,LI,COL")
+SetPrvt("M_PAG,CINDEX,G,CX,UEXP,SAV_TEL")
+SetPrvt("_N_LIN,_N_COL,A,B,SAV_COR,X_ALIAS")
+
+#IFNDEF WINDOWS
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 16/09/02 ==>     #DEFINE PSAY SAY
+#ENDIF
+
+// Movido para o inicio do arquivo pelo assistente de conversao do AP5 IDE em 16/09/02 ==> #DEFINE DESLOC_ETQ  57
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ MATR710  ³ Autor ³ Paulo Boschetti       ³ Data ³ 13.05.92 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Etiquetas para os volumes                                  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Sintaxe   ³ MATR710(void)                                              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ ATUALIZACOES SOFRIDAS DESDE A CONSTRUCAO INICIAL.                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ PROGRAMADOR  ³ DATA   ³ BOPS ³  MOTIVO DA ALTERACAO                   ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Edson   M.   ³05/01/98³13446A³Ace. qdo. Impressao de Pedidos Aglutin. ³±±
+±±³ Edson   M.   ³07/01/98³XXXXXX³Acerto do Lay Out de Impressao do Pedido³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÂÄÄÄÁÄÄÄÂÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Rdmake   ³ Autor ³ Luiz Carlos Vieira      ³ Data ³ Mon  10/08/98     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+titulo    := "Etiquetas para embalagens"
+cDesc1    := "Este programa   ira emitir as etiquetas"
+cDesc2    := "para as embalagens a serem despachadas."
+cDesc3    := ""
+wnrel     := ""
+tamanho   := "G"
+cString   := "SF2"
+aOrd      := { ' Etiqueta - 36 X 81mm  4 colunas ' }
+aImp      := 0
+
+aReturn   := { "Etiqueta", 1,"Producao", 2, 2, 1, "",1 }
+nomeprog  := "MATR710"
+aLinha    := { }
+nLastKey  := 0
+cPerg     := "MTR710"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para Impressao do Cabecalho e Rodape    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte("MTR710",.F.)
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                         ³
+//³ mv_par01            // Qual Serie De Nota Fiscal             ³
+//³ mv_par02            // Nota Fiscal de                        ³
+//³ mv_par03            // Nota Fiscal ate                       ³
+//³ mv_par04            // Emite por   Pedido   Nota Fiscal      ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Envia controle para a funcao SETPRINT                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+wnrel := "MATR710"            //Nome Default do relatorio em Disco
+wnrel := SetPrint(cString,wnrel,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.F.,aOrd,.F.,tamanho)
+
+If nLastKey == 27
+	Set Filter to
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+	Set Filter to
+	Return
+Endif
+
+lEnd := .F.
+
+#IFDEF WINDOWS
+    RptStatus({|| C710Imp()},Titulo)// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==>     RptStatus({|| Execute(C710Imp)},Titulo)
+    Return
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==>     Function C710Imp
+Static Function C710Imp()
+#ENDIF
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+CbTxt     := ""
+titulo    := "Etiquetas para embalagens"
+cDesc1    := "Este programa   ira emitir as etiquetas"
+cDesc2    := "para as embalagens a serem despachadas."
+cDesc3    := ""
+nTipo     := 0
+nOrdem    := 0
+CbCont    := ""
+cabec1    := ""
+cabec2    := ""
+tamanho   := "P"
+limite    := 80
+lContinua := .T.
+nVolume   := 0
+nVolumex  := 0
+aEtiq     := Array(8,4)
+nEtiqueta := 1
+I         := 1
+J         := 1
+aOrd      := { ' Etiqueta - 36 X 81mm  4 colunas ' }
+aImp      := 0
+nEstaOk   := 0
+nContCol  := 1
+cPedi     := ""
+
+#IFDEF WINDOWS
+    lRet      := .F.
+    cCadastro := OemToAnsi("Etiquetas de Volume")
+#ENDIF
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Definicao do cabecalho e tipo de impressao do relatorio      ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+cbtxt    := SPACE(10)
+cbcont   := 0
+li       := 0
+col      := 0
+m_pag    := 1
+
+titulo := "ETIQUETAS PARA EMBALAGENS"
+cabec1 := ""
+cabec2 := ""
+
+nTipo  := 18
+
+nOrdem := aReturn[8]
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Analisa o parametro mv_par04                                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+cIndex := CriaTrab(nil,.f.)
+dbSelectArea("SD2")
+If mv_par04 == 1
+	IndRegua("SD2",cIndex,"D2_FILIAL+D2_DOC+D2_SERIE+D2_ITEM",,,"Selecionando Registros...")		//"Selecionando Registros..."
+Else
+	dbSetOrder(3)
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Acesso nota fiscal informada pelo usuario                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+dbSelectArea("SF2")
+dbSeek(xFilial()+mv_par02+mv_par01,.T.)
+
+
+SetRegua(RecCount())		// Total de Elementos da regua
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Faz manualmente porque nao chama a funcao Cabec()                 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+@ 0,0 PSAY AvalImp(Limite)
+
+While ! eof() .and. Lcontinua .and. xFilial()==F2_FILIAL .and. F2_DOC <= mv_par03
+	
+	IncRegua()
+
+	If F2_SERIE != mv_par01
+		dbskip()
+		Loop
+	EndIf
+	
+	#IFNDEF WINDOWS
+        If LastKey() == 286    //ALT_A
+			lEnd := .t.
+		End
+	#ENDIF
+	
+	IF lEnd
+        @PROW()+1,001 PSAY "CANCELADO PELO OPERADOR"
+		lContinua := .F.
+		EXIT
+	ENDIF
+	
+    dbSelectArea("SD2")
+	dbSetOrder(3)
+	dbSeek(xFilial()+SF2->F2_DOC+SF2->F2_SERIE)
+	dbSelectArea("SA1")
+	dbSeek(xFilial()+SF2->F2_CLIENTE+SF2->F2_LOJA)
+	dbSelectArea("SA4")
+	dbSeek(xFilial() +SF2->F2_TRANSP)
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Verifica se mesmo mudando a Nota fiscal o pedido e' o mesmo  ³
+	//³ imprime apenas uma vez a etiqueta de volume                  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If mv_par04 == 1
+		If cPedi == SD2->D2_PEDIDO
+			dbSelectArea("SF2")
+			dbSkip()
+			Loop
+		Endif
+	EndIf
+	
+	cPedi := SD2->D2_PEDIDO
+	
+	For G:=1 to 4
+		cX := str(G,1)
+        uExp := "SF2->F2_VOLUME"+cX
+        nVolume := nVolumex := &uExp
+		While nVolume != 0
+			If nOrdem == 1
+				If aImp == 0
+					#IFNDEF WINDOWS
+                        Sav_Tel := savescreen(16,7,20,74)
+						While nEstaOk != 2
+                            Set Device To Print
+							_n_Lin := pRow()
+							_n_Col := pCol()
+							@ _n_Lin,_n_Col say chr( getMV( "MV_COMP" ) )
+							setPrc( _n_Lin,_n_Col )
+							For A := 1 To 8
+								nContCol := 0
+								For B := 1 to 4
+                                    @ Li,nContCol PSAY Replicate("X",49)
+                                    nContCol := nContCol + DESLOC_ETQ
+								Next B
+                                Li := Li + 1
+							Next A
+							MS_FLUSH()
+                            Li := Li + 1
+                            Set Device to Screen
+                            Sav_Cor := SetColor()
+							Screendraw("SMT152",16,8,-1,1)
+							nEstaOk := Menuh({"Nao","Sim"},18,57,"b/bg,w+/n,r/bg","NS","",1)
+                            Setcolor(Sav_Cor)
+						End
+						RestScreen(16,7,20,74,Sav_Tel)
+                        Set Device to Print
+					#ELSE
+						While !lRet
+							lRet := (MsgYesNo(OemToAnsi("O Alinhamento da Impressora esta correto ?"),OemToAnsi("Aten‡„o")))
+						End
+					#ENDIF
+				EndIf
+				_n_Lin := pRow()
+				_n_Col := pCol()
+                @ _n_Lin,_n_Col PSAY chr( getMV( "MV_COMP" ) )
+				setPrc( _n_Lin,_n_Col )
+				Do Case
+					Case nEtiqueta == 1
+						If nVolume != 0
+							aEtiq[1,nEtiqueta] := "Cliente: "+SD2->D2_CLIENTE+"                 Pedido: "+SD2->D2_PEDIDO
+							aEtiq[2,nEtiqueta] := SA1->A1_NOME
+							aEtiq[3,nEtiqueta] := IIF(!empty(SA1->A1_ENDENT),Subs(SA1->A1_ENDENT,1,49),Subs(SA1->A1_END,1,49))
+							aEtiq[4,nEtiqueta] := "Cep: "+Trans(SA1->A1_CEP,"@R 99999-999")+" "+AllTrim(SA1->A1_MUN)+" "+SA1->A1_EST
+							aEtiq[5,nEtiqueta] := "Transportadora: "
+							aEtiq[6,nEtiqueta] := SA4->A4_NOME
+							aEtiq[7,nEtiqueta] := "Volume: "+AllTrim(STR((nVolumex-nVolume)+1))+"/"+AllTrim(STR(nVolumex))
+                            x_Alias:=alias()
+                            DbSelectArea("SF2")
+							    aEtiq[7,nEtiqueta] := aEtiq[7,nEtiqueta] +"   Especie: "+FieldGet(FieldPos("F2_ESPECI1"))
+                            DbSelectArea(x_Alias)
+							aEtiq[8,nEtiqueta] := "Nota Fiscal/Serie: "+SF2->F2_DOC+"/"+mv_par01
+                            nVolume   := nVolume - 1
+                            nEtiqueta := nEtiqueta + 1
+						EndIf
+					Case nEtiqueta == 2
+						If nVolume != 0
+							aEtiq[1,nEtiqueta] := "Cliente: "+SD2->D2_CLIENTE+"                 Pedido: "+SD2->D2_PEDIDO
+							aEtiq[2,nEtiqueta] := SA1->A1_NOME
+							aEtiq[3,nEtiqueta] := IIF(!empty(SA1->A1_ENDENT),Subs(SA1->A1_ENDENT,1,49),Subs(SA1->A1_END,1,49))
+							aEtiq[4,nEtiqueta] := "Cep: "+Trans(SA1->A1_CEP,"@R 99999-999")+" "+AllTrim(SA1->A1_MUN)+" "+SA1->A1_EST
+							aEtiq[5,nEtiqueta] := "Transportadora: "
+							aEtiq[6,nEtiqueta] := SA4->A4_NOME
+							aEtiq[7,nEtiqueta] := "Volume: "+AllTrim(STR((nVolumex-nVolume)+1))+"/"+AllTrim(STR(nVolumex)) //+"    Especie: "+FieldGet(FieldPos("SF2->F2_ESPECI"+cX))
+                            x_Alias:=alias()
+                            DbSelectArea("SF2")
+							    aEtiq[7,nEtiqueta] := aEtiq[7,nEtiqueta] +"   Especie: "+FieldGet(FieldPos("F2_ESPECI1"))
+                            DbSelectArea(x_Alias)                            
+							aEtiq[8,nEtiqueta] := "Nota Fiscal/Serie: "+SF2->F2_DOC+"/"+mv_par01
+                            nVolume   := nVolume - 1
+                            nEtiqueta := nEtiqueta + 1
+                        EndIf
+					Case nEtiqueta == 3
+						If nVolume != 0
+							aEtiq[1,nEtiqueta] := "Cliente: "+SD2->D2_CLIENTE+"                 Pedido: "+SD2->D2_PEDIDO
+							aEtiq[2,nEtiqueta] := SA1->A1_NOME
+							aEtiq[3,nEtiqueta] := IIF(!empty(SA1->A1_ENDENT),Subs(SA1->A1_ENDENT,1,49),Subs(SA1->A1_END,1,49))
+							aEtiq[4,nEtiqueta] := "Cep: "+Trans(SA1->A1_CEP,"@R 99999-999")+" "+AllTrim(SA1->A1_MUN)+" "+SA1->A1_EST
+							aEtiq[5,nEtiqueta] := "Transportadora: "
+							aEtiq[6,nEtiqueta] := SA4->A4_NOME
+							aEtiq[7,nEtiqueta] := "Volume: "+AllTrim(STR((nVolumex-nVolume)+1))+"/"+AllTrim(STR(nVolumex))  //+"    Especie: "+FieldGet(FieldPos("SF2->F2_ESPECI"+cX))
+                            x_Alias:=alias()
+                            DbSelectArea("SF2")
+							    aEtiq[7,nEtiqueta] := aEtiq[7,nEtiqueta] +"   Especie: "+FieldGet(FieldPos("F2_ESPECI1"))
+                            DbSelectArea(x_Alias)                            
+							aEtiq[8,nEtiqueta] := "Nota Fiscal/Serie: "+SF2->F2_DOC+"/"+mv_par01
+                            nVolume   := nVolume - 1
+                            nEtiqueta := nEtiqueta + 1
+                        EndIf
+					Case nEtiqueta == 4
+						If nVolume != 0
+							aEtiq[1,nEtiqueta] := "Cliente: "+SD2->D2_CLIENTE+"                 Pedido: "+SD2->D2_PEDIDO
+							aEtiq[2,nEtiqueta] := SA1->A1_NOME
+							aEtiq[3,nEtiqueta] := IIF(!empty(SA1->A1_ENDENT),Subs(SA1->A1_ENDENT,1,49),Subs(SA1->A1_END,1,49))
+							aEtiq[4,nEtiqueta] := "Cep: "+Trans(SA1->A1_CEP,"@R 99999-999")+" "+Trim(SA1->A1_MUN)+" "+SA1->A1_EST
+							aEtiq[5,nEtiqueta] := "Transportadora: "
+							aEtiq[6,nEtiqueta] := SA4->A4_NOME
+							aEtiq[7,nEtiqueta] := "Volume: "+AllTrim(STR((nVolumex-nVolume)+1))+"/"+AllTrim(STR(nVolumex))   //+"    Especie: "+FieldGet(FieldPos("SF2->F2_ESPECI"+cX))
+                            x_Alias:=alias()
+                            DbSelectArea("SF2")
+							    aEtiq[7,nEtiqueta] := aEtiq[7,nEtiqueta] +"   Especie: "+FieldGet(FieldPos("F2_ESPECI1"))
+                            DbSelectArea(x_Alias)                            
+							aEtiq[8,nEtiqueta] := "Nota Fiscal/Serie: "+SF2->F2_DOC+"/"+mv_par01
+                            nVolume   := nVolume - 1
+                            nEtiqueta := 1
+                            For I:= 1 TO 8
+								For J:=1 TO 4
+                                    @Li , COL  PSAY aEtiq[I,J]
+                                    COL := COL + DESLOC_ETQ
+								Next j
+                                Li  := Li +1
+								COL := 0
+							Next I
+							For I:= 1 TO 8
+								For J:=1 TO 4
+									aEtiq[I,J] := ""
+								NEXT J
+							NEXT I
+                            Li := Li + 1
+						EndIf
+				EndCase
+			EndIf
+		End
+		dbSelectArea("SD2")
+		dbSkip()
+	Next G
+	
+	dbSelectArea("SF2")
+	dbskip()
+	
+End
+
+If nOrdem == 1
+	For I:= 1 TO 8
+		For J:=1 TO 4
+			If !EMPTY(aEtiq[I,J])
+                @Li , COL  PSAY aEtiq[I,J]
+                COL := COL + DESLOC_ETQ
+			EndIf
+		NEXT J
+        Li  := Li + 1
+		COL := 0
+	Next I
+EndIf
+@ Li+1,0 PSAY ""
+Setprc(0,0)
+
+dbSelectArea("SD2")
+dbSetOrder(1)
+
+dbSelectArea("SF2")
+
+If mv_par04==1 .And. File(cIndex)
+    cIndex := cIndex + OrdBagExt()
+	RetIndex("SF2")
+	Ferase(cIndex)
+Endif
+
+Set Filter To
+dbSetOrder(1)
+Set device to Screen
+
+If aReturn[5] == 1
+	Set Printer TO
+	dbCommitAll()
+	ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+
+Return

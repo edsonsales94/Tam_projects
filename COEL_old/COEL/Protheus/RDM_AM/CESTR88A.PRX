@@ -1,0 +1,214 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR88A  ³ Autor ³ Carlos Nina          ³ Data ³ 27/12/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Imprime contagem p/conferencia                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Materiais                                                  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+#include "rwmake.ch"
+#include "topconn.ch"
+
+User Function CESTR88A()
+
+SetPrvt("NORDEM,TAMANHO,LIMITE,CSTRING,TITULO,CDESC1,MV_PAR01,MV_PAR02,MV_PAR03")
+SetPrvt("CDESC2,CDESC3,CRESP,NDOCANT,DDATANT,LCONTINUA,MV_PAR04,MV_PAR05,MV_PAR06")
+SetPrvt("LIMPRIME1,LIMPRIME2,AORD,ARETURN,NOMEPROG,NLASTKEY,MV_PAR07,MV_PAR08")
+SetPrvt("CPERG,WNREL,CBTXT,CBCONT,NLINNOT,M_PAG,MV_PAR09,NCTD")
+SetPrvt("LIN01,LIN02,LIN03,LIN04,LIN05,LIN06,LIN07,LIN08,LIN09,LIN10,LIN11,LIN12")
+SetPrvt("CCOD1,CCOD2,CCOD3,CFIC1,CFIC2,CFIC3,CDESC1,CDESC2,CDESC3")
+SetPrvt("CUM1,CUM2,CUM3,CTIP1,CTIP2,CTIP3,CLOC1,CLOC2,CLOC3,CCLI1,CCLI2,CCLI3")
+
+nOrdem    := 0
+tamanho   := "M"
+limite    := 132
+cString   := "SZP"
+titulo    := OemToAnsi("LISTAGEM P/CONTAGEM DE INVENTARIO")
+cDesc1    := OemToAnsi("Emite uma listagem para conferencia da contagem de inventario.")
+cDesc2    := OemToAnsi("")
+cDesc3    := OemToAnsi("")
+cResp     := "C"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aOrd      := {"FICHA","PRODUTO"}
+aReturn   := { "Especial", 1,"Materiais", 1, 2, 1, "",1 }
+nomeprog  := "ESTR88A"
+nLastKey  := 0
+cPerg     := "CESTR88B  "
+wnrel     := "ESTR88A"
+Tabmes    :='JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+
+ValidPerg(cPerg)
+
+pergunte(cPerg,.F.)
+
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,aOrd,.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+   Return
+Endif
+SetDefault(aReturn,cString)
+
+RptStatus({||Imprimir()})
+Return
+
+***************************
+Static Function Imprimir()
+***************************
+aStruSZ1 := SZ1->(dbStruct())    //cuja devolucao se efetua a parti de dDatIni
+cQry := "SELECT * FROM "+RetSqlName("SZP")
+cQry += " WHERE ZP_FILIAL  = '" + xFilial("SZP") + "'"
+cQry += " AND ZP_DATA = '"+DTOS(mv_par01)+"'"
+cQry += " AND ZP_COD >= '"+mv_par05+"'"
+cQry += " AND ZP_COD <= '"+mv_par06+"'"
+cQry += " AND ZP_LOCAL BETWEEN '"+ mv_par03 + "' AND '" + mv_par04 + "'"
+cQry += " AND ZP_CANCEL <> 'S'"
+
+cQry += " AND ZP_STATUS = ' '"
+
+
+IF ( mv_par02 < 4 )
+	cQry += " AND ZP_CONTAG <> ' '"
+ELSEIF ( mv_par02 == 4 )
+	cQry += " AND ZP_CONTAG = ' '"
+ENDIF
+cQry += " AND ZP_FICHA BETWEEN '"+ mv_par07 + "' AND '" + mv_par08 + "'"
+cQry += " AND D_E_L_E_T_  <> '*'"
+IF ( aReturn[8]==1 )
+   cQry += " ORDER BY ZP_LOCAL, ZP_FICHA "
+ELSE
+   cQry += " ORDER BY ZP_LOCAL, ZP_COD "
+ENDIF
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TRB', .T., .T.)
+
+aEval(SZP->(dbStruct()),{|x| If(x[2]!="C" , TcSetField("TRB",x[1],x[2],x[3],x[4]),Nil)})
+
+LIN5  := "FICHA    CODIGO   /  DESCRICAO                           ALMOX    QUANTIDADE UM  LOCALIZACAO        STATUS                          "
+LIN5A := "FICHA    CODIGO DO PRODUTO    DESCRICAO................................. TIPO ALM     QUANTIDADE UM  LOCALIZACAO      STATUS        "
+******    xxxxx-x  x------------------x x----------------------------------------x  zz  zz    xxxxxxxxx.xx xx  xxxxxxxxxxxxxxx  --FALTA CONTAR
+******              1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220       23
+******    012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+nLin  := 99
+m_pag := 0
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+*
+dbSelectArea("SH1")
+dbSetOrder(1)
+*
+SetPrc(0,0)
+@ 00,000 PSay &(aDriver[3])
+dbSelectArea("TRB")
+dbGoTop()
+SetRegua(LastRec())
+DO WHILE !EOF()
+   IncRegua()
+   IF LastKey()==27
+      lContinua := .F.
+      Exit
+   ENDIF
+   nCtd    := 0
+   TBLOCAL := TRB->ZP_LOCAL
+   DO WHILE !EOF().AND.ZP_LOCAL==TBLOCAL
+	   SB1->(dbSeek(xFilial("SB1")+TRB->ZP_COD))
+		nCtd := ( nCtd + 1 )
+      IF ( mv_par02 < 4 )
+	      cQty := ( "TRB->ZP_CONT" + STR(mv_par02,1) )   //Contagem: 1a.,2a.,3a.
+   	   nQty := &cQty
+      ENDIF
+
+      Cabec88()
+
+      @ nLin,000 PSAY TRANSF(TRB->ZP_FICHA,"@R 99999-9")
+      @ nLin,009 PSAY LEFT(TRB->ZP_COD,20)                       
+		@ nLin,030 PSAY LEFT(TRB->ZP_DESC,42)
+		@ nLin,074 PSAY SB1->B1_TIPO
+      @ nLin,078 PSAY TRB->ZP_LOCAL
+      @ nLin,084 PSAY IIF(mv_par02==4 , "      ------" , TRANSF(nQty,"@E 999999999.99") )
+      @ nLin,097 PSAY SB1->B1_UM
+      @ nLin,101 PSAY RTRIM(TRB->ZP_LOCALIZ)
+      @ nLin,118 PSAY IIF(mv_par02 == 4 , IIF(TRB->ZP_CANCEL = 'S' , "--CANCELADA" , IIF(EMPTY(TRB->ZP_CONTAG),"--FALTA CONTAR","" ) ) , "" ) 
+      nLin := nLin + 1
+		@ nLin,000 PSAY repl("-",limite)
+      dbSkip()
+   ENDDO
+   nLin := ( nLin + 1 )
+   IF ( nCtd > 1 )
+      @ nLin,000 PSAY "** TOTAL DE ITENS DO ALMOXARIFADO "+TBLOCAL+"..........: "+STRZERO(nCtd,4)
+      nLin := ( nLin + 1 )
+   ENDIF
+ENDDO
+IF ( nLin <> 99 )
+   @ 62,000 PSAY REPL('*',limite)
+   @ 63,000 PSAY '* '+SM0->M0_NOMECOM+'  Software by T.I./COEL '+IF(lContinua,'','** PROGRAMA ABORTADO')
+   @ 63,108 PSAY 'Hora Termino: '+LEFT(TIME(),8)+' *'
+   @ 64,000 PSAY REPL('*',limite)
+ENDIF
+TRB->(dbCloseArea())
+
+If aReturn[5] == 1
+   dbcommitAll()
+   ourspool(wnrel)
+Endif
+MS_FLUSH()
+Return
+
+*************************
+Static Function Cabec88()
+*************************
+IF ( nLin > 58 )
+	m_pag := 1
+	@ 00,000 PSAY repl("*",limite)
+	@ 01,000 PSAY '*T.I./COEL'
+	@ 01,040 PSAY 'EMPRESA..: ' + RTRIM(SM0->M0_NOMECOM) + IIF(SM0->M0_CODFIL=="02"," - FILIAL","")
+	@ 01,114 PSAY 'PAGINA.:    '+ STRZERO(m_pag,5,0)+'*'
+	@ 02,000 PSAY '*SYSTEM/CESTR88A'
+	@ 02,040 PSAY 'RELATORIO: LISTAGEM '+IIF(mv_par02==4 , "DOS ITENS DE INVENTARIO" , 'P/CONFERENCIA DE INVENTARIO: ' + STR(mv_par02,1)+'a. CONTAGEM' )
+	@ 02,114 PSAY 'DT.REF.: ' + DTOC(mv_par01) + '*'
+	@ 03,000 PSAY '*HORA: '+LEFT(TIME(),8)
+	@ 03,114 PSAY 'EMISSAO: ' + DTOC(MsDate())+"*"
+	@ 04,000 PSAY repl("*",limite)
+	@ 05,000 PSAY LIN5A
+	@ 06,000 PSAY repl("*",limite)
+   nLin := 6
+ENDIF
+nLin := ( nLin + 1 )
+Return
+
+/////////////////////////////
+Static Function ValidPerg(cPerg)
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                          | perspa                          | pereng                           | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01     | DefSPA1 | DefEng1 | CNT01 | var02 | Def02   | DefSPA2 | DefEng2 | CNT02 | var03 | Def03 | DefSPA3 | DefEng3 | CNT03 | var04 | Def04           | DefSPA4 | DefEng4 | CNT04 | var05 | Def05          | DefSPA5 | DefEng5 | CNT05 | F3   | PYME | GRPSX5 | HELP | PICTURE
+   aAdd(aRegs,{ cPerg,"01" , "Data Inventario              ?","Data Inventario              ?" , "Data Inventario              ?" , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"02" , "Contagem                     ?","Contagem                     ?" , "Contagem                     ?" , "mv_ch2" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par02", "1a.    " , "     " , "     " , "   " , "   " , "2a.  " , "     " , "     " , "   " , "   " , "3a." , "     " , "     " , "   " , "   " , "Sem Contagem " , "     " , "     " , "   " , "   " , "Lista geral " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"03" , "Do Almoxarifado              ?","Almoxarifado                 ?" , "Almoxarifado                 ?" , "mv_ch3" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par03", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"04" , "Ate o Almoxarifado           ?","Almoxarifado                 ?" , "Almoxarifado                 ?" , "mv_ch4" , "C" ,   02   ,   0   ,   0   , "G" , "          "  , "mv_par04", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"05" , "Do Produto                   ?","Do Produto                   ?" , "Do Produto                   ?" , "mv_ch5" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par05", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "        "   })
+   aAdd(aRegs,{ cPerg,"06" , "Ate o Produto                ?","Ate o Produto                ?" , "Ate o Produto                ?" , "mv_ch6" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par06", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"07" , "Da Ficha                     ?","Da Ficha                     ?" , "Da Ficha                     ?" , "mv_ch7" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par07", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   aAdd(aRegs,{ cPerg,"08" , "Ate a Ficha                  ?","Até a Ficha                  ?" , "Ate a Ficha                  ?" , "mv_ch8" , "C" ,   06   ,   0   ,   0   , "G" , "          "  , "mv_par08", "       " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "            " , "     " , "     " , "   " , "  " , " "  , "    " , "  " , "          " })
+   For i:=1 to Len(aRegs)
+  	   If !DbSeek(cPerg+aRegs[i,2])
+	  	  RecLock("SX1",.T.)
+		   For j:=1 to FCount()
+		  	  If j <= Len(aRegs[i])
+				 FieldPut(j,aRegs[i,j])
+			  Endif
+		   Next
+		  MsUnlock()
+	   Endif
+   Next
+   dbSelectArea(_sAlias)
+Return

@@ -1,0 +1,35 @@
+#include "TOTVS.CH"
+#include "RWMAKE.CH"
+
+User Function CTMSPrinter()
+
+Private cAcesso := Repl(" ",10)
+Private cFileLogo	:= GetSrvProfString('Startpath','') + 'LGRL' + cNUMEMP + '.BMP'
+
+ DEFINE DIALOG oMainWnd TITLE "Exemplo TMSPrinter" FROM 180,180 TO 550,700 PIXEL
+
+  // Monta objeto para impressão
+  oPrint := TMSPrinter():New("Exemplo TMSPrinter")
+  oPrint:SetPortrait()
+  oPrint:Setup()
+
+  oPrint:StartPage()
+
+  oFont1 := TFont():New('Courier new',,-18,.T.)
+  oPrint:Say( 10,10,"Texto para visualização",oFont1,1400,CLR_HRED )
+
+  oPrint:SayBitmap( 100,200,cFileLogo,400,400 )
+
+  oPrint:Line( 130,10,130,900 )
+  oPrint:Box( 130,10,600,900 )
+
+  oBrush1 := TBrush():New( , CLR_YELLOW )
+  oPrint:FillRect( {100, 10, 200, 200}, oBrush1 )
+  oBrush1:End()
+
+  // Visualiza a impressão
+  oPrint:EndPage()
+  oPrint:Preview()
+
+ ACTIVATE DIALOG oMainWnd CENTERED
+Return

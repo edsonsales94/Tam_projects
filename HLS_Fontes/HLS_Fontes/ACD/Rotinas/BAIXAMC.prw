@@ -1,0 +1,162 @@
+#INCLUDE "RWMAKE.CH"
+#INCLUDE "COLORS.CH"
+#INCLUDE "TOPCONN.CH"
+/*/{protheus.doc}TRANSPO
+Transferencia de materiais injeção plastica
+@author Vinicius
+@since 08/03/2017
+/*/
+
+User Function BAIXAMC()
+
+Local aRotAuto := {}
+Local _aItem := {}
+Local _atotitem:={}
+a_AreaGeral := GetArea()
+a_aArea := GetArea()
+_aCab := {}
+
+cOpcao:="INCLUIR"
+
+nOpcE:=3
+nOpcG:=3
+
+cTitulo        := "BAIXA DE MATERIAL DE CONSUMO"
+cAliasEnchoice := "SB8"
+cAliasGetD     := "SB1"
+cLinOk         := "AllwaysTrue()"
+cTudOk         := "AllwaysTrue()"
+cFieldOk       := "AllwaysTrue()"
+aCpoEnchoice   := {}
+
+_lRet          := ModGBJ(cTitulo,cAliasEnchoice,cAliasGetD,aCpoEnchoice,cLinOk,cTudOk,nOpcE,nOpcG,cFieldOk)
+
+RestArea(a_AreaGeral)
+
+Return
+
+//------------------------------------------------------------------------------------------------------------------
+Static Function ModGbj(cTitulo,cAlias1,cAlias2,aMyEncho,cLinOk,cTudoOk,nOpcE,nOpcG,cFieldOk,lVirtual,nLinhas,aAltEnchoice,lBaixa)
+
+Local lRet, nOpca := 0,cSaveMenuh,nReg:=(cAlias1)->(Recno()),aButtons
+Local oFontGbj
+
+Private Altera:=.t.,Inclui:=.t.,lRefresh:=.t.,aTELA:=Array(0,0),aGets:=Array(0),;
+bCampo:={|nCPO|Field(nCPO)},nPosAnt:=9999,nColAnt:=9999
+Private cSavScrVT,cSavScrVP,cSavScrHT,cSavScrHP,CurLen,nPosAtu:=0
+nOpcE := If(nOpcE==Nil,3,nOpcE)
+nOpcG := If(nOpcG==Nil,3,nOpcG)
+lVirtual := Iif(lVirtual==Nil,.F.,lVirtual)
+nLinhas:=Iif(nLinhas==Nil,99,nLinhas)
+
+OFONT  := TFONT():NEW("COURIER NEW",,-14,.T.,.T.)
+OFONT2 := TFONT():NEW("COURIER NEW",,-16,.T.,.T.)
+OFONT3 := TFONT():NEW("COURIER NEW",,-24,.T.,.T.)
+                                      
+nOpca := 1 
+  
+While nOpca == 1
+	cProd    := Space(Len(SB1->B1_COD))//Space(15)
+	cLote    := Space(10)
+	cProduto := Space(Len(SB1->B1_COD))//Space(15) 
+    nQtd     := 0
+	cDescPro := Space(01)
+	cLocal   := "08"
+	nQuant	 := 0
+	cCusto	 := 0															//add Luciano Lamberti
+	DEFINE MSDIALOG oDlgA TITLE cTitulo From 9,0 to 25,100  of oMainWnd
+	
+	@ 45,10 Say "Produto"
+	@ 45,50 Get cProd F3 "SB1" Size 50,10 Valid VldProPO() When .T.   
+	@ 45,110 Say "Descrição"
+	@ 45,140 Get cDescPro Size 200,10 When .F.
+	@ 75,10 Say "Quantidade"  
+	@ 75,50 Get nQtd Picture "@E 999,999.99" Size 50,10 Valid VldQtd() When .T.   
+
+   	ACTIVATE MSDIALOG oDlgA ON INIT EnchoiceBar(oDlgA,{||nOpca:=1,If(.T.,nOpca:=1,nOpca := 0),oDlgA:End()},{||nOpca := 0,oDlgA:End()},,aButtons) Centered
+    	if nOpca == 1         
+ 		if MsgYesNo("Executando a Baixa do Produto: "  +ALLTRIM(cProd)+  "  - Quantidade :   " +cValtoChar(nQuant),"Atenção")     
+ 		GERA_TRANSPO(cProd,cLote,nQtd)  	
+ 		else
+ 		nOpca == 0
+	 endif  
+	 endif
+	end    
+//	lRet := IIf("Transferido Produto  "  +ALLTRIM(cProd)+  " Quantidade   " +cValtoChar(nQuant),"Atenção"),nOk:=1,nOk:=2)
+ Return lRet       
+
+Static Function VldProPO()
+
+lRet := .T.
+dbSelectArea("SB1")
+dbSetOrder(01)
+If dbSeek(xFilial("SB1")+cProd)
+	
+	dbSelectArea("SB1")
+	dbSetOrder(01)
+	dbSeek(xFilial("SB1")+SB1->B1_COD)
+	
+	cProduto := SB1->B1_COD
+	cDescPro := SB1->B1_DESC
+	cLocal   := SB1->B1_LOCPAD
+	cCusto	 := SB1->B1_CUSTD		//ADD lUCIANO LAMBERTI
+Else
+	lRet := .F.
+	Alert("Produto inexistente!")
+Endif
+oDlgA:Refresh()
+Return(lRet)     
+
+Static Function VldQtd()      
+If nQtd > 0
+nQuant += nQtd  
+nQtd :=0   
+oDlgA:Refresh()  
+SetFocus(nQtd)
+Return(.F.) 
+else  
+endif
+Return (.t.)
+
+
+Static Function GERA_TRANSPO(cProd,cLote,nQtd)
+
+lMsErroAuto := .F.
+lMsHelpAuto := .T.
+
+If SB1->B1_TIPO <> "MC"
+//If SB1->B1_TIPO IN ("BN","MP","PA","PI")
+	lRet := .F.
+	alert("Produto nao pode ser baixado. Somente itens tipo MC. Favor entrar em contato com a Controladoria.")
+ENDIF
+/*iF cProd <> cProduto
+   ALERT("Transferencia nao Realizada")	  
+   return .f.
+	 endif   */
+
+_atotitem:={}
+_aCab :={{"D3_TM"      , "510"    , NIL},;
+{"D3_EMISSAO" , DDATABASE , NIL}}
+_aitem:={   {"D3_COD"     , cProd   , NIL },;
+{"D3_UM"      , SB1->B1_UM    , NIL },;
+{"D3_QUANT"   , nQuant           , NIL },;
+{"D3_LOCAL"   , "08"  , NIL },;
+{"D3_LOTECTL"   , cLote  , NIL },;
+{"D3_CUSTO1"   ,	cCusto  ,NIL}}				//ADD lUCIANO LAMBERTI
+
+aadd(_atotitem,_aitem)
+
+Begin Transaction
+
+MSExecAuto({|x,y,z| MATA241(x,y,z)},_aCab,_atotitem,3)     
+ 
+End Transaction
+
+If lMsErroAuto
+	Mostraerro()
+EndIf
+
+
+Return(!lMsErroAuto)
+
+

@@ -1,0 +1,31 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_debug",
+			"request": "launch",
+			"name": "TOTVS Language Debug",
+			"program": "${command:AskForProgramName}",
+			"cwb": "${workspaceFolder}",
+			"smartclientBin": "D:\\Totvs12\\bin\\SmartClient_LG_64\\smartclient.exe",
+			"isMultiSession": true,
+			"enableTableSync": true
+		}
+	],
+	"lastPrograms": [
+		{
+			"args": [],
+			"label": "sigamdi",
+			"description": ""
+		},
+		{
+			"label": "sigamdi",
+			"description": "<nil>"
+		},
+		{
+			"label": "SIGAFIN",
+			"description": "<nil>"
+		}
+	],
+	"lastProgramExecuted": "SIGAFIN"
+}

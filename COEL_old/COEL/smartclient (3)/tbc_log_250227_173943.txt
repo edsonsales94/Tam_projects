@@ -1,0 +1,59 @@
+250227_173943 0AD0 WDL0561 N current working directory is C:\COEL\COEL\smartclient (3)
+250227_173943 0AD0 CFC0567 N version information: Broker 20.3.1.4 doce win64 rel [rev-38614] { Apr 20 2023 17:32:28 } [[3189]]
+250227_173943 0AD0 CFC0549 N HOST_NAME=AnnyeEric(192.168.20.29)
+250227_173943 0AD0 CFC0549 N REMOTE_SERVER_NAME=coelmaticsa157071.protheus.cloudtotvs.com.br
+250227_173943 0AD0 CFC0557 N REMOTE_SERVER_PORT=2252
+250227_173943 0AD0 CFC0557 N RETRY_INTERVAL=10
+250227_173943 0AD0 CFC0557 N MAX_RETRY_TIME=180
+250227_173943 0AD0 WDL0256 N parameters received: host=[coelmaticsa157071.protheus.cloudtotvs.com.br] port=[2252]
+250227_173943 0AD0 WDL0805 W broker client started operation using local port 51967
+250227_173943 44D8 CTC1335 N x 01 ctx:008 \o/
+250227_173943 44D8 CTC1336 N x 01 ctx:008 starting connection from client 127.0.0.1:49754
+250227_173943 44D8 CTC1302 N x 01 ctx:008 received client connection from 127.0.0.1:49754
+250227_173943 44D8 CTC3223 N x 01 ctx:008 initial connection attempt with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2252
+250227_173943 44D8 CTC3242 N O 01 ctx:008 waiting establishment of connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2252
+250227_173944 44D8 CTC1473 N x 07 ctx:008 will send alerts to broker 189.126.148.148:2252
+250227_173944 44D8 CTC1477 N x 07 ctx:008 starting connection with broker c:127.0.0.1:49754 p:192.168.20.29:49755 s:189.126.148.148:2252
+250227_173944 44D8 CTC3672 N x 07 ctx:008 sending initial handshake p:[192.168.20.29:49755] s:[189.126.148.148:2252] id:[24734027-103D2D48-80DC7D1C-4C977877]
+250227_173944 4098 CTC3465 N x 22 ctx:008 starting reception of response for initial handshake c:127.0.0.1:49754 p:192.168.20.29:49755 s:189.126.148.148:2252
+250227_173944 44D8 CTC2007 N x 19 ctx:008 received response of initial handshake c:127.0.0.1:49754 p:192.168.20.29:49755 s:189.126.148.148:2252
+250227_173944 44D8 CTC2718 N x 18 ctx:008 success creating new connection [E9069EB1-C9AAD043-92E70434-BB31CD4A] c:127.0.0.1:49754 p:192.168.20.29:49755 s:189.126.148.148:2252
+250227_173944 44D8 CTC2728 N x 18 ctx:008 connected with remote server ÉZ”Ü.1.3:6003
+250227_173944 4098 CTC2655 W x 04 ctx:008 @@@ smartclient esta' usando SSL
+250227_173944 44D8 CTC2772 W x 04 ctx:008 @@@ server fechou conexao na primeira resposta para conexao SSL do client SSL
+250227_173944 44D8 CTC2773 W x 04 ctx:008 @@@ fecha conexao com client, deixa smartclient fazer retry
+250227_173944 44D8 CTC1196 W x 04 ctx:008 closing client connection c:127.0.0.1:49754 p:192.168.20.29:49755 s:189.126.148.148:2252
+250227_173944 44D8 CTC1202 W x 04 ctx:008 closing server connection c:127.0.0.1:49754 p:192.168.20.29:49755 s:189.126.148.148:2252
+250227_173944 44D8 CTC1206 N x 04 ctx:008 context has been finalized
+250227_173944 44D8 CTC1335 N x 01 ctx:009 \o/
+250227_173944 44D8 CTC1336 N x 01 ctx:009 starting connection from client 127.0.0.1:49757
+250227_173944 44D8 CTC1302 N x 01 ctx:009 received client connection from 127.0.0.1:49757
+250227_173944 44D8 CTC3223 N x 01 ctx:009 initial connection attempt with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2252
+250227_173944 44D8 CTC3242 N O 01 ctx:009 waiting establishment of connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2252
+250227_173944 44D8 CTC1473 N x 07 ctx:009 will send alerts to broker 189.126.148.148:2252
+250227_173944 44D8 CTC1477 N x 07 ctx:009 starting connection with broker c:127.0.0.1:49757 p:192.168.20.29:49758 s:189.126.148.148:2252
+250227_173944 44D8 CTC3672 N x 07 ctx:009 sending initial handshake p:[192.168.20.29:49758] s:[189.126.148.148:2252] id:[26B6FF36-3B9D034D-B50FDA06-F54B4E06]
+250227_173944 4098 CTC3465 N x 22 ctx:009 starting reception of response for initial handshake c:127.0.0.1:49757 p:192.168.20.29:49758 s:189.126.148.148:2252
+250227_173944 4098 CTC2007 N x 19 ctx:009 received response of initial handshake c:127.0.0.1:49757 p:192.168.20.29:49758 s:189.126.148.148:2252
+250227_173944 4098 CTC2718 N x 18 ctx:009 success creating new connection [495AFC12-742FA649-BC79E2CA-8B3B0953] c:127.0.0.1:49757 p:192.168.20.29:49758 s:189.126.148.148:2252
+250227_173944 4098 CTC2728 N x 18 ctx:009 connected with remote server ÉZ”Ü.1.3:6003
+250227_173944 44D8 CTC2657 W x 04 ctx:009 ### smartclient NAO esta' usando SSL
+250227_173944 44D8 CTC1948 N x 04 ctx:009 ### iniciando processamento normal, conexao com server foi bem sucedida
+250227_174100 1E08 CTC1335 N x 01 ctx:010 \o/
+250227_174100 1E08 CTC1336 N x 01 ctx:010 starting connection from client 127.0.0.1:49788
+250227_174100 1E08 CTC1302 N x 01 ctx:010 received client connection from 127.0.0.1:49788
+250227_174100 1E08 CTC3223 N x 01 ctx:010 initial connection attempt with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2252
+250227_174100 1E08 CTC3242 N O 01 ctx:010 waiting establishment of connection with broker coelmaticsa157071.protheus.cloudtotvs.com.br:2252
+250227_174100 1E08 CTC1473 N x 07 ctx:010 will send alerts to broker 189.126.148.148:2252
+250227_174100 1E08 CTC1477 N x 07 ctx:010 starting connection with broker c:127.0.0.1:49788 p:192.168.20.29:49789 s:189.126.148.148:2252
+250227_174100 1E08 CTC3672 N x 07 ctx:010 sending initial handshake p:[192.168.20.29:49789] s:[189.126.148.148:2252] id:[BE4A2E1C-74998E42-BBB4CBF3-9837D9FB]
+250227_174100 44D8 CTC3465 N x 22 ctx:010 starting reception of response for initial handshake c:127.0.0.1:49788 p:192.168.20.29:49789 s:189.126.148.148:2252
+250227_174100 44D8 CTC2007 N x 19 ctx:010 received response of initial handshake c:127.0.0.1:49788 p:192.168.20.29:49789 s:189.126.148.148:2252
+250227_174100 44D8 CTC2718 N x 18 ctx:010 success creating new connection [BA34CA16-1872A542-9AD67A9B-1D464B3C] c:127.0.0.1:49788 p:192.168.20.29:49789 s:189.126.148.148:2252
+250227_174100 44D8 CTC2728 N x 18 ctx:010 connected with remote server ÉZ”Ü.1.3:6000
+250227_174100 1E08 CTC2657 W x 04 ctx:010 ### smartclient NAO esta' usando SSL
+250227_174100 1E08 CTC1948 N x 04 ctx:010 ### iniciando processamento normal, conexao com server foi bem sucedida
+250227_174203 4098 CTC1883 W x 04 ctx:010 client connection remotely closed c:127.0.0.1:49788 p:192.168.20.29:49789 s:189.126.148.148:2252
+250227_174203 1E08 SPC0391 W C 06 ctx:010 server closed connection (was expected)
+250227_174328 44D8 CTC1883 W x 04 ctx:009 client connection remotely closed c:127.0.0.1:49757 p:192.168.20.29:49758 s:189.126.148.148:2252
+250227_174328 44D8 SPC0391 W C 06 ctx:009 server closed connection (was expected)

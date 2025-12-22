@@ -1,0 +1,536 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+#Include "TOPCONN.CH"
+
+User Function CESTR09B()        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+
+SetPrvt("MV_PAR01,MV_PAR02,MV_PAR03,NORDEM,TAMANHO,LIMITE")
+SetPrvt("CSTRING,TITULO,CDESC1,CDESC2,CDESC3,CRESP")
+SetPrvt("NDOCANT,DDATANT,LCONTINUA,LIMPRIME1,LIMPRIME2,ARETURN")
+SetPrvt("NOMEPROG,NLASTKEY,CPERG,CSAVSCR1,CSAVCUR1,CSAVROW1")
+SetPrvt("CSAVCOL1,CSAVCOR1,WNREL,CBTXT,CBCONT,NLINNOT")
+SetPrvt("TABMES,ADRIVER,X6DATA,CDATPRO,DDATINI,DDATFIN")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR09B ³ Autor ³ Carlos Nina           ³ Data ³ 29/09/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relatorio de Fechamento: Custo de Produto-Acabado S/MOD    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³                                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+//mv_par01  := 0     // Lista somente: P.A. - Ambos (PA/PI)
+nOrdem    := 0
+tamanho   := "G"
+limite    := 220
+cString   := "SB1"  //"SZR"
+titulo    := "RESUMO DE MOVIMENTACAO DE MATERIAL PRODUTIVO"
+cDesc1    := "Resumo da Movimentacao de Material Produtivo (PA) em valores."
+cDesc2    := ""
+cDesc3    := ""
+cResp     := "C"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aReturn   := { "Especial", 1,"Contabilidade", 1, 1, 2, "",1 }
+nomeprog  := "ESTR09B "
+nLastKey  := 0
+cPerg     := "ESTR009   "
+wnrel     := "ESTR09B "
+Tabmes   := 'JANEIRO  FEVEREIROMARCO    ABRIL    MAIO     JUNHO    JULHO    AGOSTO   SETEMBRO OUTUBRO  NOVEMBRO DEZEMBRO '
+ValidPerg()
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+        Return
+Endif
+SetDefault(aReturn,cString)
+RptStatus({|| fRC_Imp()})  //-- Chamada do Relatorio.// Substituido pelo assistente de conversao do AP5 IDE em 11/10/01 ==>         RptStatus({|| Execute(fRC_Imp)})  //-- Chamada do Relatorio.
+Return Nil
+
+*************************
+Static Function fRC_Imp()
+*************************
+Local V4       := {}
+Local mvLocal  := IIF(M->cNumEmp$"0301/0901", "02", "01" )
+Local cDatPro  := LEFT(dtos(mv_par02),6)
+Local dDatIni  := FirstDay( mv_par02 )
+Local X6DATA   := GETMV('MV_ULMES')
+Local dDatFin  := LastDay( dDatIni )
+Local cDatAnt  := ( dDatIni - 1 )
+Local nMes     := MONTH(mv_par02)
+Local aDatref1 := Rtrim(Subs(Tabmes,(nMes*9)-8,9))+'/'+Left(cDatPro,4)
+Local aDatref  := 'RESUMO DE CUSTO DA MOVIMENTACAO DE PRODUCAO DE ' + aDatref1
+
+X6DATA   := X6DATA +1
+X6DATA   := LEFT(DTOS(X6DATA),6)
+cDatAnt  := LEFT(DTOS(cDatAnt),6)
+
+ASIZE(V4,18)
+V4[01] := {"11  ","CONT TEMPO               ","411 "}
+V4[02] := {"12  ","PROTECAO                 ","412 "}
+V4[03] := {"13  ","NIVEL                    ","413 "}
+V4[04] := {"14  ","CONT DIG TEMP QUENTE     ","414 "}
+V4[05] := {"15  ","SENSORES                 ","415 "}
+V4[06] := {"16  ","DIVERSOS                 ","416 "}
+V4[07] := {"17  ","INDICADOR                ","417 "}
+V4[08] := {"18  ","CONTADOR DIGITAL         ","418 "}
+V4[09] := {"192 ","CONT DIG TEMP REFRIG     ","4192"}
+V4[10] := {"20  ","RELE DE TEMPO            ","420 "}
+V4[11] := {"21  ","INTERRUPTOR DIGITAL      ","421 "}
+V4[12] := {"211 ","INTERRUPTOR MECANICO     ","4211"}
+V4[13] := {"22  ","PLACAS EXCETO USO INFO   ","422 "}
+V4[14] := {"23  ","PLACAS USO INFO          ","423 "}
+V4[15] := {"24  ","RELE ELETR.DIGITAL       ","424 "}
+V4[16] := {"35  ","ACESSORIOS               ","435 "}
+V4[17] := {"999 ","A CLASSIFICAR            ","499 "}
+V4[18] := {"ZZ1 ","INTERMEDIARIO            ","498 "}
+*
+SET(1,"OFF")
+SetPrc(0,0)
+@ 00,000 PSAY &(aDriver[5])
+LIN4:='|G R U P O                    |T.PADRAO|---- SALDO INICIAL ---|------ PRODUCAO -----|----- FATURAMENTO -----|-- OUTRAS ENTRADAS --|--- OUTRAS SAIDAS ---|--- AJ.INVENT(+-) ---|-- QUEBRA PRODUCAO --|---- ESTOQUE FINAL ----|'
+LI4A:='|G R U P O                    |T.PADRAO|---- SALDO INICIAL ---|------ PRODUCAO -----|------- CONSUMO -------|-- OUTRAS ENTRADAS --|--- OUTRAS SAIDAS ---|--- AJ.INVENT(+-) ---|-- QUEBRA PRODUCAO --|---- ESTOQUE FINAL ----|'
+LIN5:='|  CODIGO/PRODUTO             | (MIN.) |   QUANT|        CUSTO|   QUANT|       CUSTO|   QUANT|         CUSTO|  QUANT|        CUSTO|  QUANT|        CUSTO|  QUANT|        CUSTO|   QUANT|       CUSTO|   QUANT|         CUSTO|'
+LIND:='|                             |        |        |             |        |            |        |              |       |             |       |             |       |             |        |            |        |              |'
+LINT:='|-----------------------------+--------+--------+-------------+--------+------------+--------+--------------+-------+-------------+-------+-------------+-------+-------------+--------+------------+--------+--------------|'
+****   *****************************************************************************************************************************************************************************************************************************
+*****     999999 x------------------x  99,9999 99999999 999999.999,99 99999999 99999,999.99 99999999 9999999,999.99 9999999 999999,999.99 9999999 999999,999.99 9999999 999999,999.99 99999999 99999,999.99 99999999 9999999,999.99
+*****            1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220
+*****  01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123
+LIN4    := IIF(mv_par01==2 , LI4A , LIN4 )
+LI      := 99
+m_pag   := 0
+cTotQtd := 0
+cTotVlr := 0
+V5      := {}
+V3      := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+////
+////
+////
+cQry  := "SELECT * FROM "+RetSqlName("SB1")
+cQry  += " WHERE D_E_L_E_T_ = ' '"
+cQry  += " AND B1_FILIAL = '"+xFilial("SB1")+"'"
+cQry  += " AND B1_TIPO IN ('PA','PI','PP') AND B1_COD NOT IN ('00000002','00000004')"
+cQry  += " ORDER BY B1_TIPO,B1_COD "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB3', .T., .T.)
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+SetRegua(Lastrec())
+dbSelectArea("TB3")
+dbGoTop()
+DO WHILE !EOF().AND.lContinua
+   IF LastKey()==286
+      lContinua := .F.
+      Exit
+   ENDIF
+   IncRegua()
+   IF ( mv_par01 == 3 .OR. ( B1_TIPO $ "PA/PP" .AND. mv_par01 == 1 ) .OR. ( B1_TIPO == "PI" .AND. mv_par01 == 2 ) )
+      //AADD(V5,IIF(B1_TIPO=="PI","ZZ1 ",B1_GRUPO)+B1_COD+LEFT(B1_DESC,20))
+      AADD(V5 , {IIF(B1_TIPO=="PI","ZZ1 ",B1_CLCFAM), B1_COD , B1_DESC } )
+   ENDIF
+   dbSkip()
+ENDDO
+TB3->(dbCloseArea())
+*
+aSort(V5,,,{|x,y| x[1]+x[2] < y[1]+y[2] } )
+NX := 1
+DO WHILE NX <= LEN(V5)
+   IncRegua()
+   cGrupo  := V5[NX,1]
+   nCount  := 0
+   V2      := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+   V6      := {}
+   I1      := ASCAN( V4 , { |xx| xx[1]==cGrupo } )
+	I1      := IIF(I1==0 , 17 , I1 )
+   cDesGrp := V4[I1,2]+" "+V4[I1,3]
+   xDesGrp := cDesGrp
+   DO WHILE NX <= LEN(V5).AND.V5[NX,1]==cGrupo
+      cProduto := V5[NX,2]
+      V1       := {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+      SB1->(dbSeek(xFilial("SB1")+cProduto))
+      IF ( X6DATA==cDatPro )
+			///nRetorno:=SaldoSB2(.F.,.F.,dDatFin,.F.)
+			dbSelectArea("SB2")
+         dbSetOrder(1)
+         dbSeek(xFilial("SB2")+cProduto,.T.)
+         DO WHILE !EOF().AND.B2_FILIAL==xFilial("SB2").AND.B2_COD==cProduto
+            IF ( B2_LOCAL == mvLocal )
+	            IF ( mv_par03 == 1 )
+   	            aSaldo := { SB2->B2_QFIM , SB2->B2_VFIM1 }
+ 	   	      ELSE
+		   	     aSaldo := CalcEst(SB2->B2_COD,SB2->B2_LOCAL,(dDatFin+1))
+            	ENDIF
+	            V1[15] := ( V1[15] + aSaldo[1] )   //SB2->B2_QATU )
+   	         V1[16] := ( V1[16] + aSaldo[2] )   //SB2->B2_VATU1 )     //_VFIMFF5 )
+            ENDIF
+            dbSkip()
+         ENDDO
+      ENDIF
+      dbSelectArea("SB9")
+      dbSetOrder(1)
+      dbSeek(xFilial("SB9")+cProduto,.T.)
+      DO WHILE !EOF().AND.B9_FILIAL==xFilial("SB9").AND.B9_COD==cProduto
+         IF ( B9_LOCAL == mvLocal )
+	         cData := LEFT(DTOS(B9_DATA),6)
+   	      IF ( cData == cDatAnt )
+      	      V1[1] := ( V1[1] + B9_QINI )
+         	   V1[2] := ( V1[2] + B9_VINI1 )       //_VINIFF5 )
+	         ELSEIF ( cData == cDatPro )
+   	         V1[15] := ( V1[15] + B9_QINI )
+      	      V1[16] := ( V1[16] + B9_VINI1 )     //_VINIFF5 )
+         	ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+      dbSelectArea("SD1")
+      dbSetOrder(7)
+      dbSeek(xFilial("SD1")+cProduto,.T.)
+      DO WHILE !EOF().AND.D1_FILIAL==xFilial("SD1").AND.D1_COD==cProduto
+         IF ( D1_LOCAL == mvLocal )
+	         cData := LEFT(DTOS(D1_DTDIGIT),6)
+   	      IF cData == cDatPro
+      	      IF D1_TIPO $ 'BDNC'
+         	      dbSelectArea("SF4")
+            	   dbSetOrder(1)
+               	dbSeek(xFilial("SF4")+SD1->D1_TES)
+	               dbSelectArea("SD1")
+   	            IF SF4->F4_ESTOQUE == 'S' ///.AND.!SF4->F4_PODER3 $ "RD"
+      	            V1[7] := ( V1[7] + D1_QUANT )
+         	         V1[8] := ( V1[8] + D1_CUSTO )       //_CUSFF5 )
+            	   ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+      dbSelectArea("SD2")
+      dbSetOrder(6)
+      dbSeek(xFilial("SD2")+cProduto,.T.)
+      DO WHILE !EOF().AND.D2_FILIAL==xFilial("SD2").AND.D2_COD==cProduto
+         IF ( D2_LOCAL == mvLocal )
+	         cData := LEFT(DTOS(D2_EMISSAO),6)
+   	      IF ( cData == cDatPro )
+      	      dbSelectArea("SF4")
+         	   dbSetOrder(1)
+            	dbSeek(xFilial("SF4")+SD2->D2_TES)
+	            dbSelectArea("SD2")
+   	         IF SF4->F4_ESTOQUE == 'S' 
+      	         IF D2_TIPO $ "NC".AND.D2_CF $ "5101 /5102 /5107 /5901 /5949 /6101 /6107 /6102 /6401 /6949 /7101 /7102 /7107 "
+							lTriangular := .T.
+							IF D2_CF $ "5949 /6949 "
+								SC5->(dbSeek(xFilial("SC5")+SD2->D2_PEDIDO))
+								cMsgSped := UPPER(SC5->C5_CLMSPED)
+								lTriangular := AT("TRIANGULAR" , cMsgSped) > 0
+							ENDIF
+							IF lTriangular
+								IF ( SB1->B1_TIPO == "PI" )
+									V1[9]  := ( V1[9]  + D2_QUANT )
+									V1[10] := ( V1[10] + D2_CUSTO1 )      
+								ELSE
+									V1[5] := ( V1[5] + D2_QUANT )
+									V1[6] := ( V1[6] + D2_CUSTO1 )        
+								ENDIF	
+							ELSE
+								V1[9]  := ( V1[9]  + D2_QUANT )
+								V1[10] := ( V1[10] + D2_CUSTO1 )     
+                     ENDIF
+               	ELSE
+                  	V1[9]  := ( V1[9]  + D2_QUANT )
+	                  V1[10] := ( V1[10] + D2_CUSTO1 )      
+   	            ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+      dbSelectArea("SD3")
+      dbSetOrder(7)
+      dbSeek(xFilial("SD3")+cProduto,.T.)
+      DO WHILE !EOF().AND.D3_FILIAL==xFilial("SD3").AND.D3_COD==cProduto
+         IF ( EMPTY(D3_ESTORNO) .AND. D3_LOCAL == mvLocal )
+            cData := LEFT(DTOS(D3_EMISSAO),6)
+            IF ( cData == cDatPro )
+               IF D3_DOC == "INVENT   "
+                  IF D3_CF == 'RE0'
+                     V1[11] := ( V1[11] - D3_QUANT )
+                     V1[12] := ( V1[12] - D3_CUSTO1 )      //_CUSFF5 )
+                  ELSE
+                     V1[11] := ( V1[11] + D3_QUANT )
+                     V1[12] := ( V1[12] + D3_CUSTO1 )      //_CUSFF5 )
+                  ENDIF
+               ELSEIF D3_CF $ "RE4|DE4"
+                  IF ( D3_CF == "RE4" )
+                     V1[9]  := ( V1[9] + D3_QUANT )
+                     V1[10] := ( V1[10] + D3_CUSTO1 )     //_CUSFF5 )
+                  ELSE
+                     V1[7]  := ( V1[7] + D3_QUANT )
+                     V1[8]  := ( V1[8] + D3_CUSTO1 )     //_CUSFF5 )
+                  ENDIF
+               ELSEIF D3_TM=="507"
+                  V1[13] := ( V1[13] + D3_QUANT )
+                  V1[14] := ( V1[14] + D3_CUSTO1 )       //_CUSFF5 )
+               ELSEIF D3_CF == 'PR0'
+                  V1[3] := ( V1[3] + D3_QUANT )
+                  V1[4] := ( V1[4] + D3_CUSTO1 )         //_CUSFF5 )
+               ELSEIF D3_CF $ "DE6|DE7"  ///"DE6|DE7"
+                  V1[7] := ( V1[7] + D3_QUANT )
+                  V1[8] := ( V1[8] + SD3->D3_CUSTO1 )    //_CUSFF5 )
+               ELSEIF D3_TM == "003"  
+                  V1[7] := ( V1[7] + D3_QUANT )
+                  V1[8] := ( V1[8] + SD3->D3_CUSTO1 )  
+               ELSEIF D3_CF $ "RE7,RE0,RE6"  ///RE6
+                  V1[9]  := ( V1[9]  + D3_QUANT )
+                  V1[10] := ( V1[10] + D3_CUSTO1 )       //_CUSFF5 )
+               ELSEIF D3_CF $ "RE1,RE2,RE5"
+                  IF ( cGrupo == "ZZ1 " )
+                     V1[5] := ( V1[5] + D3_QUANT )
+                     V1[6] := ( V1[6] + D3_CUSTO1 )      //_CUSFF5 )
+                  ELSE
+                     V1[9]  := ( V1[9]  + D3_QUANT )
+                     V1[10] := ( V1[10] + D3_CUSTO1 )    //_CUSFF5 )
+                  ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
+         dbSkip()
+      ENDDO
+      FOR nv:=1 TO 16
+	       V2[nv]  := ( V2[nv]  + V1[nv] )
+      NEXT
+      /*
+      V2[1]  := ( V2[1]  + V1[2] )
+      V2[2]  := ( V2[2]  + V1[4] )
+      V2[3]  := ( V2[3]  + V1[6] )
+      V2[4]  := ( V2[4]  + V1[8] )
+      V2[5]  := ( V2[5]  + V1[10] )
+      V2[6]  := ( V2[6]  + V1[12] )
+      V2[7]  := ( V2[7]  + V1[14] )
+      V2[8]  := ( V2[8]  + V1[16] )
+      V2[9]  := ( V2[9]  + V1[3] )
+      V2[10] := ( V2[10] + V1[5] )
+      */
+      IF ( V1[1]<>0.OR.V1[3]<>0.OR.V1[5]<>0.OR.V1[7]<>0.OR.V1[9]<>0.OR.V1[11]<>0.OR.V1[13]<>0.OR.V1[15]<>0 )
+         ///
+         ///Extrai o Tempo
+         ///
+         nTempo := TempoP()
+         ///dbSelectArea("SZR")
+         ///dbSetOrder(1)
+         ///dbSeek(xFilial("SZR")+cProduto+cGrupo+"7"+cDatPro)
+         ///nTempo := SZR->ZR_TEMPO
+         IF ( LI > 62 )
+            m_pag := ( m_pag + 1 )
+            @ 01,000 PSAY repl("*",221)
+            @ 02,000 PSAY '*T.I/COEL'
+            @ 02,066 PSAY 'EMPRESA..: ' + RTRIM(SM0->M0_NOMECOM) + IIF(SM0->M0_CODFIL=="01"," - MANAUS",IIF(SM0->M0_CODFIL=="02"," - JABAQUARA","" ) )
+            @ 02,203 PSAY 'PAGINA.:    '+ STRZERO(m_pag,5,0)+'*'
+            @ 03,000 PSAY '*SYSTEM/ESTR09B'
+            @ 03,066 PSAY 'RELATORIO: ' + aDatRef + " - S/MOD+GGF"
+            @ 03,203 PSAY 'DAT.REF: ' + DTOC(ddatabase)+'*'
+            @ 04,000 PSAY IIF(m_pag==1,'*HORA: '+TIME(),'*')
+            @ 04,203 PSAY 'EMISSAO: ' + DTOC(MsDate())+'*'
+            @ 05,000 PSAY repl("*",221)
+            @ 06,000 PSAY LIN4
+            @ 07,000 PSAY LIN5
+            @ 08,000 PSAY repl("*",221)
+            Li      := 8
+            xDesGrp := cDesGrp
+         ENDIF
+         IF ( !EMPTY(xDesGrp) )
+            LI    := ( LI + 1 )
+            LIND0 := LIND
+            LIND0 := STUFF(LIND0,002,LEN(xDesGrp),xDesGrp)
+            @ LI,000 PSAY LIND0
+            xDesGrp := " "
+         ENDIF
+         cxQtd1 := ( V1[1] + V1[3] - V1[5] + V1[7] - V1[9] + V1[11] - V1[13] )
+         cxQtd1 := STRZERO(ABS(cxQtd1)*100,16)
+         cxQtd2 := STRZERO(ABS(V1[15])*100,16)
+         cxVlr1 := ( V1[2] + V1[4] - V1[6] + V1[8] - V1[10] + V1[12] - V1[14] )
+         cxVlr1 := STRZERO(ABS(cxVlr1)*10000,18)
+         cxVlr2 := STRZERO(ABS(V1[16])*10000,18)
+         nCount := ( nCount + 1 )
+         LI     := ( LI + 1 )
+         B1DESC := RTRIM(cProduto)+" "+V5[NX,3]
+         B1DESC := LEFT(B1DESC,27)
+         LIND1  := LIND
+         LIND1  := STUFF(LIND1,004,027,B1DESC)
+         LIND1  := STUFF(LIND1,032,007,TRANSF(nTempo,"@EZ 99.9999"))
+         LIND1  := STUFF(LIND1,041,008,TRANSF(V1[1],"@E 99999999"))
+         LIND1  := STUFF(LIND1,050,013,TRANSF(V1[2],"@E 999999,999.99"))
+         LIND1  := STUFF(LIND1,064,008,TRANSF(V1[3],"@E 99999999"))
+         LIND1  := STUFF(LIND1,073,012,TRANSF(V1[4],"@E 99999,999.99"))
+         LIND1  := STUFF(LIND1,086,008,TRANSF(V1[5],"@E 99999999"))
+         LIND1  := STUFF(LIND1,095,014,TRANSF(V1[6],"@E 9999999,999.99"))
+         LIND1  := STUFF(LIND1,110,007,TRANSF(V1[7],"@E 9999999"))
+         LIND1  := STUFF(LIND1,118,013,TRANSF(V1[8],"@E 999999,999.99"))
+         LIND1  := STUFF(LIND1,132,007,TRANSF(V1[9],"@E 9999999"))
+         LIND1  := STUFF(LIND1,140,013,TRANSF(V1[10],"@E 999999,999.99"))
+         LIND1  := STUFF(LIND1,154,007,TRANSF(V1[11],"@E 9999999"))
+         LIND1  := STUFF(LIND1,162,013,TRANSF(V1[12],"@E 999999,999.99"))
+         LIND1  := STUFF(LIND1,176,008,TRANSF(V1[13],"@E 99999999"))
+         LIND1  := STUFF(LIND1,185,012,TRANSF(V1[14],"@E 99999,999.99"))
+         LIND1  := STUFF(LIND1,198,008,TRANSF(V1[15],"@E 99999999"))
+         LIND1  := STUFF(LIND1,207,014,TRANSF(V1[16],"@E 9999999,999.99"))
+         @ LI,000 PSAY LIND1
+         @ LI,221 PSAY IIF(cxQtd1 <> cxQtd2 .OR. cxVlr1 <> cxVlr2 , "#" , " " )
+      ENDIF
+      NX := ( NX + 1 )
+   ENDDO
+   FOR nv:=1 TO 16
+       V3[nv]  := ( V3[nv]  + V2[nv] )
+   NEXT
+   //V3[1] := ( V3[1] + V2[1] )
+   //V3[2] := ( V3[2] + V2[2] )
+   //V3[3] := ( V3[3] + V2[3] )
+   //V3[4] := ( V3[4] + V2[4] )
+   //V3[5] := ( V3[5] + V2[5] )
+   //V3[6] := ( V3[6] + V2[6] )
+   //V3[7] := ( V3[7] + V2[7] )
+   //V3[8] := ( V3[8] + V2[8] )
+   IF ( nCount > 1 )
+      LIND2 := LIND
+      LIND2 := STUFF(LIND2,004,027,"** SUB-TOTAL...............")
+      LIND2 := STUFF(LIND2,041,008,TRANSF(V2[1],"@E 99999999"))
+      LIND2 := STUFF(LIND2,050,013,TRANSF(V2[2],"@E 999999,999.99"))
+      LIND2 := STUFF(LIND2,064,008,TRANSF(V2[3],"@E 99999999"))
+      LIND2 := STUFF(LIND2,073,012,TRANSF(V2[4],"@E 99999,999.99"))
+      LIND2 := STUFF(LIND2,086,008,TRANSF(V2[5],"@E 99999999"))
+      LIND2 := STUFF(LIND2,095,014,TRANSF(V2[6],"@E 9999999,999.99"))
+      LIND2 := STUFF(LIND2,110,007,TRANSF(V2[7],"@E 9999999"))
+      LIND2 := STUFF(LIND2,118,013,TRANSF(V2[8],"@E 999999,999.99"))
+      LIND2 := STUFF(LIND2,132,007,TRANSF(V2[9],"@E 9999999"))
+      LIND2 := STUFF(LIND2,140,013,TRANSF(V2[10],"@E 999999,999.99"))
+      LIND2 := STUFF(LIND2,154,007,TRANSF(V2[11],"@E 9999999"))
+      LIND2 := STUFF(LIND2,162,013,TRANSF(V2[12],"@E 999999,999.99"))
+      LIND2 := STUFF(LIND2,176,008,TRANSF(V2[13],"@E 99999999"))
+      LIND2 := STUFF(LIND2,185,012,TRANSF(V2[14],"@E 99999,999.99"))
+      LIND2 := STUFF(LIND2,198,008,TRANSF(V2[15],"@E 99999999"))
+      LIND2 := STUFF(LIND2,207,014,TRANSF(V2[16],"@E 9999999,999.99"))
+      @ LI+1,000 PSAY LIND2
+		IF ( cGrupo <> "ZZ1 ")
+         @ LI+2,000 PSAY LINT
+      ELSE
+         @ LI+2,000 PSAY REPL("-",221)
+      ENDIF
+      LI := ( LI + 2 )
+   ENDIF
+   IF ( NX < LEN(V5).AND.V5[NX,1]=="ZZ1 " ) .OR. ;
+      ( NX > LEN(V5).AND.cGrupo <> "ZZ1 " )
+      LI    := ( LI + 1 )
+      LIND3 := LIND
+      LIND3 := STUFF(LIND3,004,027,"** TOTAL PRODUTO ACABADO...")
+      LIND3 := STUFF(LIND3,041,008,TRANSF(V3[1],"@E 99999999"))
+      LIND3 := STUFF(LIND3,050,013,TRANSF(V3[2],"@E 999999,999.99"))
+      LIND3 := STUFF(LIND3,064,008,TRANSF(V3[3],"@E 99999999"))
+      LIND3 := STUFF(LIND3,073,012,TRANSF(V3[4],"@E 99999,999.99"))
+      LIND3 := STUFF(LIND3,086,008,TRANSF(V3[5],"@E 99999999"))
+      LIND3 := STUFF(LIND3,095,014,TRANSF(V3[6],"@E 9999999,999.99"))
+      LIND3 := STUFF(LIND3,110,007,TRANSF(V3[7],"@E 9999999"))
+      LIND3 := STUFF(LIND3,118,013,TRANSF(V3[8],"@E 999999,999.99"))
+      LIND3 := STUFF(LIND3,132,007,TRANSF(V3[9],"@E 9999999"))
+      LIND3 := STUFF(LIND3,140,013,TRANSF(V3[10],"@E 999999,999.99"))
+      LIND3 := STUFF(LIND3,154,007,TRANSF(V3[11],"@E 9999999"))
+      LIND3 := STUFF(LIND3,162,013,TRANSF(V3[12],"@E 999999,999.99"))
+      LIND3 := STUFF(LIND3,176,008,TRANSF(V3[13],"@E 99999999"))
+      LIND3 := STUFF(LIND3,185,012,TRANSF(V3[14],"@E 99999,999.99"))
+      LIND3 := STUFF(LIND3,198,008,TRANSF(V3[15],"@E 99999999"))
+      LIND3 := STUFF(LIND3,207,014,TRANSF(V3[16],"@E 9999999,999.99"))
+      @ LI,000 PSAY LIND3
+      @ LI+1,000 PSAY REPL("-",221)
+      LI   := 99
+      LIN4 := LI4A
+   ENDIF
+ENDDO
+@ 68,000 PSAY REPL('*',221)
+@ 69,000 PSAY '* '+SM0->M0_NOMECOM+'                               Software by T.I/COEL '+IF(lContinua,'',' ** PROGRAMA ABORTADO')
+@ 69,197 PSAY 'Hora Termino: '+LEFT(TIME(),8)+' *'
+@ 70,000 PSAY REPL('*',221)
+If aReturn[5] == 1
+        dbcommitAll()
+        ourspool(wnrel)
+Endif
+MS_FLUSH()
+RETURN
+
+/////////////////////////////////////////
+Static Function TempoP()
+/////////////////////////////////////////
+Local nxRecNo,cxComp,kx
+Local VS     := {}
+Local cMod   := SPACE(15)
+Local nMinut := 0
+dbSelectArea("SG1")
+dbSetOrder(1)
+dbSeek(xFilial("SG1")+cProduto)
+DO WHILE !EOF().AND.G1_FILIAL==xFilial("SG1").AND.G1_COD==cProduto.AND.EMPTY(cMod)
+   IF ( G1_INI <= ddatabase .AND. G1_FIM >= ddatabase )
+      nxRecNo := RECNO()
+      cxComp  := G1_COMP
+      dbSeek(xFilial("SG1")+cxComp,.T.)
+      IF ( G1_COD == cxComp )
+         AADD(VS,cxComp)
+      ENDIF
+      dbGoTo(nxRecNo)
+      IF ( LEFT(G1_COMP,3) == "MOD" )
+         cMod   := G1_COMP
+         nMinut := G1_QUANT   ///IIF(G1_FIM >= ddatabase,G1_QUANT,0)
+      ENDIF
+   ENDIF
+   dbSkip()
+ENDDO
+kx := 1
+DO WHILE kx <= LEN(VS)
+   cComponente := VS[kx]
+   dbSeek(xFilial("SG1")+cComponente)
+   DO WHILE !EOF().AND.G1_FILIAL==xFilial("SG1").AND.G1_COD==cComponente
+      IF ( G1_INI <= ddatabase .AND. G1_FIM >= ddatabase )
+         nxRecNo := RECNO()
+         cxComp  := G1_COMP
+         dbSeek(xFilial("SG1")+cxComp)
+         IF ( G1_COD == cxComp )
+            AADD(VS,cxComp)
+         ENDIF
+         dbGoTo(nxRecNo)
+         IF ( LEFT(G1_COMP,3) == "MOD" )   //( G1_COMP==cMod .AND. !LEFT(G1_COD,6) $ "426691|426782" )
+            nMinut := ( nMinut + G1_QUANT )
+         ENDIF
+      ENDIF
+      dbSkip()
+   ENDDO
+   kx := kx +1
+ENDDO
+nMinut := ROUND(nMinut*60,4)
+Return(nMinut)
+
+Static Function ValidPerg()
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Tipo do Produto             ?",   ""   ,  ""    , "mv_ch1" , "N" ,   01   ,   0   ,   3   , "C" , "          "  , "mv_par01", "Prod.Acabado" , "     " , "     " , "   " , "   " , "Prod.Intermed" , "     " , "     " , "   " , "   " , "Ambos " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Data-Base                   ?",   ""   ,  ""    , "mv_ch2" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Recalculo efetuado          ?",   ""   ,  ""    , "mv_ch3" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par03", "Sim         " , "     " , "     " , "   " , "   " , "Nao          " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

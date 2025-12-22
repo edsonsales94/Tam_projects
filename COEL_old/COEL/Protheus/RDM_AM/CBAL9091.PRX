@@ -1,0 +1,625 @@
+#include "protheus.ch"
+#include "rwmake.ch"
+#include "font.ch"
+#include "totvs.ch"
+#Include "TOPCONN.CH"
+
+User Function CBAL9091()
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de Variaveis                                             ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+Local   cPicVunit := PesqPict("SC7","C7_PRECO",14)
+
+Private oPeso,oProduto,oFornece,oLoja,oTransp,oDesc,oPlaca,oEmissao,oPedido,oDesTran,oStatus,oRazSoc,oPrint,oObserv,oTpNF,oProdEmb,oDescEmb,oMulti,oBrowse
+Private oDlg,oButton1,oButton2,oButton3,oButton4,oButton5,oGroup0,oGroup1,oGroup2,oTBitmap1,oTBitmap2,oTBitmap3,oTBitmap4,oTBitmap5,oTBitmap6,oTBitmap7,oTBar
+Private cSerial,nSX8Len
+
+Private lSair     := .F.
+Private lTicket   := .F.
+Private lPesagem  := .F.
+Private cSpaces   := IIF(M->cVersao=="11" , Space(30) , Space(15) )
+Private cPedido   := Space(6)
+Private mPedido   := Space(6)
+Private dEmissao  := MsDate()
+Private mEmissao  := dEmissao
+Private cStatus   := "Efetuar pesagem...  "+space(31)
+Private cPeso     := space(12)
+Private c_Status  := " "
+Private cProdEmb  := cSpaces
+Private cDescEmb  := SPACE(30)
+Private cTransp   := Space(6)
+Private cDesTran  := Space(20)
+Private cPlaca    := Space(7)
+Private mPlaca    := Space(7)
+Private cFornece  := Space(6)
+Private cLoja     := Space(02)
+Private cRazSoc   := Space(40)
+Private cCNPJ     := Space(14)
+Private cTpPessoa := Space(1)
+Private cProduto  := cSpaces
+Private cDesc     := Space(30)   
+Private cObserv   := Space(40)
+Private nPesoEmb  := 0
+Private nPrcUnit  := 0
+Private nCount    := 0
+Private cMarca    := GetMark()
+Private cTpNF     := "Não "
+Private aTpNF     := {"Sim ","Não "}
+Private aCols     := {{SPACE(2),cSpaces,SPACE(30),0,0,0,0,cSpaces,SPACE(30)}}
+Private aHeader   := {}
+
+AADD(aHeader,{"Item"             , "X5_FILIAL " ,"@!               " ,04,0, "                               ","€€€€€€€€€€€€€€ ","C","SX5","V"," "," "})
+AADD(aHeader,{"Produto"          , "X5_FILIAL " ,"@!               " ,15,0, "                               ","€€€€€€€€€€€€€€ ","C","SX5","B"," "," "})
+AADD(aHeader,{"Descrição"        , "X5_FILIAL " ,"@!               " ,30,0, "                               ","€€€€€€€€€€€€€€ ","C","SX5","B"," "," "})
+AADD(aHeader,{"Peso Prod."       , "X5_FILIAL " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SX5","V"," "," "})
+AADD(aHeader,{"Peso Emb."        , "X5_FILIAL " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SX5","V"," "," "})
+AADD(aHeader,{"Peso Liq."        , "X5_FILIAL " ,"@E 9999999       " ,07,0, "                               ","€€€€€€€€€€€€€€ ","N","SX5","V"," "," "})
+AADD(aHeader,{"Prc.Unit."        , "X5_FILIAL " ,"@E 9999.9999     " ,09,4, "ExecBlock('CFBLKG10A',.F.,.F.) ","€€€€€€€€€€€€€€ ","N","SX5"," "," "," "})
+AADD(aHeader,{"Cod.Embal"        , "X5_FILIAL " ,"@!               " ,15,0, "                               ","€€€€€€€€€€€€€€ ","C","SX5","V"," "," "})
+AADD(aHeader,{"Descr.Embalagem"  , "X5_FILIAL " ,"@!               " ,30,0, "                               ","€€€€€€€€€€€€€€ ","C","SX5","V"," "," "})
+*
+DEFINE FONT oFnt  NAME "Arial" Size 10,17             ///LARG. X ALT.
+DEFINE FONT oFnt2 NAME "Arial" Size 10,11
+DEFINE FONT oFnt3 NAME "Arial" Size 10,12
+DEFINE FONT oFnt4 NAME "Arial" Size 10,34
+DEFINE FONT oFnt5 NAME "Arial" Size 12,66
+DEFINE FONT oFnt6 NAME "Arial" Size 9,12
+
+cPedido := "000001"
+mPedido := cPedido
+
+n       := 1
+
+dbSelectArea("SX5")
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Criacao da Interface                                                ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+DEFINE MSDIALOG oDlg TITLE OemToAnsi("Balança Automática") From 000,000 To 30,106   //17,095
+
+@ 021, 002 GROUP oGroup0 TO 121, 414 PROMPT "Dados do Pedido"                                        OF oDlg PIXEL             ///021,002 TO 121,374       
+@ 128, 002 GROUP oGroup1 TO 224, 414 PROMPT "Itens do Pedido"                                        OF oDlg PIXEL             ///021,002 TO 121,374       
+@ 030, 238 GROUP oGroup2 TO 060, 410 PROMPT "Status"                                                 OF oDlg PIXEL             ///021,002 TO 121,374       
+@ 030,006 Say OemToAnsi("Num.Pedido")                                              Size 40,7   PIXEL OF oDlg
+@ 030,051 Say OemToAnsi("Data Emissão")                                            Size 38,7   PIXEL OF oDlg
+@ 030,104 Say OemToAnsi("Entrada Pessoa Física?")                                  Size 70,7   PIXEL OF oDlg
+@ 052,006 Say OemToAnsi("Transportador")                                           Size 38,7   PIXEL OF oDlg
+@ 052,154 Say OemToAnsi("Placa do Veiculo")                                        Size 42,7   PIXEL OF oDlg
+@ 075,006 Say OemToAnsi("Fornecedor")                                              Size 30,7   PIXEL OF oDlg
+@ 075,043 Say OemToAnsi("Loja")                                                    Size 13,7   PIXEL OF oDlg
+@ 075,062 Say OemToAnsi("Razão Social")                                            Size 34,7   PIXEL OF oDlg
+@ 097,006 Say OemToAnsi("Produto")                                                 Size 20,7   PIXEL OF oDlg
+@ 097,062 Say OemToAnsi("Descrição")                                               Size 26,7   PIXEL OF oDlg
+@ 097,205 Say OemToAnsi("Embalagem(carrinho)")                                     Size 78,7   PIXEL OF oDlg
+@ 097,264 Say OemToAnsi("Descr.Embalagem")                                         Size 70,7   PIXEL OF oDlg
+@ 037,006 MsGet oPedido         Var cPedido                                        Size 37,10  OF oDlg PIXEL                   
+@ 037,051 MsGet oEmissao        Var dEmissao                                       Size 40,10  OF oDlg PIXEL  
+@ 037,104 MsComboBox oTpNF      Var cTpNF       Items aTpNF                        Size 30,21  PIXEL OF oDlg 
+@ 026,180 Say   oPeso           Var cPeso                                          Size 80,34  PIXEL OF oDlg                       FONT oFnt5  COLOR 32768,0    
+@ 037,240 Say   oStatus         Var cStatus                                        Size 170,12 PIXEL OF oDlg                       FONT oFnt6  COLOR 16711680,0
+@ 060,006 MsGet oTransp         Var cTransp                                        Size 25,10  OF oDlg PIXEL                         
+@ 060,042 MsGet oDesTran        Var cDesTran                                       Size 100,10 OF oDlg PIXEL                       WHEN .F.
+@ 060,154 MsGet oPlaca          Var cPlaca                Picture "@R !!!-9999"    Size 30,10  OF oDlg PIXEL  
+@ 082,006 MsGet oFornece        Var cFornece                                       Size 30,10  OF oDlg PIXEL                       
+@ 082,043 MsGet oLoja           Var cLoja                                          Size 12,10  OF oDlg PIXEL                       
+@ 082,062 MsGet oRazSoc         Var cRazSoc                                        Size 135,10 OF oDlg PIXEL                       WHEN .F.
+@ 104,006 MsGet oProduto        Var cProduto                                       Size 52,10  OF oDlg PIXEL                                
+@ 104,062 MsGet oDesc           Var cDesc                                          Size 135,10 OF oDlg PIXEL                       WHEN .F.
+@ 104,205 MsGet oProdEmb        Var cProdEmb                                       Size 56,10  OF oDlg PIXEL                             
+@ 104,264 MsGet oDescEmb        Var cDescEmb                                       Size 135,10 OF oDlg PIXEL                       WHEN .F.
+*
+@ 136,004 TO 220,412 MULTILINE FREEZE 1 Object oMulti
+///oMulti:oBrowse:bchange  := { || LineOkk("CHANGE") }
+
+oTBar := TBar():New( oDlg,40,45,.T.,,,,.F. ) 
+
+oTBitmap1 := TBtnBmp2():New( 00, 00, 35, 25,"p_pesagem" , , , ,;
+               {|| f_cappeso() }  ,oTBar,'Captura peso',,.F.,.F.)
+oTBitmap2 := TBtnBmp2():New( 00, 00, 35, 25, 'p_cancela' ,,,,;
+               {|| f_cancela() }  ,oTBar,'Cancela pesagem',,.F.,.F.)
+oTBitmap3 := TBtnBmp2():New( 00, 00, 35, 25, 'button_ok1' ,,,,;
+               {|| f_pesagem() }  ,oTBar,'Confirma pesagem',,.F.,.F.)
+oTBitmap4 := TBtnBmp2():New( 00, 00, 35, 25, 'button_print' ,,,,;
+               {|| f_ticket() }  ,oTBar,'Emite ticket',,.F.,.F.)
+oTBitmap5 := TBtnBmp2():New( 00, 00, 35, 25, 'button_cfg2' ,,,,;
+               {|| f_Parameter("F") }  ,oTBar,'Parametros',,.F.,.F.)
+oTBitmap6 := TBtnBmp2():New( 00, 00, 35, 25, 'button_exit' ,,,,;
+               {|| lSair := .T. , oDlg:End() }  ,oTBar,'Sair',,.F.,.F.)
+
+Activate Dialog oDlg CENTER  Valid lSair
+
+Return
+
+///////////////////////////////////////
+Static Function f_Cancela()
+///////////////////////////////////////
+Local lRsp := .T.
+
+lRsp := IIF(!lPesagem , .T. , MsgYesNo("Existe uma confirmação de pesagem a ser efetuada. Deseja descartar essa pesagem?","Escolha a opção") )
+		
+IF ( lRsp )
+
+   cPlaca    := space(7)
+	dEmissao  := ddatabase
+	cPeso     := space(15)
+   cFornece  := Space(6)
+   cLoja     := Space(02)
+   cRazSoc   := Space(40)
+   cProduto  := IIF(M->cVersao=="11" , Space(30) , Space(15) )
+	cCNPJ     := Space(14)
+	cTpPessoa := Space(1)
+	cTpNF     := "Não "
+   cDesc     := Space(30)
+	cTransp   := Space(6)
+	cDesTran  := Space(20)
+	cObserv   := Space(40)
+	cProdEmb  := IIF(M->cVersao=="11" , Space(30) , Space(15) )
+	cDescEmb  := Space(30)
+	lPesagem  := .F.
+	lTicket   := .F.
+	cStatus   := "Efetuar pesagem...  "+space(31)
+	aCols     := {{SPACE(2),cSpaces,SPACE(30),0,0,0,0,cSpaces,SPACE(30)}}
+	n         := 1
+	nPesoEmb  := 0
+	nPrcUnit  := 0
+	nCount    := 0
+	oStatus:Refresh()
+	oPedido:Enable()
+	oTpNF:Enable()
+	oFornece:Enable()
+	oLoja:Enable()
+	oTransp:Enable()
+	oPlaca:Enable()
+	oEmissao:Enable()
+	oProduto:Enable()
+	oProdEmb:Enable()
+	oEmissao:SetFocus()
+
+	cPedido := "000002"
+	mPedido := cPedido
+ENDIF
+
+Return(lRsp)
+
+///////////////////////////////////////////////////////////
+Static Function f_Parameter(xOpc)
+///////////////////////////////////////////////////////////
+Local lOpc := IIF(xOpc=="I",.F.,.T.)
+
+cSerial := RTRIM(mv_par01)+":"+LTRIM(STR(mv_par02,5))+","+mv_par03+","+STR(mv_par04,1)+","+STR(mv_par05,1)
+
+Return
+
+///////////////////////////////////////
+Static Function f_Pesagem()
+///////////////////////////////////////
+Local   lRsp   := .T.
+Local   nCtd   := 0
+Private nTotal := 0
+                
+	aCols    := {{SPACE(2),cSpaces,SPACE(30),0,0,0,0,cSpaces,SPACE(30)}}
+	n        := 1
+	cProduto := SPACE(15)
+	cPeso    := SPACE(15)
+	oPeso:Refresh()
+		
+Return
+
+////////////////////////////////////////////////////////
+Static Function f_cappeso()
+////////////////////////////////////////////////////////
+Local   lRead
+Local   nHandle := 0
+Local   cRetDll := 0             
+Local   nHdl1   := 0
+Local   nPeso   := 0 
+Local   cText   := space(15)                 
+///Local   bAcao   := {|lFim| LeE_peso(@lFim) }
+Local   bAcao   := {|lEnd| LeE_peso(@lEnd) }
+Local   cTitulo := 'Lendo Pesagem da Balanca'
+Local   cMsg    := 'Peso ... '
+Local   lAborta := .T. 
+Private nHdll   := 0  
+
+IF ( lTicket .OR. EMPTY(cProduto) )
+	Return
+ENDIF	
+
+DO CASE 
+	CASE mv_par06==3
+		  cPeso := balanca()
+	OTHERWISE
+MSOpenPort(nHdll,cSerial)    ///"COM1:9600,n,7,2") 
+
+cPeso := space(15)
+nPeso := 0 
+lRead := MsRead(nHdll,@cText)      
+
+If !lRead
+  	MsgStop("Nao foi possivel pegar informações da porta.")
+	Return
+EndIf
+nVezes := 0            
+nEstab := 0                
+cPeso  := "000000"  
+  	
+Processa( bAcao, cTitulo,cMsg, lAborta )
+  	   	
+ncont := 1                                  
+ENDCASE
+nPeso := val(cPeso)/1000
+cPeso := transform(nPeso,"@E 9999,999")
+oPeso:Refresh()
+
+IF ( !lPesagem )
+	oTpNF:Disable()
+	oPedido:Disable()
+	oFornece:Disable()
+	oLoja:Disable()
+	oTransp:Disable()
+	oPlaca:Disable()
+	oEmissao:Disable()
+	aCols    := {}
+	lPesagem := .T.
+ENDIF
+
+nPreco   := 0.876
+nCount   := ( nCount + 1 )
+////nPeso    := IIF(nCount==1,257,470)
+
+AADD(aCols , { STRZERO(nCount,4)      , ;
+					cProduto               , ;
+					cDesc                  , ;
+					nPeso                  , ;
+					nPesoEmb               , ;
+					( nPeso - nPesoEmb )   , ;
+					nPreco                 , ;
+					cProdEmb               , ;
+					cDescEmb } )                    
+
+cProduto := cSpaces
+cProdEmb := cSpaces
+cDesc    := SPACE(30)
+cDescEmb := SPACE(30)
+nPrcUnit := 0
+nPesoEmb := 0
+cPeso    := transform(nPeso,"@E 999,999,999")
+					
+oMulti:Refresh()
+oProduto:Refresh()
+oProdEmb:Refresh()
+oProduto:SetFocus()
+
+dbSelectArea("SX5")
+
+Return
+
+/////////////////////////////////////////////////////////////
+///Static Function LeE_peso(lFim)
+Static Function LeE_peso(lEnd)
+/////////////////////////////////////////////////////////////
+Local   lEnd := .F.
+Private cText := "00000"
+          
+nVezes := 0
+
+///Caso o indicador de peso não esteja configurado para modo contínuo seria necessário utilizar também a função MSWrite() para enviar algo antes de ler o peso. 
+
+ProcRegua(10000)
+Do While !lEnd
+
+    //If lFim  
+    //   Exit 
+    //EndIf 
+  	    	 
+	///MsWrite(nHandle,"Comandos a serem enviados") 
+	
+   MsRead(nHdll,@cText)                     
+   nVezes ++  
+    
+	msginfo(ctext+"    -->Len: "+str(len(ctext),3) )
+	
+  	if (val(substr(cText,at("p`",cText)+2,6)) >= 0 .and.  ;  
+  	   at("p`",cText) != 0)                              
+  	   cTemp := substr(cText,at("p`",cText)+2,6)
+  	   nLok := .t.
+  	   For nCT := 1 to 5
+  	       //if RetAsc(substr(cTemp,nCT,1),1,.T.) < "0" .or. RetAsc(substr(cTemp,nCT,1),1,.T.) > "9"
+  	       if substr(cTemp,nCT,1) < "0" .or. substr(cTemp,nCT,1)> "9"
+  	          nLok := .f. 
+  	       Endif
+  	   Next
+  	   if nLOK       
+  	   	  cPeso := substr(cText,at("p`",cText)+2,6)
+  	   	  IncProc("Peso Liquido na Balança: " + transform(val(cPeso)/1000,"@E 9999,999.99999"))
+ 	   Endif   
+  	Else    
+		nKey := Inkey(0)
+		lEnd := nKey == chr(27)
+  	Endif
+  	           	  
+Enddo                                                   
+
+MsClosePort(0)
+
+Return
+
+***************************
+Static Function ValidPerg()
+***************************
+	Local i
+	Local j 
+	
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01             | DefSPA1 | DefEng1 | CNT01 | var02 | Def02   | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Porta                       ?",   ""   ,  ""    , "mv_ch1" , "C" ,   05   ,   0   ,   0   , "G" , "          "  , "mv_par01", "               " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Velocidade                  ?",   ""   ,  ""    , "mv_ch2" , "N" ,   05   ,   0   ,   0   , "G" , "          "  , "mv_par02", "               " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"03" , "Paridade                    ?",   ""   ,  ""    , "mv_ch3" , "C" ,   01   ,   0   ,   0   , "G" , "          "  , "mv_par03", "               " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"04" , "Bits de Dados               ?",   ""   ,  ""    , "mv_ch4" , "N" ,   01   ,   0   ,   0   , "G" , "          "  , "mv_par04", "               " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"05" , "Bits de Paridade            ?",   ""   ,  ""    , "mv_ch5" , "N" ,   01   ,   0   ,   0   , "G" , "          "  , "mv_par05", "               " , "     " , "     " , "   " , "   " , "     " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return
+
+//////////////////////////////////////////////////////
+Static Function BALANCA()
+//////////////////////////////////////////////////////                   
+Local nHand   := 1
+Local nTempo := 700
+Local cPorta := cSerial
+Local cString := ""
+Local cRetVar := "-1"
+Local cMens   := "Deseja repesar?"
+Local bEstab := .T.
+Local cPeso 
+          
+While .T.
+     cString := ""
+     cPeso   := ""
+     aPesos := {}
+     bEstab := .T.     
+     If MsOpenPort(nHand,cPorta) // Abrindo porta
+	  
+          Sleep(nTempo)           // Tempo para capturar os dados
+          MSRead(nHand, @cPeso)   // Capturando os dados
+          MsClosePort(nHand)      // Fechando porta     
+			 
+			 //FreeLibrary(nHand)
+			 nIni := At(chr(1), cPeso)
+			 nFim := Rat(chr(2), cPeso)
+          // Irregularidade de conesão ou falta dos caracteres delimitadores
+          If nIni = -1 .or. nFim = -1
+               cMsg := "A balança está desligada ou o cabo está desconectado ou a" + chr(13)
+               cMsg += "conexão informada no parametro da serial está errada," + chr(13)
+               cMsg += "pois não foi possível encontrar os caracteres delimitadores."
+               MsgBox(cMsg)
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+          EndIf    
+			 *
+          Sleep(nTempo)           // Tempo para capturar os dados
+          MSRead(nHand, cPeso)   // Capturando os dados
+          MsClosePort(nHand)      // Fechando porta     
+			 
+			 nIni := At(chr(1), cPeso)
+			 nFim := Rat(chr(2), cPeso)
+          // Irregularidade de conesão ou falta dos caracteres delimitadores
+          If nIni = -1 .or. nFim = -1
+               cMsg := "A balança está desligada ou o cabo está desconectado ou a" + chr(13)
+               cMsg += "conexão informada no parametro da serial está errada," + chr(13)
+               cMsg += "pois não foi possível encontrar os caracteres delimitadores."
+               MsgBox(cMsg)
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+          EndIf    
+          cPeso := substr(cPeso, nIni, (nFim - nIni) + 1 )
+          aPesos := explode(chr(2), cPeso)
+        // Poucas Amostras
+        If len(aPesos) < 4
+               MsgBox("Não foi possível adquirir o peso devido a poucas amostas." + chr(13) + "Por favor, repesar a peça.")
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+        EndIf
+          // Verificando a Estabilidade
+          For x := 2 to len(aPesos)
+               If aPesos[x] != aPesos[1]
+						bEstab := .F.
+						Exit
+               EndIf
+          Next     
+          If ! bEstab
+               MsgBox("O peso da balança não está estabilizado." + chr(13) + "Por favor, repesar a peça.")
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+          Endif
+          // Verificando Peso Negativo
+          If asc(substr(aPesos[1], 2, 1)) = 45
+               MsgBox("O peso da balança está NEGATIVO." + chr(13) + "Por favor, repesar a peça.")
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+          EndIf
+          // Verificando Sobrecarga
+          If asc(substr(aPesos[1], 8, 1)) = 32
+               MsgBox("SOBRECARGA NA BALANÇA !!!" + chr(13) + "Por favor, retire o peso excessivo e verifique a TARA.")
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+          EndIf
+          // Balança Zerada
+          If substr(aPesos[1], 3, 6) = " 0.000"
+               MsgBox("BALANÇA SEM CARGA !!!" + chr(13) + "Por favor, coloque a peça sobre a balança.")
+               If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+                    Loop
+               Else
+                    Exit
+               EndIf
+          EndIf
+          // Peso Correto
+          cRetVar := substr(aPesos[1], 3, 6)
+        Exit
+     Else
+          MsgBox("Não foi possível conectar a porta especificada." + chr(13) +"Verifique se o cabo da balança está conectado" + chr(13) + chr(13) + cPorta)
+          If MsgYesNo(cMens,OemToAnsi('ATENCAO'))
+               Loop
+          Else
+               Exit
+          EndIf
+     EndIf
+EndDo
+Return cRetVar
+
+Static Function explode(cSeparator, cString)
+    Local aRetVar := {} 
+    Local cTemp
+    Local bExec := .T.
+    Local nPos
+    
+    While bExec
+          nPos := At(cSeparator, cString)
+          If nPos = 0
+               bExec := .F.
+               Exit
+          EndIf
+        cTemp := substr(cString, 1, nPos)
+          aadd(aRetVar, cTemp)
+          cString := substr(cString, nPos + 1)
+     EndDo
+Return aRetVar
+
+/*
+1  – A DLL, deve possuir o seguinte método a ser exportada:
+
+EXEMPLO C++:
+
+int DLL_EXPORT ExecInClientDLL(int nParamHdl, CHAR* cParameters, CHAR* cBuffer, int nSizeBuffer)
+
+2 – Caso a sua DLL seja em C, C++ o cabeçalho .h deve possuir :
+
+Código
+
+#ifndef __MAIN_H__ 
+#define __MAIN_H__ 
+#include <windows.h> 
+#ifdef BUILD_DLL 
+#define DLL_EXPORT __declspec(dllexport) 
+#else 
+#define DLL_EXPORT __declspec(dllimport) 
+#endif
+#ifdef __cplusplus
+ 
+extern "C" 
+{
+ #endif 
+int DLL_EXPORT  ExecInClientDLL(int nParamHdl, CHAR* cParameters, CHAR* cBuffer, int nSizeBuffer);
+ #ifdef __cplusplus
+ }
+ 
+#endif
+ #endif // __MAIN_H__
+
+Source C++ :
+
+
+Código
+
+#include "main.h" 
+#ifdef DLLDIR_EX 
+#define DLLDIR  __declspec(dllexport)
+#else
+#define DLLDIR  __declspec(dllimport)
+#endif
+ 
+int DLL_EXPORT  ExecInClientDLL(int _FunctionId, CHAR* _Parameters, CHAR* _Buffer, int _SizeBuffer )
+{
+MessageBoxA(0, _Parameters, "DLL Message", MB_OK | MB_ICONINFORMATION);
+return 1 ;
+}
+ 
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+switch (fdwReason)
+{
+case DLL_PROCESS_ATTACH:
+// attach to process
+// return FALSE to fail DLL load
+break;
+case DLL_PROCESS_DETACH:
+// detach from process
+break;
+case DLL_THREAD_ATTACH:
+// attach to thread
+break;
+case DLL_THREAD_DETACH:
+// detach from thread
+break;
+}
+ 
+return TRUE; // succesful
+ 
+}
+3 – Caso seja em Delphi criar a interface :
+
+function  ExecInClientDLL(nParamHdl : integer ; cParameters : Pchar ; cBuffer : Pchar; nSizeBuffer : integer ) : integer ; stdcall ; export ;
+
+E os parâmetros  int nParamHdl, CHAR* cParameters, CHAR* cBuffer, int nSizeBuffer?
+
+Int nParamHdl	Valor retornado pela chamada da DLL
+cParameters	Qualquer valor string a ser executado, ou tratado pela DLL
+cBuffer	Cadeia de caracters a ser usado na DLL
+nSizeBuffer	Tamanho do Buffer – de acordo com cBuffer (Caracters)
+Chamamando a DLL
+
+Código
+
+#include "protheus.ch"
+ 
+User Function TLIBEX
+ 
+local nHandle := 0
+ 
+local cRetDLL   := 0
+ 
+nHandle := ExecInDllOpen('tlib.dll')
+ 
+//O nHandle – ver o parametro Int nParamHdl na DLL, se for -1: Erro na DLL, ou não </strong>
+ 
+//  a DLL não encontra-se na pasta: Remote ou SmartCLient ( P10)</strong>
+ 
+cRetDLL := ExecInDLLRun( nHandle, 2, 'MINHA DLL !!!' )
+ 
+MsgStop( 'RETORNO: ' + cRetDLL )
+ 
+ExecInDLLClose(nHandle)
+ 
+Return()
+/*

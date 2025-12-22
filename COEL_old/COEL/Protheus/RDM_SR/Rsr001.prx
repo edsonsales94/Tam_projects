@@ -1,0 +1,524 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+
+User Function Rsr001()        // incluido pelo assistente de conversao do AP6 IDE em 16/09/02
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP6 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("CDESC1,CDESC2,CDESC3,CSTRING,AORD,IMPRIME")
+SetPrvt("LEND,ARETURN,NOMEPROG,ALINHA,NLASTKEY,CPERG")
+SetPrvt("TITULO,AT_PRG,CCABEC,WCABEC0,WCABEC1,CONTFL")
+SetPrvt("LI,NOPC,NOPCA,WNREL,NTAMANHO,NORDEM")
+SetPrvt("L1VEZ,CCANCEL,CARQNTX,CINDCOND,CINICIO,CFIM")
+SetPrvt("CDETALHE,CVALID,CVAR,I,CLINE,LATIV")
+SetPrvt("CSAVALIAS,NSAVREG,")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ RSPR001  ³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime os curriculos conforme parametros selecionados     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+cDesc1  := OemtoAnsi("Este programa tem como objetivo imprimir os curriculos")
+cDesc2  := OemtoAnsi("conforme parametros selecionados.")
+cDesc3  := ""
+cString := "SQG"  	
+aOrd    := {"Curriculo","Nome"}
+Imprime := .T.
+lEnd    := .F.
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis (Basicas)                            		  ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aReturn  := { "Zebrado",1,"Administra‡„o",2,2,1,"",1 }
+NomeProg := "RSPR001"
+aLinha   := {}
+nLastKey := 0
+cPerg    := "RSR001"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define Variaveis (Programa)                                  ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+Titulo  := OemToAnsi("Curriculos")          
+At_prg  := "RSPR001"
+cCabec  := ""
+wCabec0 := 0
+wCabec1 := ""
+ContFl  := 1
+Li      := 1
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas                           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte("RSR001",.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                         ³
+//³ mv_par01        //  Curriculo de                             ³
+//³ mv_par02        //  Curriculo ate                            ³
+//³ mv_par03        //  Nome de              			           ³
+//³ mv_par04        //  Nome ate        								  ³
+//³ mv_par05        //  Area de					        				  ³
+//³ mv_par06        //  Area ate                      		     ³
+//³ mv_par07        //  Situacao         			  					  ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Envia controle para a funcao SETPRINT                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+nOpc:=2
+nOpca:=2
+wnrel:="RSPR001"   					    //Nome Default do relatorio em Disco
+wnrel:=SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,aOrd)
+
+If nLastKey == 27
+	Return 
+EndIf
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+	Return 
+EndIf
+
+RptStatus({|| F001Impr()})// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> RptStatus({|| Execute(F001Impr)})
+
+Return 
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ F001Impr ³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Rotina de impressao dos curriculos                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function F001Impr
+Static Function F001Impr()
+cCabec  := ""
+At_prg  := "RSPR001"
+WCabec0 := 1
+WCabec1 := OemtoAnsi("Curriculo Vitae")
+Contfl  := 1
+Li      := 0
+nTamanho:= "M"    
+nOrdem  := aReturn[8]
+l1Vez   := .T.
+cCancel := "Cancelado pelo usuario"
+nOrdem  := aReturn[8]
+
+dbSelectArea("SQG")
+If nOrdem == 1					// Curriculo
+	dbSetOrder(1)
+ElseIf nOrdem == 2			// Nome
+	cArqNtx  := CriaTrab(NIL,.f.)
+	cIndCond := "QG_FILIAL + QG_NOME"
+	IndRegua("SQG",cArqNtx,cIndCond,,,'Selecionando Registros...')
+EndIf
+
+dbGoTop()
+
+If nOrdem == 1
+	dbSeek(xFilial("SQG")+mv_par01,.T.)
+	cInicio := "SQG->QG_FILIAL + SQG->QG_CURRIC"
+	cFim	  := xFilial("SQG")+mv_par02
+ElseIf nOrdem == 2 
+	dbSeek(xFilial("SQG")+mv_par03,.T.)
+	cInicio := "SQG->QG_FILIAL + SQG->QG_NOME"
+	cFim	  := xFilial("SQG")+mv_par04
+EndIf
+
+SetRegua( RecCount() )
+
+While	!Eof() .And. &cInicio <= cFim
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Movimenta Regua Processamento                                ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	IncRegua()
+	
+	If (SQG->QG_CURRIC < mv_par01 .Or. SQG->QG_CURRIC > mv_par02) .Or.;
+		(SQG->QG_NOME < mv_par03 .Or. SQG->QG_NOME > mv_par04) .Or.;
+		(SQG->QG_AREA < mv_par05 .Or. SQG->QG_AREA > mv_par06) .Or.;
+		(SQG->QG_SITUAC < mv_par07 .Or. SQG->QG_SITUAC > mv_par08)
+		dbSkip()
+		Loop
+	EndIf	
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Cancela ImpressÆo ao se pressionar <ALT> + <A>               ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If lEnd
+		cDetalhe:= "Cancelado pelo Operador"
+		Impr(cDetalhe,"P")
+		Exit
+	EndIf
+
+	// Dados Pessoais
+	FDados()
+	
+	l1Vez:= .T.
+	// Qualificacao 
+	FQualific()
+
+	l1Vez:= .T.	
+	// Analise 
+	FAnalise()
+
+	l1Vez:= .T.	
+	// Historico Profissional
+	FHistor()
+
+	l1Vez:= .T.
+	cValid := "S"	
+	// Formacao Escolar
+	FEscolar()
+	
+	l1Vez:= .T.
+	cValid := "N"
+	// Cursos ExtraCurriculares
+	FEscolar()
+	
+	cDetalhe:=""
+	Impr(cDetalhe,"P")
+	
+	dbSelectArea("SQG")
+	DbSkip()
+
+EndDo
+
+cDetalhe:=""
+Impr(cDetalhe,"F")
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Termino do Relatorio                                         ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+dbSelectArea("SQG" )
+dbSetOrder(1)
+dbGoTop()
+
+If !(Type("ArqNtx") == 'U')
+	FErase(cArqNtx)
+Endif
+
+Set Device To Screen
+Set Printer To
+Commit
+
+If aReturn[5] == 1
+	Ourspool(wnrel)
+EndIf
+
+MS_FLUSH()
+RETURN
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FDados   ³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Funcao de impressao dos Dados Pessoais do curriculo        ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function FDados
+Static Function FDados()
+cDetalhe:=""
+Impr(cDetalhe,"C")
+cDetalhe := Space(10)+OemtoAnsi("DADOS PESSOAIS")
+Impr(cDetalhe,"C")
+cDetalhe:=""
+Impr(cDetalhe,"C")
+cDetalhe:= Space(15)+OemtoAnsi("Nome: ")+ Alltrim(SQG->QG_NOME)
+Impr(cDetalhe,"C")
+cDetalhe:= Space(15)+OemtoAnsi("Tel.: ") + Alltrim(SQG->QG_FONE)
+Impr(cDetalhe,"C")
+
+dbSelectArea("SX5")
+dbSeek(xFilial()+"33"+SQG->QG_ESTCIV)
+cDetalhe:= Space(15)+OemtoAnsi("Dt.Nasc.: ")+ DtoC(SQG->QG_DTNASC)+Space(05)+OemtoAnsi("Est.Civil: ")+UPPER(Substr(SX5->X5_DESCRI,1,30))
+Impr(cDetalhe,"C")
+cDetalhe:= Space(15)+OemtoAnsi("Endereco: ")+ Alltrim(SQG->QG_ENDEREC)
+Impr(cDetalhe,"C")
+cDetalhe:= Space(25)+Alltrim(SQG->QG_COMPLEM)
+Impr(cDetalhe,"C")
+cDetalhe:= Space(25)+Alltrim(SQG->QG_BAIRRO)+" "+Alltrim(SQG->QG_MUNICIP)
+Impr(cDetalhe,"C")
+cDetalhe:= Space(25)+SQG->QG_ESTADO+"   "+SQG->QG_CEP
+Impr(cDetalhe,"C")
+cDetalhe:= Space(15)+OemtoAnsi("RG: ")+SQG->QG_RG+Space(05)+OemtoAnsi("CIC: ")+SQG->QG_CIC
+Impr(cDetalhe,"C")
+cDetalhe:=""
+Impr(cDetalhe,"C")
+
+cDetalhe:= Space(10)+OemtoAnsi("AREA DE INTERESSE")
+Impr(cDetalhe,"C")
+cDetalhe:=""
+Impr(cDetalhe,"C")
+cDetalhe:= Space(15)+OemtoAnsi("Cargo: ")+SQG->QG_DESCFUN+Space(05)+"Pret.Salarial: "+str(SQG->QG_PRETSAL)
+Impr(cDetalhe,"C")
+cDetalhe:= Space(15)+OemtoAnsi("Indicado por: ")+Alltrim(SQG->QG_INDICAD)
+Impr(cDetalhe,"C")
+cDetalhe:=""
+Impr(cDetalhe,"C")
+RETURN 
+	
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FQualific³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime as Qualificacoes do curriculos                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/	
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function FQualific
+Static Function FQualific()
+cDetalhe:= Space(10)+OemtoAnsi("QUALIFICACOES")
+Impr(cDetalhe,"C")
+cDetalhe:= ""
+Impr(cDetalhe,"C")
+cDetalhe:=Space(15)
+
+cVar:= MSMM(SQG->QG_EXPER,70)
+For i:=1 to MlCount(cVar,70)
+	cLine:= MSMM(SQG->QG_EXPER,70,i)
+	Impr(cDetalhe+cLine,"C")
+	l1Vez:= .F.
+Next i	
+
+If l1Vez
+	cDetalhe:= Space(15)+ OemtoAnsi("*** Qualificacoes nao cadastrada ***")
+	Impr(cDetalhe,"C")
+EndIf
+
+cDetalhe:=""
+Impr(cDetalhe,"C")
+
+RETURN
+	
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FAnalise ³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime a Analise feita do curriculo                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/	
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function FAnalise
+Static Function FAnalise()
+cDetalhe:= Space(10)+OemtoAnsi("ANALISE")
+Impr(cDetalhe,"C")
+cDetalhe:= ""
+Impr(cDetalhe,"C")
+cDetalhe:=Space(15)
+
+cVar:= MSMM(SQG->QG_ANALISE,70)
+For i:=1 to MlCount(cVar,70)
+	cLine:= MSMM(SQG->QG_ANALISE,70,i)
+	Impr(cDetalhe+cLine,"C")
+	l1Vez:= .F.
+Next i	
+
+If l1Vez
+	cDetalhe:= Space(15)+ OemtoAnsi("*** Analise nao cadastrada ***")
+	Impr(cDetalhe,"C")
+EndIf
+
+cDetalhe:=""
+Impr(cDetalhe,"C")
+
+RETURN
+	
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FHistor  ³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime Historico Profissional do candidato                ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/	
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function FHistor
+Static Function FHistor()
+
+If li > 55
+	cDetalhe:=""
+	Impr(cDetalhe,"P")
+EndIf
+
+lAtiv:= .T.
+cSavAlias:= Alias()
+nSavReg  := RecNo()
+
+cDetalhe:= Space(10)+OemtoAnsi("HISTORICO PROFISSIONAL ")
+Impr(cDetalhe,"C")
+cDetalhe:= ""
+Impr(cDetalhe,"C")
+
+dbSelectArea("SQL")
+dbSetOrder(1)
+dbSeek(xFilial()+SQG->QG_CURRIC)
+While !Eof() .And. xFilial("SQG")+SQG->QG_CURRIC == QL_FILIAL+QL_CURRIC
+
+	cDetalhe:=Space(15)+OemtoAnsi("Admissao Demissao Area                                Empresa                        Funcao")
+	//									    99/99/99 99/99/99  001 012345678901234567890123456789 012345678901234567890123456789 01234567890123456780 	
+	Impr(cDetalhe,"C")	
+	
+	dbSelectArea("SX5")
+	dbSetOrder(1)
+	dbSeek(xFilial()+"R1"+SQL->QL_AREA)
+
+	cDetalhe:=Space(15)+DtoC(SQL->QL_DTADMIS)+" "+DtoC(SQL->QL_DTDEMIS)+"  "+SQL->QL_AREA+"-"+UPPER(Substr(SX5->X5_DESCRI,1,30))+" "+SQL->QL_EMPRESA+" "+SQL->QL_FUNCAO
+	Impr(cDetalhe,"C")		
+	
+	cDetalhe:= Space(17)+OemtoAnsi("Atividades:")
+	Impr(cDetalhe,"C")
+	
+	l1Vez:= .F.
+	
+	cVar:= MSMM(SQL->QL_ATIVIDA,70)
+	For i:=1 to MlCount(cVar,70)
+		cLine:= MSMM(SQL->QL_ATIVIDA,70,i)
+		cDetalhe:=Space(20)+cLine
+		Impr(cDetalhe,"C")
+		lAtiv := .F.
+	Next i	
+	
+	If lAtiv
+		cDetalhe:= Space(20)+ OemtoAnsi("*** Atividade nao cadastrada ***")
+		Impr(cDetalhe,"C")
+	EndIf
+	
+	dbSelectArea("SQL")	
+	dbSkip()
+EndDo
+
+If l1Vez
+	cDetalhe:= Space(15)+ OemtoAnsi("*** Historico Profissional nao cadastrada ***")
+	Impr(cDetalhe,"C")
+EndIf
+
+cDetalhe:=""
+Impr(cDetalhe,"C")
+
+dbSelectArea(cSavAlias)
+dbGoto(nSavReg)
+
+RETURN 
+	
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ FEscolar ³ Autor ³ R.H. - Cristina Ogura ³ Data ³ 03.03.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Imprime a formacao Escolar e Cursos extracurriculares      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Observacao³ cValid ="S" - Formacao Escolar  "N"-Curso ExtraCurricular  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³ RdMake                                                     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/	
+// Substituido pelo assistente de conversao do AP6 IDE em 16/09/02 ==> Function FEscolar
+Static Function FEscolar()
+
+If li > 55
+	cDetalhe:=""
+	Impr(cDetalhe,"P")
+EndIf
+
+cSavAlias:= Alias()
+nSavReg  := RecNo()
+
+If cValid == "S"
+	cDetalhe:= Space(10)+OemtoAnsi("FORMACAO ESCOLAR")
+	Impr(cDetalhe,"C")
+Else
+	cDetalhe:= Space(10)+OemtoAnsi("CURSOS EXTRACURRICULAR")
+	Impr(cDetalhe,"C")
+EndIf	
+
+cDetalhe:=""
+Impr(cDetalhe,"C")
+
+dbSelectArea("SQM")
+dbSetOrder(1)
+dbSeek(xFilial()+SQG->QG_CURRIC)
+
+While !Eof() .And. xFilial()+SQG->QG_CURRIC == QM_FILIAL+QM_CURRIC
+
+	If SQM->QM_ESCOLAR #cValid
+		dbSkip()
+		Loop
+	EndIf
+	
+	If l1Vez
+		cDetalhe:= Space(15)+OemtoAnsi("Dt.Formacao Entidade                       Curso")
+		//	    						    	     99/99/99 012345678901234567890123456789 012345 - 
+		Impr(cDetalhe,"C")
+		l1Vez:= .F.
+	EndIf		
+
+
+	dbSelectArea("SQT")
+	dbSetOrder(1)
+	dbSeek(xFilial()+SQM->QM_CURSO)
+		
+	cDetalhe:= Space(18)+ DtoC(SQM->QM_DATA)+" "+SQM->QM_ENTIDAD+" "+SQM->QM_CURSO+" - "+SQT->QT_DESCRIC
+	Impr(cDetalhe,"C")	
+
+	dbSelectArea("SQM")
+	dbSetOrder(1)
+	dbSkip()	
+EndDo
+
+If l1Vez
+	If cValid == "S"
+		cDetalhe:= Space(15)+ OemtoAnsi("*** Formacao Escolar nao cadastrada ***")
+	Else
+		cDetalhe:= Space(15)+ OemtoAnsi("*** Curso ExtraCurricular nao cadastrado ***")
+	EndIf	
+	Impr(cDetalhe,"C")
+EndIf
+
+cDetalhe:=""
+Impr(cDetalhe,"C")
+
+dbSelectArea(cSavAlias)
+dbGoto(nSavReg)
+
+RETURN 

@@ -1,0 +1,236 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR09C ³ Autor ³ Carlos Nina           ³ Data ³ 06/02/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Resumo de Movimentacao Anual                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+#Include "TOPCONN.CH"
+
+User Function CESTR09C()        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+
+nOrdem    := 0
+tamanho   := "M"
+limite    := 132
+cString   := "SB1"
+titulo    := "RESUMO DE MOVIMENTO ANNUAL DE INSUMOS"
+cDesc1    := "Emite uma relacao do Resumo de Movimento Anual dos insumos."
+cDesc2    := ""
+cDesc3    := ""
+cResp     := "C"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aReturn   := { "Especial", 1,"Diretoria", 1, 1, 2, "",1 }
+nomeprog  := "ESTR09C "
+nLastKey  := 0
+cPerg     := "CESTR09C  "
+wnrel     := "ESTR09C "
+m_pag     := 0
+nLin      := 99
+Tabmes    := 'JANFEVMARABRMAIJUNJULAGOSETOUTNOVDEZ'
+ValidPerg()
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+        Return
+Endif
+SetDefault(aReturn,cString)
+RptStatus({||Frc_Imp()})
+Return nil
+
+*************************
+Static Function Frc_imp()
+*************************
+////
+////
+////
+cQry  := "SELECT ZT_COD,B1_DESC,B1_UM,ZT_TIPO,SUM(ZT_ENTR) ZT_ENTR,SUM(ZT_OUTENT) ZT_OUTENT,SUM(ZT_REQ) ZT_REQ,SUM(ZT_OP) ZT_OP,SUM(ZT_SUC) ZT_SUC,SUM(ZT_INS) ZT_INS,SUM(ZT_DEV) ZT_DEV,"
+cQry  += "SUM(ZT_QREQ) ZT_QREQ,SUM(ZT_QENTR) ZT_QENTR,SUM(ZT_QSUC) ZT_QSUC,SUM(ZT_QINS) ZT_QINS,SUM(ZT_QDEV) ZT_QDEV,SUM(ZT_QREFUG) ZT_QREFUG,SUM(ZT_QCONS) ZT_QCONS,SUM(ZT_QOUTRAS) ZT_QOUTRAS,"
+cQry  += "SUM(ZT_VPRD) ZT_VPRD,SUM(ZT_QPRD) ZT_QPRD,SUM(ZT_P3EEC) ZT_P3EEC,SUM(ZT_QP3EEC) ZT_QP3EEC,SUM(ZT_P3ESC) ZT_P3ESC,SUM(ZT_QP3ESC) ZT_QP3ESC,SUM(ZT_VAJENT) ZT_VAJENT,SUM(ZT_QAJENT) ZT_QAJENT,SUM(ZT_VAJSAI) ZT_VAJSAI,SUM(ZT_QAJSAI) ZT_QAJSAI"       
+cQry  += " FROM "+RetSqlName("SZT")+" ZT,"+RetSqlName("SB1")+" B1"
+cQry  += " WHERE ZT.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' '"
+cQry  += " AND ZT_FILIAL = '"+xFilial("SZT")+"'"
+cQry  += " AND ZT_TIPO IN ('1','2','3')"
+cQry  += " AND ZT_TPR = 'EN'"
+cQry  += " AND LEFT(ZT_DATA,4) = '"+mv_par01+"'"
+cQry  += " AND B1_FILIAL = '"+xFilial("SB1")+"'"
+cQry  += " AND B1_COD = ZT_COD"
+cQry  += " GROUP BY ZT_COD,B1_DESC,B1_UM,ZT_TIPO"
+cQry  += " ORDER BY ZT_COD "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+
+TcSetField("TMP","ZT_ENTR","N",15,4)
+TcSetField("TMP","ZT_OUTENT","N",15,4)
+TcSetField("TMP","ZT_REQ","N",15,4)
+TcSetField("TMP","ZT_SUC","N",15,4)
+TcSetField("TMP","ZT_OP","N",15,4)
+TcSetField("TMP","ZT_INS","N",15,4)
+TcSetField("TMP","ZT_DEV","N",15,4)
+TcSetField("TMP","ZT_VPRD","N",15,4)
+TcSetField("TMP","ZT_QENTR","N",15,3)
+TcSetField("TMP","ZT_QREFUG","N",15,3)   
+TcSetField("TMP","ZT_QOUTRAS","N",15,3)   
+TcSetField("TMP","ZT_QREQ","N",15,3)
+TcSetField("TMP","ZT_QSUC","N",15,3)
+TcSetField("TMP","ZT_QCONS","N",15,3)
+TcSetField("TMP","ZT_QINS","N",15,3)
+TcSetField("TMP","ZT_QDEV","N",15,3)
+TcSetField("TMP","ZT_QPRD","N",15,3)
+TcSetField("TMP","ZT_VAJENT","N",15,4)
+TcSetField("TMP","ZT_QAJENT","N",15,3)
+TcSetField("TMP","ZT_VAJSAI","N",15,4)
+TcSetField("TMP","ZT_QAJSAI","N",15,3)
+
+cDatIni  := ( mv_par01 + "01" )
+cDatFin  := ( mv_par01 + "12" )
+dDatIni  := STOD( cDatIni + "01" )
+dDatFin  := STOD( cDatFin + "31" )
+nTotSdoI := 0
+nTotSdoF := 0
+nTotOutE := 0
+nTotOutS := 0
+nTotCmp  := 0
+nTotCons := 0
+*
+LIN5  := 'CODIGO / PRODUTO...........................  U.M   Sdo.Inicial   Outras Entr       Compras   Consumo(OP)  Outras Saida     Sdo.Final              '                
+*****     99999999999999 x--------------------------x  99  999999,999.99 999999.999,99 999999.999,99 999999.999,99 999999.999,99 999999.999,99 999999.999,99             
+*****               1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220
+*****     012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+*
+dbSelectArea("SZT")
+dbSetOrder(3)
+SetRegua(LastRec())
+*
+dbSelectArea("TMP")
+dbGoTop()
+SetPrc(0,0)
+@ 00,000 PSAY &(aDriver[3])
+DO WHILE !EOF().AND.lContinua
+   IF LastKey()==28
+		lContinua := .F.
+      Exit
+   ENDIF
+   IncRegua()
+   IF ( nLin > 57 )
+      m_pag := m_pag+1
+      @ 00,000 PSAY repl("*",132)
+      @ 01,000 PSAY '*T.I/COEL'
+      @ 01,040 PSAY 'EMPRESA..: ' + RTRIM(SM0->M0_NOMECOM)
+      @ 01,114 PSAY 'PAGINA.:    '+ STRZERO(m_pag,5,0)+'*'
+      @ 02,000 PSAY '*SYSTEM/ESTR09C'
+      @ 02,040 PSAY 'RELATORIO: RESUMO DE MOVIMENTO ANUAL DE INSUMOS EM '+mv_par01+" - " +IIF(mv_par02==1,"VLR","QTY")
+      @ 02,114 PSAY 'EMISSAO: ' + DTOC(DATE())+'*'
+      @ 03,000 PSAY IIF(m_pag==1,"*HORA: "+LEFT(TIME(),8),"*")
+      @ 03,114 PSAY 'DT.REF.: ' + DTOC(dDataBase)+'*'
+		@ 04,000 PSAY repl("*",132)
+      @ 05,000 PSAY LIN5
+      @ 06,000 PSAY repl("*",132)
+      nLin := 6
+   ENDIF
+	SZT->(dbSeek(xFilial("SZT")+TMP->ZT_COD+cDatIni+TMP->ZT_TIPO))
+	nSdoIni := IIF(mv_par02==1 , SZT->ZT_VINI , SZT->ZT_QINI )
+	*
+	SZT->(dbSeek(xFilial("SZT")+TMP->ZT_COD+cDatFin+TMP->ZT_TIPO))
+	nSdoFin := IIF(mv_par02==1 , SZT->ZT_VATU , SZT->ZT_QFIM )
+   *
+	IF ( mv_par02 == 1 )
+	   nCompra  := TMP->ZT_ENTR
+		nConsumo := TMP->ZT_OP
+		nOutEnt  := TMP->(ZT_OUTENT + ZT_VPRD + ZT_VAJENT + ZT_VREFUG + ZT_P3EEC )
+		nOutSai  := TMP->(ZT_REQ + ZT_SUC + ZT_INS + ZT_DEV + ZT_VAJSAI + ZT_P3ESC )	
+	ELSE
+	   nCompra  := TMP->ZT_QENTR
+		nConsumo := TMP->ZT_QCONS
+		nOutEnt  := TMP->(ZT_QOUTRAS + ZT_QPRD + ZT_QAJENT + ZT_QREFUG + ZT_QP3EEC )          
+		nOutSai  := TMP->(ZT_QREQ + ZT_QSUC + ZT_QINS + ZT_QDEV + ZT_QAJSAI + ZT_QP3ESC )	
+	ENDIF
+	*
+	dbSelectArea("SD3")
+	dbSetOrder(7)
+	dbSeek(xFilial("SD3")+TMP->ZT_COD+"02"+DTOS(dDatIni),.T.)
+	DO WHILE !EOF().AND.D3_FILIAL==xFilial("SD3").AND.D3_COD==TMP->ZT_COD.AND.D3_LOCAL=="02".AND.D3_EMISSAO<=dDatFin
+		IF ( EMPTY(SD3->D3_ESTORNO) .AND. D3_DOC == "INVENT   " )
+		   IF ( SD3->D3_CF == "DE0" )
+			   nOutEnt := IIF(mv_par02==1 , ( nOutEnt + SD3->D3_CUSTO1 ) , ( nOutEnt + SD3->D3_QUANT ) )
+			ELSEIF ( SD3->D3_CF == "RE0" )
+				nOutSai := IIF(mv_par02==1 , ( nOutSai + SD3->D3_CUSTO1 ) , ( nOutSai + SD3->D3_QUANT ) )
+			ENDIF
+		ENDIF
+	   dbSkip()
+	ENDDO
+	nTotSdoI := ( nTotSdoI + nSdoIni )
+	nTotSdoF := ( nTotSdoF + nSdoFin )
+	nTotOutE := ( nTotOutE + nOutent )
+	nTotOutS := ( nTotOutS + nOutSai )
+	nTotCmp  := ( nTotCmp  + nCompra )
+	nTotCons := ( nTotCons + nConsumo )
+	nDifere  := ( ( nSdoIni + nOutEnt + nCompra - nOutSai - nConsumo ) - nSdoFin )
+   nLin     := ( nLin + 1 )
+   @ nLin,000 PSAY LEFT(TMP->ZT_COD,14)
+	@ nLin,015 PSAY LEFT(TMP->B1_DESC,28)
+	@ nLin,045 PSAY TMP->B1_UM
+   @ nLin,049 PSAY nSdoIni           Picture "@E 9999999999.99"
+   @ nLin,063 PSAY nOutEnt           Picture "@E 9999999999.99"
+   @ nLin,077 PSAY nCompra           Picture "@E 9999999999.99"
+   @ nLin,091 PSAY nConsumo          Picture "@E 9999999999.99"
+   @ nLin,105 PSAY nOutSai           Picture "@E 9999999999.99"
+   @ nLin,119 PSAY nSdoFin           Picture "@E 9999999999.99"
+   ///@ nLin,133 PSAY nDifere           Picture "@E 9999999999.99"
+	dbSelectArea("TMP")
+   dbSkip()
+ENDDO
+TMP->(dbCloseArea())
+nLin++
+@ nLin,000 PSAY "** TOTAL GERAL"
+@ nLin,048 PSAY TRANSF(nTotSdoI,"@E 9999999,999.99")
+@ nLin,062 PSAY TRANSF(nTotOutE,"@E 9999999,999.99")
+@ nLin,076 PSAY TRANSF(nTotCmp,"@E 9999999,999.99")
+@ nLin,090 PSAY TRANSF(nTotCons,"@E 9999999,999.99")
+@ nLin,104 PSAY TRANSF(nTotOutS,"@E 9999999,999.99")
+@ nLin,118 PSAY TRANSF(nTotSdoF,"@E 9999999,999.99")
+*
+@ 60,000 PSAY REPL('*',132)
+@ 61,000 PSAY '* '+SM0->M0_NOMECOM+'           Software by T.I/COEL'+IF(lContinua,'',' ** PROGRAMA ABORTADO')
+@ 61,108 PSAY 'Hora Termino: '+LEFT(TIME(),8)+' *'
+@ 62,000 PSAY REPL('*',132)
+If aReturn[5] == 1
+        dbcommitAll()
+        ourspool(wnrel)
+Endif
+MS_FLUSH()
+RETURN
+
+//////////////////////////////////////////////////////
+Static Function ValidPerg()
+//////////////////////////////////////////////////////
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Ano do Movimento            ?",   ""   ,  ""    , "mv_ch1" , "C" ,   04   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Valores em                  ?",   ""   ,  ""    , "mv_ch2" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par02", "Custo       " , "     " , "     " , "   " , "   " , "Quantidade   " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

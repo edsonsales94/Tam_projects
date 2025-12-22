@@ -1,0 +1,341 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR027 ³ Autor ³ Carlos Nina           ³ Data ³ 04/10/11 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Saldo de Estoque Quadrimestral                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+#Include "TOPCONN.CH"
+
+User Function CESTR027()        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+
+SetPrvt("MV_PAR01,NORDEM,TAMANHO,LIMITE,CSTRING")
+SetPrvt("TITULO,CDESC1,CDESC2,CDESC3,CRESP,NDOCANT")
+SetPrvt("DDATANT,LCONTINUA,LIMPRIME1,LIMPRIME2,ARETURN,NOMEPROG")
+SetPrvt("NLASTKEY,CPERG,CSAVSCR1,CSAVCUR1,CSAVROW1,CSAVCOL1")
+
+nOrdem    := 0
+tamanho   := "M"
+limite    := 132
+cString   := "SB1"
+titulo    := "SALDO DE ESTOQUE FISICO/FINANCEIRO"
+cDesc1    := "Emite a relacao do Saldo de Estoque Fisico/Financeiro Quadrimestral"
+cDesc2    := "de acordo com o mes/ano informado, separado por tipo de material."
+cDesc3    := ""
+cResp     := "C"
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aReturn   := { "Especial", 1,"Diretoria", 1, 1, 2, "",1 }
+nomeprog  := "ESTR027 "
+nLastKey  := 0
+cPerg     := "ESTR027   "
+wnrel     := "ESTR027 "
+m_pag     := 0
+Li        := 60
+Tabmes    := 'JANFEVMARABRMAIJUNJULAGOSETOUTNOVDEZ'
+ValidPerg()
+pergunte(cPerg,.F.)
+wnrel   := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,tamanho)
+aDriver := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+        Return
+Endif
+SetDefault(aReturn,cString)
+RptStatus({||Frc_Imp()})
+Return nil
+
+*************************
+Static Function Frc_imp()
+*************************
+Local cQry
+
+////
+////
+////
+cQry  := "SELECT * FROM "+RetSqlName("SB1")
+cQry  += " WHERE D_E_L_E_T_ = ' '"
+cQry  += " AND B1_FILIAL = '"+xFilial("SB1")+"'"
+cQry  += " AND B1_TIPO IN ('PA','PP','PI','MP') AND B1_COD <> '00000002'"
+cQry  += " ORDER BY B1_TIPO,B1_COD "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TB3', .T., .T.)
+
+VP      := {}
+X6DATA  := GETMV('MV_ULMES')
+X6DATA  := X6DATA +1
+X6DATA  := LEFT(DTOS(X6DATA),6)
+cDatPro := LEFT(DTOS(mv_par01),6)
+dDatIni := FirstDay(mv_par01)
+cMesAnt := LEFT(DTOS(dDatIni-1),6)
+dDatFin := LastDay(dDatIni)
+dDatRef := dDatFin
+SET(1,"OFF")
+SetPrc(0,0)
+@ 00,000 PSAY &(aDriver[3])
+dbSelectArea("SB1")
+SetRegua(LastRec())
+*
+N1     := VAL(RIGHT(cDatPro,2))
+cData1 := IIF(RIGHT(cDatPro,2)=="12",VAL(cDatPro)+89,VAL(cDatPro)+1)
+cData2 := VAL(cDatPro)
+LIN5   := '  CODIGO / PRODUTO........................ LOC   '
+FOR NX:=1 TO 4
+    cData1  := IF(RIGHT(STR(cData1,6),2)=="01",cData1-89,cData1-1)
+    cAno    := LEFT(STR(cData1,6),4)
+    cMes    := VAL(RIGHT(STR(cData1,6),2))
+    aDatref := Rtrim(Subs(Tabmes,(cMes*3)-2,3))+'/'+cAno
+    LIN5    := LIN5 + SPACE(3) + aDatRef + SPACE(2) + IIF(NX > 1,"   VAR(%) ","")
+NEXT
+*
+dbSelectArea("TB3")
+dbGoTop()
+     DO WHILE !EOF().AND.lContinua
+        IF LastKey()==286
+           lContinua := .F.
+           Exit
+        ENDIF
+        IncRegua()
+        IF ( TB3->B1_TIPO == "PI" )
+           IX := "2"
+        ELSEIF ( TB3->B1_TIPO $ "PA/PP" )
+           IX := "1"
+        ELSE
+			  IX := IIF(TB3->B1_CLCFAM $ "EMB ,EMBA,ACES" , "4" ,IIF(TB3->B1_CLCFAM = "MAN " , "5" , "3" ) )
+	     ENDIF
+        dbSelectArea("SB9")
+        dbSetOrder(1)
+        dbSeek(xFilial("SB9")+TB3->B1_COD,.T.)
+        DO WHILE !EOF().AND.B9_FILIAL==xFilial("SB9").AND.B9_COD==TB3->B1_COD.AND.lContinua
+           B9LOCAL := B9_LOCAL
+           B9KEY   := ( IX + LEFT(TB3->B1_COD,15) + B9LOCAL )
+           NX      := ASCAN(VP, B9KEY )
+           IF ( NX == 0 )
+              AADD( VP , IX                    + ;    //Tipo   1,1
+                         LEFT(TB3->B1_COD,15)  + ;    //Cod1   2,15
+                         B9LOCAL               + ;    //Local 17,2
+                         REPL("0",64)          + ;    //      19,64
+                         LEFT(TB3->B1_DESC,25) + ;    //Desc  83,25
+                         REPL("0",64)          + ;    //     108,64
+                         TB3->B1_COD )                //Cod2 172,30
+              NX := LEN(VP)
+           ENDIF
+           N3 := 0
+           DO WHILE !EOF().AND.B9_FILIAL==xFilial("SB9").AND.B9_COD==TB3->B1_COD.AND.B9_LOCAL==B9LOCAL.AND.lContinua
+              B9DATA    := VAL(LEFT(DTOS(B9_DATA),6))
+              IF B9DATA >= cData1 .and. B9DATA <= cData2
+                 B9CM1  := STRZERO(B9_CM1*10000,16)
+                 B9VLR  := STRZERO(B9_VINI1*10000,16)
+                 N2     := VAL(RIGHT(STR(B9DATA,6),2))
+                 N3     := IIF(N1>=N2,(N1-N2+1),(N1-N2+13))
+                 N4     := IIF(N3==1,19,IIF(N3==2,35,IIF(N3==3,51,67)))
+                 N5     := N4+89
+                 VP[NX] := STUFF(VP[NX],N4,16,B9CM1)      
+                 VP[NX] := STUFF(VP[NX],N5,16,B9VLR)      
+              ENDIF
+              dbSkip()
+           ENDDO
+           IF VAL(SUBS(VP[NX],108,64)) == 0
+              ASIZE(VP,NX-1)
+           ENDIF
+        ENDDO
+        *
+        IF ( X6DATA == cDatPro )
+           N2 := VAL(RIGHT(cDatPro,2))
+           dbSelectArea("SB2")
+           dbSetOrder(1)
+           dbSeek(xFilial("SB2")+TB3->B1_COD,.T.)
+           DO WHILE !EOF().AND.B2_FILIAL==xFilial("SB2").AND.B2_COD==TB3->B1_COD.AND.lContinua
+              B2LOCAL := B2_LOCAL
+              SET(1,"OFF")
+              NX := ASCAN(VP,( IX + LEFT(SB2->B2_COD,15) + B2LOCAL ) )
+              SET(1,"ON")
+              IF ( NX==0 )
+                 IF ( SB2->B2_QFIM <= 0 )
+                    dbSkip()
+                    Loop
+                 ENDIF
+                 AADD(VP,IX+LEFT(SB2->B2_COD,15)+B2LOCAL+REPL("0",64)+LEFT(TB3->B1_DESC,25)+REPL("0",64)+SB2->B2_COD)
+                 NX := LEN(VP)
+              ENDIF
+              IF ( mv_par02 == 1 )
+                 aSaldo := { SB2->B2_QFIM , SB2->B2_VFIM1 }
+ 	           ELSE
+		           aSaldo := CalcEst(SB2->B2_COD,B2LOCAL,(dDatFin+1))
+              ENDIF
+              B2CM1  := ROUND(aSaldo[2] / aSaldo[1] , 4 )        ///Pode ser tbm B2_CMFIM1
+              B2VFIM := aSaldo[2]
+              N3     := 0
+              B2CM1  := STRZERO(B2CM1*10000,16)
+              B2VFIM := STRZERO(B2VFIM*10000,16)
+              VP[NX] := STUFF(VP[NX],19,16,B2CM1)
+              VP[NX] := STUFF(VP[NX],108,16,B2VFIM)
+              dbSkip()
+           ENDDO
+        ENDIF
+        *
+        dbSelectArea("TB3")
+        dbSkip()
+     ENDDO
+     TB3->(dbCloseArea())
+     IF LEN(VP) == 0
+		  If aReturn[5] == 1
+        	  dbcommitAll()
+           ourspool(wnrel)
+		  Endif
+		  MS_FLUSH()
+        RETURN
+     ENDIF
+        LIN4:='TIPO DO MATERIAL                                 --------------------------- C U S T O     M E D I O -----------------------------'
+        ******'  CODIGO / PRODUTO........................ LOC      SET/1996      C.MEDIO     VAR(%)     C.MEDIO     VAR(%)     C.MEDIO     VAR(%)'
+        *****    99999999 x-----------------------------x  99   999999.9999  999999.9999 999999,999 999999.9999 999999,999 999999.9999 999999,999
+        *****            1         2         3         4         5         6         7         8         9         100       110       120       130       140       150       160       170       180       190       200       210       220
+        *****  012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+        gValor := 0
+        NX     := 1
+        ASORT(VP)
+        DO WHILE NX <= LEN(VP).AND.lContinua
+           cGrupo   := LEFT(VP[NX],1)
+           cDesGrp  := IIF(cGrupo=="1" , "PRODUTO-ACABADO"       , ;
+			              IIF(cGrupo=="2" , "INTERMEDIARIO"         , ;
+							  IIF(cGrupo=="3" , "MATERIA-PRIMA"         , ;
+							  IIF(cGrupo=="4" , "MATERIAL DE EMBALAGEM" , ;
+							  IIF(cGrupo=="5" , "MATERIAL AUXILIAR"     , ;
+							                    "MANUTENCAO" ) ) ) ) )
+           xProduto := " "
+           tVlr1    := 0
+           tVlr2    := 0
+           tVlr3    := 0
+           tVlr4    := 0
+           tItens   := 0
+           nVlr1    := 0
+           nVlr2    := 0
+           nVlr3    := 0
+           nVlr4    := 0
+           nVlr11   := 0
+           nVlr22   := 0
+           nVlr33   := 0
+           nVlr44   := 0
+           nLin     := 99
+           m_pag    := 0
+           DO WHILE NX <= LEN(VP) .AND. LEFT(VP[NX],1) == cGrupo.AND.lContinua
+              IF LastKey()==286
+                 lContinua := .F.
+                 Exit
+              ENDIF
+              IF ( nLin > 57 )
+                 m_pag := m_pag+1
+                 @ 00,000 PSAY repl("*",132)
+                 @ 01,000 PSAY '*T.I/COEL'
+                 @ 01,044 PSAY 'EMPRESA..: ' + RTRIM(SM0->M0_NOMECOM)
+                 @ 01,114 PSAY 'PAGINA.:    '+ STRZERO(m_pag,5,0)+'*'
+                 @ 02,000 PSAY '*SYSTEM/ESTR027'
+                 @ 02,044 PSAY 'RELATORIO: CUSTO DE MATERIAL NO FECHAMENTO - QUADRIMESTRAL'
+                 @ 02,114 PSAY 'EMISSAO: ' + DTOC(DATE())+'*'
+                 @ 03,000 PSAY IIF(m_pag==1,"*HORA: "+LEFT(TIME(),8),"*")
+                 @ 03,114 PSAY 'DT.REF.: ' + DTOC(dDatRef)+'*'
+                 @ 04,000 PSAY repl("*",132)
+                 @ 05,000 PSAY LIN4
+                 @ 06,000 PSAY LIN5
+                 @ 07,000 PSAY repl("*",132)
+                 @ 08,000 PSAY cDesGrp
+                 nLin     := 8
+                 xProduto := " "
+              ENDIF
+              nCusto1 := VAL(SUBS(VP[NX],19,16))/10000           ///34
+              nCusto2 := VAL(SUBS(VP[NX],35,16))/10000           ///50
+              nCusto3 := VAL(SUBS(VP[NX],51,16))/10000           ///66
+              nCusto4 := VAL(SUBS(VP[NX],67,16))/10000           ///82
+              ///IF VAL(SUBS(VP[NX],12,32)) > 0 .AND. VAL(SUBS(VP[NX],28,16)) > 0 .AND. SUBS(VP[NX],12,16) <> SUBS(VP[NX],28,16)
+              IF VAL(SUBS(VP[NX],19,32)) > 0 .AND. SUBS(VP[NX],19,16) <> SUBS(VP[NX],35,16)
+	              nVlr1 := ( nVlr1 + VAL(SUBS(VP[NX],108,16))/10000 )     ///123
+   	           nVlr2 := ( nVlr2 + VAL(SUBS(VP[NX],124,16))/10000 )     ///139
+      	        nVlr3 := ( nVlr3 + VAL(SUBS(VP[NX],140,16))/10000 )     ///155
+         	     nVlr4 := ( nVlr4 + VAL(SUBS(VP[NX],156,16))/10000 )     ///171
+                 nLin     := nLin +1
+                 cProduto := SUBS(VP[NX],2,15)      
+                 cLocal   := SUBS(VP[NX],17,2)
+                 nVar2    := IIF(nCusto1==0.or.nCusto2==0,0,IF(nCusto2>nCusto1,(ROUND(((nCusto2/nCusto1)-1)*100,3)*-1),(ROUND(((nCusto1/nCusto2)-1)*100,3))))
+                 nVar3    := IIF(nCusto2==0.or.nCusto3==0,0,IF(nCusto3>nCusto2,(ROUND(((nCusto3/nCusto2)-1)*100,3)*-1),(ROUND(((nCusto2/nCusto3)-1)*100,3))))
+                 nVar4    := IIF(nCusto3==0.or.nCusto4==0,0,IF(nCusto4>nCusto3,(ROUND(((nCusto4/nCusto3)-1)*100,3)*-1),(ROUND(((nCusto3/nCusto4)-1)*100,3))))
+                 tItens   := tItens + 1
+                 IF ( cProduto <> xProduto )
+                    cxProd := RTRIM(cProduto)+" "+SUBS(VP[NX],83,25)+SPACE(10)     ///98
+                    cxProd := LEFT(cxProd,40)
+                    @ nLin,002 PSAY cxProd
+                    xProduto := cProduto
+                 ENDIF
+                 @ nLin,044 PSAY cLocal
+                 @ nLin,049 PSAY IIF(nCusto1==0,"     ------",TRANSF(nCusto1,"@E 999999.9999"))
+                 @ nLin,062 PSAY IIF(nCusto2==0,"     ------",TRANSF(nCusto2,"@E 999999.9999"))
+                 @ nLin,074 PSAY IIF(nVar2==0,"      ----",TRANSF(nVar2,"@E 999999.999"))
+                 @ nLin,085 PSAY IIF(nCusto3==0,"     ------",TRANSF(nCusto3,"@E 999999.9999"))
+                 @ nLin,097 PSAY IIF(nVar3==0,"      ----",TRANSF(nVar3,"@E 999999.999"))
+                 @ nLin,108 PSAY IIF(nCusto4==0,"     ------",TRANSF(nCusto4,"@E 999999.9999"))
+                 @ nLin,120 PSAY IIF(nVar4==0,"      ----",TRANSF(nVar4,"@E 999999.999"))
+              ENDIF
+              NX := NX +1
+           ENDDO
+           ///
+           ///Variacao de custo
+           ///
+           nVar2 := IIF(nVlr1==0.or.nVlr2==0,0,IF(nVlr2>nVlr1,(ROUND(((nVlr2/nVlr1)-1)*100,3)*-1),(ROUND(((nVlr1/nVlr2)-1)*100,3))))
+           nVar3 := IIF(nVlr2==0.or.nVlr3==0,0,IF(nVlr3>nVlr2,(ROUND(((nVlr3/nVlr2)-1)*100,3)*-1),(ROUND(((nVlr2/nVlr3)-1)*100,3))))
+           nVar4 := IIF(nVlr3==0.or.nVlr4==0,0,IF(nVlr4>nVlr3,(ROUND(((nVlr4/nVlr3)-1)*100,3)*-1),(ROUND(((nVlr3/nVlr4)-1)*100,3))))
+           *
+           nLin := nLin +1
+           @ nLin,002 PSAY "** VARIACAO EM VALOR"
+           @ nLin,049 PSAY IIF(nVlr1==0,"     ------",TRANSF(nVlr1,"@E 99999999.99"))
+           @ nLin,062 PSAY IIF(nVlr2==0,"     ------",TRANSF(nVlr2,"@E 99999999.99"))
+           @ nLin,074 PSAY IIF(nVar2==0,"      ----",TRANSF(nVar2,"@E 999999.999"))
+           @ nLin,085 PSAY IIF(nVlr3==0,"     ------",TRANSF(nVlr3,"@E 99999999.99"))
+           @ nLin,097 PSAY IIF(nVar3==0,"      ----",TRANSF(nVar3,"@E 999999.999"))
+           @ nLin,108 PSAY IIF(nVlr4==0,"     ------",TRANSF(nVlr4,"@E 99999999.99"))
+           @ nLin,120 PSAY IIF(nVar4==0,"      ----",TRANSF(nVar4,"@E 999999.999"))
+           *
+           nLin := nLin +1
+           @ nLin,002 PSAY "** TOTAL "+cDesGrp+": "+TRANSF(tItens,"@E 9999") + " ITENS"
+
+        ENDDO
+        @ 60,000 PSAY REPL('*',132)
+        @ 61,000 PSAY '* '+SM0->M0_NOMECOM+'           Software by T.I/COEL'+IF(lContinua,'',' ** PROGRAMA ABORTADO')
+        @ 61,108 PSAY 'Hora Termino: '+LEFT(TIME(),8)+' *'
+        @ 62,000 PSAY REPL('*',132)
+If aReturn[5] == 1
+        dbcommitAll()
+        ourspool(wnrel)
+Endif
+MS_FLUSH()
+RETURN
+
+//////////////////////////////////////////////////////
+Static Function ValidPerg()
+//////////////////////////////////////////////////////
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Data-Base                   ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs,{ cPerg,"02" , "Recalculo efetuado          ?",   ""   ,  ""    , "mv_ch2" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par02", "Sim         " , "     " , "     " , "   " , "   " , "Nao          " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

@@ -1,0 +1,352 @@
+#INCLUDE "Protheus.ch" 
+#INCLUDE "Rwmake.ch"
+
+/*
+________________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ FISTRFNFE  ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 10/12/2021 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ P.E. para incluir uma nova opção no menu.                     ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+*/
+
+User Function FISTRFNFE()
+
+aadd(aRotina,{'Gerar Shipper','U_RSTELANF' , 0 , 3,0,NIL})
+
+Return Nil    
+
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Programa  ¦ RSFINVENC  ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 17/06/2021 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Rotina de Inclusão/Cópia.                                     ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+
+User Function RSTELANF()
+
+    //Local cNomCom, cTelCom               // variavel para buscar o nome e telefone do comprador
+	//Local cObs		   := ""
+	//Local nTotalz	   := 0
+	//Local nTotal	   := 0
+	//Local _ndFrete     := 0
+	//Local aObs         := {}    
+        Local lMark 	   := .F. 
+        Local lRet		   := .T.
+        Local aPosObj, aSize
+    
+        Private oOk  	   := LoadBitmap( GetResources(), "LBOK" )
+        Private oNo  	   := LoadBitmap( GetResources(), "LBNO" )
+        Private aEtiquetas := {}    
+	Private cPerg      := "RSFATA01"
+        Private nPag       := 1 	
+	Private nLinhaItem := 0
+	Private nLinVer    := 0
+	Private nTotTil    := 0	
+	Private cTitulo    := "Gerar Shipper"
+	Private cDocumento
+
+    
+   	// Cria as perguntas no SX1                                            
+	CriaSx1()
+	Pergunte(cPerg,.T.)   
+
+	cNotaIni := mv_par01
+	cNotaFim := mv_par02
+
+        Do While .T.    
+	
+	   lSai       := .F.       
+	   aEtiquetas := {}
+	   nTotTil    := 0	
+
+	   _cQuery :=" SELECT DISTINCT F2_DOC,F2_SERIE,F2_CLIENTE,F2_LOJA  "
+	   _cQuery +=" FROM "+ RetSqlName("SF2")+" SF2, "+ RetSqlName("SD2")+" SD2 "
+	   _cQuery +=" WHERE SF2.D_E_L_E_T_ = '' AND SD2.D_E_L_E_T_ = ''"
+	   _cQuery +=" AND F2_FILIAL = D2_FILIAL AND D2_DOC = F2_DOC AND F2_SERIE = D2_SERIE "
+	   _cQuery +=" AND D2_COD IN ('45100','61222') "
+	   _cQuery +=" AND F2_FILIAL = '"+XFILIAL("SF2")+"'"
+       _cQuery +=" AND F2_DOC BETWEEN '"+cNotaIni+"' AND '"+cNotaFim+"'"
+	   _cQuery +=" ORDER BY F2_DOC,F2_SERIE " 
+       *	
+	   dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),"TRQ",.T.,.F.)
+	
+	   If !USED()
+	      MsgBox(cQuery+'. Query errada','Erro!!!','STOP')
+	   EndIf
+
+	count to nReg
+
+	dbSelectArea("TRQ")
+	dbGoTop()               
+	
+	if TRQ->(EOF())
+   	   Aviso("TOTVS","Não foram encontrados registros para os dados informados!",{"OK"})
+   	   lRet := .F.
+   	   lSai := .T.       
+        endif
+    
+	ProcRegua(nReg)
+        
+    While !TRQ->(Eof())
+	    lMark := .F.
+	    AaDD(aEtiquetas,{lMark,TRQ->F2_DOC,TRQ->F2_SERIE,TRQ->F2_CLIENTE+"-"+TRQ->F2_LOJA+" "+ Posicione("SA1",1,XFILIAL("SA1")+TRQ->F2_CLIENTE+TRQ->F2_LOJA,"A1_NOME")})
+        TRQ->(DbSkip())
+	Enddo	
+	TRQ->(DbCloseArea())
+	
+	if Len(aEtiquetas) = 0 
+       Return .T.
+    endif    
+    
+   	//+----------------------------------
+	//| Inicia as posições dos objetos
+	//+----------------------------------
+	PosObjetos(@aSize,@aPosObj)  
+	
+	DEFINE MSDIALOG oDlgACE TITLE cTitulo FROM aSize[7],0 TO aSize[6],aSize[5] OF oMainWnd PIXEL
+
+	@ 5,1 LISTBOX oLbx1 VAR cVarQ  FIELDS HEADER ;
+        " ",;
+	"Nota",;
+	"Serie",; 
+	"Cliente",;  
+	SIZE  648,254 OF oDlgACE  PIXEL ON dblClick(aEtiquetas:=MarkOK(oLbx1:nAt,aEtiquetas,0))
+	oLbx1:SetArray(aEtiquetas)                                                                                                                              
+	oLbx1:bLine:={|| {IIF(aEtiquetas[oLbx1:nAt,1],oOk,oNo),aEtiquetas[oLbx1:nAt,2],aEtiquetas[oLbx1:nAt,3],aEtiquetas[oLbx1:nAt,4] }}                                     
+                                                 
+        @ 260,080 Button oBtn1 PROMPT "&Marca Todos"        Size 50,20 OF oDlgACE PIXEL Action MarkAll(oLbx1:nAt,aEtiquetas)
+        @ 260,160 Button oBtn3 PROMPT "&Desmarca Todos"     Size 50,20 OF oDlgACE PIXEL Action DesMark(oLbx1:nAt,aEtiquetas)
+        @ 260,240 Button oBtnFecha Prompt "Gerar Shipper"   Size 50,20 Of oDlgACE Pixel Action (RShipper(),Close(oDlgACE))
+        //@ 260,320 Button oBtnFecha Prompt "Cancelar Baixa"  Size 50,20 Of oDlgACE Pixel Action (RS02DT(),Close(oDlgACE))
+        @ 260,320 Button oBtnFecha Prompt "Sair"            Size 50,20 Of oDlgACE Pixel Action (lSai:=.T.,Close(oDlgACE))
+
+	
+	ACTIVATE MSDIALOG oDlgACE CENTERED
+    	
+        if lSai 
+           Exit
+        endif
+	
+Enddo        
+
+Return lRet 
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Programa  ¦  RShipper  ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 10/12/2021 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Verificar se será gerado o Shipper.                           ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function RShipper()
+        
+	Local lrotina   := .F.
+    //Local aBaixa    := {} 
+    Local nX
+	//Local vAlias    := { Alias() } 
+	Local aProduto  := {}
+	//vAlias := u_SalArea(vAlias)   // Salva as configurações das tabelas
+	
+	
+
+        For nX:=1 to Len(aEtiquetas)  
+
+	    if aEtiquetas[nX,1]	
+           //ALERT(aEtiquetas[nX,2])
+	       if !lrotina
+	          lrotina := .T.
+	       endif	   
+
+            aProduto  := {}
+
+	       dbSelectArea("SD2")
+	       dbSetOrder(3) //Filial + Doc + Serie
+	       If dbSeek(xFilial("SD2")+aEtiquetas[nX,2]+aEtiquetas[nX,3],.T.) 
+       
+               While !EOF() .AND. SD2->D2_DOC+SD2->D2_SERIE == aEtiquetas[nX,2]+aEtiquetas[nX,3] .AND. SD2->D2_FILIAL == xFilial("SD2")
+		        if ALLTRIM(SD2->D2_COD) $ '45100|61222'
+			       nPos 	:= Ascan(aProduto,{ |x| x[1] = ALLTRIM(SD2->D2_COD) })
+	               
+				   if nPos = 0
+		              aadd(aProduto ,{ALLTRIM(SD2->D2_COD),SD2->D2_QUANT,SD2->D2_DOC,SD2->D2_PEDIDO,SD2->D2_CLIENTE,SD2->D2_LOJA,SD2->D2_EMISSAO})
+		           else
+		              aProduto[nPos,2] += SD2->D2_QUANT
+		           endif			    
+   	            endif
+	            SD2->(dbSkip())
+		       EndDo
+            endif
+	        
+		    if Len(aProduto) > 0 .AND. aEtiquetas[nX,1]	
+               Processa( {|| U_HISPEDXLS(aProduto)   } , "Gerando Shipper","Processando...",.T.  )         
+            endif  
+		 
+		endif
+	
+    
+
+    Next 
+
+    
+
+
+    if !lrotina
+       Aviso("Nota Fiscal","Não houve Nota fiscal selecionados!",{"OK"}) 
+    endif
+
+
+       //u_SalArea(vAlias,.F.)   // Restaura as configurações das tabelas
+Return
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ CriaSx1    ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 04/03/2022 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Ajusta o arquivo de perguntas SX1.                            ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function CriaSx1()
+
+ 	u_HMPutSx1(cPerg, "01", PADR("Da Nota Fiscal ",29)+"?","","", "mv_ch1" , "C", 9 , 0, 0, "G", "","   ", "", "", "mv_par01")
+	u_HMPutSx1(cPerg, "02", PADR("Ate Nota Fiscal",29)+"?","","", "mv_ch2" , "C", 9 , 0, 0, "G", "","   ", "", "", "mv_par02")  	
+  	
+Return Nil  
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ PosObjetos ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 04/03/2022 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Inicializa as dimensões da tela para posicionar os objetos    ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function PosObjetos(aSize,aPosObj)
+	Local aInfo
+	Local aObjects := {}
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Faz o calculo automatico de dimensoes de objetos     ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	aSize := MsAdvSize()
+	AAdd( aObjects, { 100, 060, .t., .f. } )
+	AAdd( aObjects, { 100, 100, .t., .t. } )
+	
+	aInfo := { aSize[ 1 ], aSize[ 2 ], aSize[ 3 ], aSize[ 4 ], 3, 3 }
+	aPosObj := MsObjSize( aInfo, aObjects )
+	
+Return
+
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ MarkAll    ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 04/03/2022 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Marcar todas as etiquetas da grade.                           ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function MarkAll(nIt,aArray)
+ nTotTil := 0
+ For nIt:=1 to Len(aArray)  
+    aArray[nIt,1] := .T.
+ Next
+ 
+Return
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ DesMark    ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 04/03/2022 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Desmarcar todas as etiquetas da grade.                        ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+
+Static Function DesMark(nIt,aArray)
+
+    For nIt:=1 to Len(aArray)  
+        aArray[nIt,1] := .F.
+    Next
+    
+Return  
+
+
+
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ MarkOK     ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 04/03/2022 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Marcar a etiquetas da grade.                                  ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function MarkOK(nIt,aArray,nJ)
+
+Local nP
+
+if nJ = 0
+   aArray[nIt,1] := !aArray[nIt,1]
+else 
+	for nP := 1 to len(aArray)
+		if nJ = 1          
+			aArray[nP,1] := .T.
+		else                    
+			aArray[nP,1] := .F.
+		endif
+	next
+endif	
+
+Return aArray
+
+/*_______________________________________________________________________________
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Função    ¦ SalArea    ¦ Autor ¦ Orismar Silva        ¦ Data ¦ 03/11/2014 ¦¦¦
+¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
+¦¦¦ Descriçäo ¦ Efetua salvamento e restauracao dos alias pre-definidos       ¦¦¦
+¦¦+-----------+---------------------------------------------------------------+¦¦
+¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+User Function SalArea(aAlias,lSalva)
+   Local x, aAux := {}
+   Local aRet
+
+   If If( lSalva == Nil , .T., lSalva)
+      For x:=1 To Len(aAlias)
+         AAdd( aAux , { aAlias[x] , 0, 0} )
+         aAux[x,2] := (aAux[x,1])->( IndexOrd() )
+         aAux[x,3] := (aAux[x,1])->( Recno()    )  
+      Next
+      aRet := aClone(aAux)
+   Else
+      For x:=1 To Len(aAlias)
+         dbSelectArea(aAlias[x,1])
+         dbSetOrder(aAlias[x,2])
+         dbGoTo(aAlias[x,3])
+      Next
+      aRet := aClone(aAlias)
+   Endif
+Return(aRet)  

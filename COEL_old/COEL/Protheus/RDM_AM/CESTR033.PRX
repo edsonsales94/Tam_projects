@@ -1,0 +1,1033 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³CESTR033  ³ Autor ³ Carlos Nina           ³ Data ³ 25/01/13 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Relacao de OP's por Operacao                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Producao                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#include "rwmake.ch"        
+#Include "PROTHEUS.CH"
+#Include "TOPCONN.CH"
+
+User Function CESTR033()        
+
+Private oReport
+Private cPerg  := "CESTR033  "
+
+ValidPerg()
+
+If FindFunction("TRepInUse") .And. TRepInUse()
+   lPersonal := .T.
+	oReport   := ReportDef()
+   If !Empty(oReport:uParam)
+	   Pergunte(oReport:uParam,.F.)
+	EndIf
+	oReport:PrintDialog()
+
+Else
+   R033A_REL()
+EndIf
+
+Return
+
+Static Function ReportDef()
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Criacao do componente de impressao                                      ³
+		//³                                                                        ³
+		//³TReport():New                                                           ³
+		//³ExpC1 : Nome do relatorio                                               ³
+		//³ExpC2 : Titulo                                                          ³
+		//³ExpC3 : Pergunte                                                        ³
+		//³ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao  ³
+		//³ExpC5 : Descricao                                                       ³
+		//³                                                                        ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+      Local oParam
+		Local oTotais
+      Local oCell
+	   Local oSection1
+		Local oSection2
+
+      cCabec  := "RELACAO DE OP's POR OPERACAO"
+	   oReport := TReport():New("ESTR033",cCabec,cPerg, {|oReport| ReportPrint(oReport)},"Emite uma relacao das Op's por Operacao de acordo com os parametros informados.")
+		oReport:SetTotalInLine(.F.)
+		oReport:SetLandScape()
+
+	   oParam := TRSection():New(oReport,"Parametros")
+	   TRCell():New(oParam,"PARAM1"    ,"","")
+	   TRCell():New(oParam,"PARAM2"    ,"","")
+	   TRCell():New(oParam,"PARAM3"    ,"","")
+	   TRCell():New(oParam,"PARAM4"    ,"","")
+	   TRCell():New(oParam,"PARAM5"    ,"","")
+	   TRCell():New(oParam,"PARAM6"    ,"","")
+	   TRCell():New(oParam,"PARAM7"    ,"","")
+	   TRCell():New(oParam,"PARAM8"    ,"","")
+	   TRCell():New(oParam,"PARAM9"    ,"","")
+	   TRCell():New(oParam,"PARAM10"   ,"","")
+	   TRCell():New(oParam,"PARAM11"   ,"","")
+      *
+	   oSection1 := TRSection():New(oParam,"ESTR033")
+	   //TRCell():New(oSection,"CEL"		  ,"",/*Titulo*/,/*Picture*/,/*Tamanho*/,/*lPixel*/,/*{|| Code block }*/)
+	   TRCell():New(oSection1,"NUMOP"      , "" , "NUMERO DA O.P")
+	   TRCell():New(oSection1,"DTEMISS"    , "" , "DT.EMISSAO")
+	   TRCell():New(oSection1,"DTINIPRD"   , "" , "DT.INI.PRODUCAO")
+	   TRCell():New(oSection1,"DTFINPRD"   , "" , "DT.FIN.PRODUCAO")
+	   TRCell():New(oSection1,"PRODUTO"    , "" , "CODIGO DO PRODUTO")
+	   TRCell():New(oSection1,"QTYPED"     , "" , "QTDE.PEDIDA")
+	   TRCell():New(oSection1,"QTYENT"     , "" , "QTDE.ENTREGUE")
+	   TRCell():New(oSection1,"SALDO"      , "" , "SALDO")
+	   TRCell():New(oSection1,"BRANCO"     , "" , "")
+	   TRCell():New(oSection1,"DESCRI"     , "" , "DESCRICAO DO PRODUTO")
+	   TRCell():New(oSection1,"BRANCO2"    , "" , "")
+
+	   oSection2 := TRSection():New(oParam,"ESTR033")
+	   TRCell():New(oSection2,"NUMOP"      , "" , "")
+	   TRCell():New(oSection2,"OPERAC"     , "" , "OPERACAO")
+	   TRCell():New(oSection2,"OPERADO"     , "" , "OPERADOR")
+	   TRCell():New(oSection2,"QTYENT"     , "" , "QTY.ENTREG")
+	   TRCell():New(oSection2,"SALDO"      , "" , "SALDO")
+	   TRCell():New(oSection2,"DTINIPRD"   , "" , "DATA INICIAL")
+	   TRCell():New(oSection2,"HRINIPRD"   , "" , "HORA INICIAL")
+	   TRCell():New(oSection2,"DTFINPRD"   , "" , "DATA FINAL")
+	   TRCell():New(oSection2,"HRFINPRD"   , "" , "HORA FINAL")
+	   TRCell():New(oSection2,"TEMPO"      , "" , "TEMPO")
+	   TRCell():New(oSection2,"OBSERV"     , "" , "OBSERVACAO")
+
+		oSection1:SetColSpace(0)
+		oSection2:SetColSpace(0)
+      oParam:SetColSpace(0)
+
+Return(oReport)
+
+Static Function ReportPrint(oReport)
+	Local nSaldo,cNumeroOP,aOper,nRegistros
+   Local oParam    := oReport:Section(1)
+	Local oSection1 := oReport:Section(1):Section(1)
+	Local oSection2 := oReport:Section(1):Section(2)
+
+	Impr_r33A()
+
+	dbSelectArea("SC2")
+	nRegistros := LASTREC()
+   cParam1 := "R033-OP's P/OPERACAO"
+	cParam2 := LEFT(SM0->M0_NOME,4)+"/"+RTRIM(SM0->M0_FILIAL)  
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Inicio da impressao do fluxo do relatorio                               ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	oReport:NoUserFilter()  // Desabilita a aplicacao do filtro do usuario no filtro/query das secoes
+   oParam:Init()
+	oParam:SetTotalText("")
+   oParam:SetHeaderPage()
+	oParam:SetTotalInLine(.T.)
+	oSection1:Init()
+   oSection1:SetHeaderPage()
+	oSection1:SetTotalInLine(.T.)
+	oSection2:Init()
+   oSection2:SetHeaderPage()
+	oSection2:SetTotalInLine(.T.)
+	oReport:SetMeter(nRegistros)
+	oParam:Cell("PARAM1"):SetTitle(cParam1)
+	oParam:Cell("PARAM2"):SetTitle(cParam2)
+   *
+	dbSelectArea("TMP")
+   dbGoTop()
+   DO WHILE !EOF()
+		aOper := {}
+		DO CASE
+			CASE ( mv_par08 == 3 )
+				dbSelectArea("SG2")
+				dbSetOrder(3)
+				dbSeek(xFilial("SG2")+TMP->C2_PRODUTO+"ZZ",.T.)
+				dbSkip(-1)
+				DO WHILE !EOF().AND.G2_FILIAL==xFilial("SG2").AND.G2_PRODUTO==TMP->C2_PRODUTO			
+					IF ( SG2->G2_CODIGO == "01" )
+						AADD(aOper , { SG2->G2_OPERAC  , ;
+											"1"				 , ;
+											SG2->G2_DESCRI  , ;
+											0.00            , ;
+											0.00            , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(6)        , ;
+											SPACE(22)       , ;
+											SPACE(15)  } )                  
+					ENDIF
+					dbSkip()
+				ENDDO
+				nX       := LEN(aOper)
+				cUltOper := IIF(nX > 0 , aOper[nX,1] , "" )
+				dbSelectArea("SH6")
+				dbSetOrder(1)
+				dbSeek(xFilial("SH6")+TMP->C2_OP+TMP->C2_PRODUTO+cUltOper,.T.)			
+				DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_PRODUTO==TMP->C2_PRODUTO
+					xcOperacao := SH6->H6_OPERAC
+					xcOperador := SH6->H6_OPERADO
+					xdDataIni  := SPACE(8)
+					xcHoraIni  := SPACE(8)
+					xcHoraFin  := SPACE(8)
+					nx         := 0
+					nh         := 0
+					DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_PRODUTO==TMP->C2_PRODUTO.AND.H6_OPERAC==xcOperacao
+						IF ( SH6->H6_DATAFIN >= mv_par05 .AND. SH6->H6_DATAFIN <= mv_par06 )
+							xdDataIni := DTOC(SH6->H6_DATAINI)
+							xcHoraIni := SH6->H6_HORAINI
+							xdDataFin := DTOC(SH6->H6_DATAFIN)
+							xcHoraFin := SH6->H6_HORAFIN
+							xnSaldo   := SH6->( H6_X_QTE - H6_X_QTS )
+							nH1       := VAL(STRTRAN(xcHoraIni,":","."))
+							xcTempo   := SPACE(8)
+							xcStatus  := SPACE(21)
+							IF ( !EMPTY(xcHoraFin) )
+								nH2     := VAL(STRTRAN(xcHoraFin,":","."))
+								xcTempo := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+								xcTempo := STRZERO(xcTempo,6,2)
+								xcTempo := STRTRAN(xcTempo,".",":")
+								IF ( xnSaldo > 0 )
+									xcStatus := "Entrega parcial"
+								ELSE
+									xcStatus := "Ok"
+								ENDIF
+							ELSE
+								xcStatus := "Aguardando..."
+							ENDIF
+							nx++
+							nh++
+							IF ( nx < 10 )
+								xn := STR(nx,1)
+							ELSE
+								xn := IIF(nx==10,"A",IIF(nx==11,"B",IIF(nx==12,"C",IIF(nx==13,"D",IIF(nx==14,"E",IIF(nx==15,"F",IIF(nx==16,"G",IIF(nx==17,"H","I"))))))))
+							ENDIF	
+							iw := ASCAN(aOper , { |xy| xy[1]+xy[2] == xcOperacao+xn } )
+							IF ( iw = 0 )
+								iw   := ASCAN(aOper , { |xy| xy[1] == xcOperacao } )
+								cOpr := IIF(iw == 0 , xcOperacao , aOper[iw,1] )
+								cDsc := IIF(iw == 0 , "EXPEDICAO" , aOper[iw,3] )
+								AADD(aOper , { cOpr            , ;
+													xn  			    , ;
+													cDsc            , ;
+													0.00            , ;
+													0.00            , ;
+													SPACE(8)        , ;
+													SPACE(8)        , ;
+													SPACE(8)        , ;
+													SPACE(8)        , ;
+													SPACE(6)        , ;
+													SPACE(22)       , ;
+													SPACE(15) } )                  
+								iw := LEN(aOper)
+							ENDIF
+							aOper[iw,4] := SH6->H6_X_QTE 
+							aOper[iw,5] :=	SH6->H6_X_QTS 
+							aOper[iw,6] := xdDataIni                     
+							aOper[iw,7] :=	xcHoraIni                      
+							aOper[iw,8] := xdDataFin                      
+							aOper[iw,9] :=	xcHoraFin                      
+							aOper[iw,10] := xcTempo 
+							aOper[iw,11] := xcStatus
+							aOper[iw,12] := SH6->H6_OPERADO
+						
+						ENDIF
+						
+						dbSkip()
+						
+					ENDDO	
+					/*
+					IF ( xcOperacao <> "99" .AND. nh > 1 )
+						nQtEn := 0
+						nQtSd := 0
+						FOR nZ:=nh TO 0 STEP -1
+							 nQtEn += aOper[nZ,4]
+							 nQtSd += aOper[nZ,5]
+							 IF ( nZ > 1 )
+								 ADEL(aOper,nZ)
+							 ENDIF
+						NEXT
+						
+						ASIZE(aOper , 1 )						
+						
+						nH1          := VAL(STRTRAN(aOper[1,7],":","."))
+						nH2          := VAL(STRTRAN(xcHoraFin,":","."))
+						xcTempo      := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+						xcTempo      := STRZERO(xcTempo,6,2)
+						xcTempo      := STRTRAN(xcTempo,".",":")
+						xcStatus     := IIF(nQtSd = 0 , "Aguardando" , IIF(nQtEn > nQtSd , "Entrega parcial" , "Ok" ) )
+						aOper[1,8]   := xdDataFin
+						aOper[1,9]   := xcHoraFin
+						aOper[iw,10] := xcTempo 
+						aOper[iw,11] := xcStatus
+						
+					ENDIF
+					*/
+				ENDDO
+				
+			OTHERWISE
+			
+				dbSelectArea("SG2")
+				dbSetOrder(3)
+				dbSeek(xFilial("SG2")+TMP->C2_PRODUTO,.T.)
+				DO WHILE !EOF().AND.G2_FILIAL==xFilial("SG2").AND.G2_PRODUTO==TMP->C2_PRODUTO
+					IF ( SG2->G2_CODIGO == "01" )
+						AADD(aOper , { SG2->G2_OPERAC  , ;
+											"1"				 , ;
+											SG2->G2_DESCRI  , ;
+											0.00            , ;
+											0.00            , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(6)        , ;
+											SPACE(22)       , ;
+											SPACE(15) } )                  
+					ENDIF
+					dbSkip()
+				ENDDO
+				
+				dbSelectArea("SH6")
+				dbSetOrder(1)		
+				dbSeek(xFilial("SH6")+TMP->C2_OP,.T.)			
+				DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP)
+					xcOperacao := SH6->H6_OPERAC
+					xcOperador := SH6->H6_OPERADO
+					xdDataIni  := SPACE(8)
+					xcHoraIni  := SPACE(8)
+					xcHoraFin  := SPACE(8)
+					nx         := 0
+					DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_OPERAC==xcOperacao
+						xdDataIni := DTOC(SH6->H6_DATAINI)
+						xcHoraIni := SH6->H6_HORAINI
+						xdDataFin := DTOC(SH6->H6_DATAFIN)
+						xcHoraFin := SH6->H6_HORAFIN
+						xnSaldo   := SH6->( H6_X_QTE - H6_X_QTS )
+						nH1       := VAL(STRTRAN(xcHoraIni,":","."))
+						xcTempo   := SPACE(8)
+						xcStatus  := SPACE(21)
+						IF ( !EMPTY(xcHoraFin) )
+							nH2     := VAL(STRTRAN(xcHoraFin,":","."))
+							xcTempo := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+							xcTempo := STRZERO(xcTempo,6,2)
+							xcTempo := STRTRAN(xcTempo,".",":")
+							IF ( xnSaldo > 0 )
+								xcStatus := "Entrega parcial"
+							ELSE
+								xcStatus := "Ok"
+							ENDIF
+						ELSE
+							xcStatus := "Aguardando..."
+						ENDIF
+						nx := ( nx + 1 )
+						IF ( nx < 10 )
+							xn := STR(nx,1)
+						ELSE
+							xn := IIF(nx==10,"A",IIF(nx==11,"B",IIF(nx==12,"C",IIF(nx==13,"D",IIF(nx==14,"E",IIF(nx==15,"F",IIF(nx==16,"G",IIF(nx==17,"H","I"))))))))
+						ENDIF	
+						iw := ASCAN(aOper , { |xy| xy[1]+xy[2] == xcOperacao+xn } )
+						IF ( iw = 0 )
+							iw   := ASCAN(aOper , { |xy| xy[1] == xcOperacao } )
+							cOpr := IIF(iw == 0 , xcOperacao , aOper[iw,1] )
+							cDsc := IIF(iw == 0 , "EXPEDICAO" , aOper[iw,3] )
+							AADD(aOper , { cOpr            , ;
+												xn  			    , ;
+												cDsc            , ;
+												0.00            , ;
+												0.00            , ;
+												SPACE(8)        , ;
+												SPACE(8)        , ;
+												SPACE(8)        , ;
+												SPACE(8)        , ;
+												SPACE(6)        , ;
+												SPACE(22)       , ;
+												SPACE(15) } )                  
+							iw := LEN(aOper)
+						ENDIF
+						aOper[iw,4] := SH6->H6_X_QTE    ///xnQtdProd
+						aOper[iw,5] :=	SH6->H6_X_QTS    ///xnSaldo                        
+						aOper[iw,6] := xdDataIni                     
+						aOper[iw,7] :=	xcHoraIni                      
+						aOper[iw,8] := xdDataFin                      
+						aOper[iw,9] :=	xcHoraFin                      
+						aOper[iw,10] := xcTempo 
+						aOper[iw,11] := xcStatus
+						aOper[iw,12] := SH6->H6_OPERADO
+						dbSkip()
+					ENDDO	
+				ENDDO
+		ENDCASE	
+
+		IF ( LEN(aOper) > 0 .AND.!EMPTY(aOper[1,6]) ) 
+
+			nSaldo    := IIF(mv_par08<>2 , TMP->(C2_QUANT - C2_QUJE) , TMP->(C2_QTDPRD - C2_QUJE) )
+			cNumeroOP := TRANSF(LTRIM(TMP->C2_OP),"@R XXXXXX.XX.XXX")
+
+			oSection1:Cell("NUMOP"):SetValue(cNumeroOP)
+			oSection1:Cell("DTEMISS"):SetValue(STOD(TMP->C2_EMISSAO))
+			oSection1:Cell("DTINIPRD"):SetValue(STOD(TMP->C2_DATPRI))
+			oSection1:Cell("DTFINPRD"):SetValue(STOD(TMP->C2_DATPRF))
+			oSection1:Cell("PRODUTO"):SetValue(TMP->C2_PRODUTO)
+			oSection1:Cell("QTYPED"):SetValue(TMP->C2_QUANT)
+			oSection1:Cell("QTYENT"):SetValue(TMP->C2_QUJE)
+			oSection1:Cell("SALDO"):SetValue(nSaldo)
+			oSection1:Cell("DESCRI"):SetValue(TMP->B1_DESC)
+			oSection1:PrintLine()
+		
+			FOR ix:=1 TO LEN(aOper)
+				cStatus := IIF(EMPTY(aOper[ix,6]) , "Aguardando..." , aOper[ix,11] )
+				cOperac := aOper[ix,1]+"."+aOper[ix,2]+"-"+aOper[ix,3]
+				
+				oSection2:Cell("NUMOP"):SetValue(cNumeroOP)
+				oSection2:Cell("OPERAC"):SetValue(cOperac) 
+				oSection2:Cell("OPERADO"):SetValue(aOper[ix,12]) 
+				oSection2:Cell("QTYENT"):SetValue(TRANSF(aOper[ix,4],"@E 99999"))
+				oSection2:Cell("SALDO"):SetValue(TRANSF(aOper[ix,5],"@EZ 99999"))
+				oSection2:Cell("DTINIPRD"):SetValue(aOper[ix,6])
+				oSection2:Cell("HRINIPRD"):SetValue(aOper[ix,7])
+				oSection2:Cell("DTFINPRD"):SetValue(aOper[ix,8])
+				oSection2:Cell("HRFINPRD"):SetValue(aOper[ix,9])
+				oSection2:Cell("TEMPO"):SetValue(aOper[ix,10])
+				oSection2:Cell("OBSERV"):SetValue(cStatus)
+				oSection2:PrintLine()
+			NEXT
+			
+	   ENDIF		
+      dbSelectArea("TMP")
+      dbSkip()
+   ENDDO
+	oSection1:Finish()
+	oSection2:Finish()
+	TMP->(dbCloseArea())
+	
+RETURN
+
+//////////////////////////////////////////////////////
+Static Function R033A_REL()
+//////////////////////////////////////////////////////
+nOrdem    := 0
+tamanho   := "M"
+limite    := 132
+cString   := "SC2"
+titulo    := "RELACAO DE OP's POR OPERACAO"
+cDesc1    := "Emite uma listagem das OP's por Operacao de acordo com os parametros informados."
+cDesc2    := ""
+cDesc3    := ""
+lContinua := .T.
+lImprime1 := .T.
+lImprime2 := .T.
+aOrd      := {}
+aReturn   := { "Especial", 1,"Producao", 1, 2, 1, "",1 }
+nomeprog  := "CESTR033"
+nLastKey  := 0
+wnrel     := "CESTR033"
+nLin      := 99
+m_pag     := 0
+pergunte(cPerg,.F.)
+wnrel     := SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.T.,tamanho)
+aDriver   := ReadDriver()
+If LastKey() == 27 .or. nLastKey == 27
+        Return
+Endif
+SetDefault(aReturn,cString)
+RptStatus({||Impr_r33A()})
+RptStatus({||Impr_r33B()})
+
+Return
+
+//////////////////////////////////
+Static Function Impr_r33A()
+//////////////////////////////////
+Local cQry
+
+/////
+/////Filtra parametros
+/////
+IF ( mv_par07 == 1 )
+	c_Qry := "AND B1_TIPO = 'PA' "
+ELSEIF (mv_par07 == 2 )
+	c_Qry := "AND B1_TIPO = 'PI' "
+ELSE
+	c_Qry := "AND B1_TIPO IN ('PI','PA') "
+ENDIF	
+IF ( mv_par08 == 1 )
+	cQry := "SELECT (C2_NUM+C2_ITEM+C2_SEQUEN) C2_OP,C2_PRODUTO,B1_DESC,C2_EMISSAO,C2_DATPRI,C2_DATPRF,C2_DATRF,C2_QUANT,C2_QUJE "
+	cQry += "FROM "+RetSqlName("SC2")+" C2,"+RetSqlName("SB1")+" B1 "
+	cQry += "WHERE C2.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' ' AND C2_FILIAL = '"+xFilial("SC2")+"' "
+	cQry += "AND C2_TPOP = 'F' AND C2_DATRF = ' ' "
+	cQry += "AND (C2_NUM+C2_ITEM+C2_SEQUEN) BETWEEN '"+mv_par01+"' AND '"+mv_par02+"' "
+	cQry += "AND C2_PRODUTO BETWEEN '"+mv_par03+"' AND '"+mv_par04+"' "
+	cQry += "AND C2_EMISSAO BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' "
+	cQry += "AND B1_FILIAL = C2_FILIAL AND B1_COD = C2_PRODUTO "
+	cQry += c_Qry
+	cQry += "ORDER BY C2_PRODUTO,C2_NUM,C2_ITEM,C2_SEQUEN "
+ELSEIF ( mv_par08 == 2 )
+	cQry := "SELECT D3_OP C2_OP,D3_COD C2_PRODUTO,B1_DESC,C2_EMISSAO,C2_DATPRI,C2_DATPRF,C2_QUANT,SUM(D3_QUANT) C2_QTDPRD,SUM(D3_QUANT) C2_QUJE "
+	cQry += "FROM "+RetSqlName("SD3")+" D3,"+RetSqlName("SC2")+" C2,"+RetSqlName("SB1")+" B1 "
+	cQry += "WHERE D3.D_E_L_E_T_ = ' ' AND C2.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' ' AND D3_FILIAL = '"+xFilial("SD3")+"' "
+	cQry += "AND D3_ESTORNO = ' ' AND D3_CF = 'PR0' AND D3_OP BETWEEN '"+mv_par01+"' AND '"+mv_par02+"' "
+	cQry += "AND D3_COD BETWEEN '"+mv_par03+"' AND '"+mv_par04+"' "
+	cQry += "AND D3_EMISSAO BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' "
+	cQry += "AND C2_FILIAL = D3_FILIAL AND (C2_NUM+C2_ITEM+C2_SEQUEN) = D3_OP AND C2_PRODUTO = D3_COD AND C2_DATRF <> ' ' AND C2_TPOP = 'F' "
+	cQry += "AND B1_FILIAL = D3_FILIAL AND B1_COD = D3_COD "
+	cQry += c_Qry
+	cQry += "GROUP BY D3_OP,D3_COD,B1_DESC,C2_EMISSAO,C2_DATPRI,C2_DATPRF,C2_QUANT "
+	cQry += "ORDER BY D3_COD,D3_OP "
+ELSE
+	cQry := "SELECT D3_OP C2_OP,D3_COD C2_PRODUTO,B1_DESC,C2_EMISSAO,C2_DATPRI,C2_DATPRF,C2_QUANT,C2_QUJE,SUM(D3_QUANT) C2_QTDPRD "
+	cQry += "FROM "+RetSqlName("SD3")+" D3,"+RetSqlName("SC2")+" C2,"+RetSqlName("SB1")+" B1 "
+	cQry += "WHERE D3.D_E_L_E_T_ = ' ' AND C2.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' ' AND D3_FILIAL = '"+xFilial("SD3")+"' "
+	cQry += "AND D3_ESTORNO = ' ' AND D3_CF = 'PR0' AND D3_OP BETWEEN '"+mv_par01+"' AND '"+mv_par02+"' "
+	cQry += "AND D3_COD BETWEEN '"+mv_par03+"' AND '"+mv_par04+"' "
+	cQry += "AND D3_EMISSAO BETWEEN '"+DTOS(mv_par05)+"' AND '"+DTOS(mv_par06)+"' "
+	cQry += "AND C2_FILIAL = D3_FILIAL AND (C2_NUM+C2_ITEM+C2_SEQUEN) = D3_OP AND C2_PRODUTO = D3_COD AND C2_DATRF <> ' ' AND C2_TPOP = 'F' "
+	cQry += "AND B1_FILIAL = D3_FILIAL AND B1_COD = D3_COD "
+	cQry += "AND B1_TIPO = 'PA' "
+	cQry += "GROUP BY D3_OP,D3_COD,B1_DESC,C2_EMISSAO,C2_DATPRI,C2_DATPRF,C2_QUANT,C2_QUJE "
+	cQry += "ORDER BY D3_COD,D3_OP "
+	
+ENDIF
+
+dbUseArea(.T.,"TOPCONN",TcGenQry(,,ChangeQuery(cQry)),"TMP",.T.,.T.)
+
+Return
+
+//////////////////////////////////
+Static Function Impr_r33B()
+//////////////////////////////////
+Local aOper, iw , ix
+Private lPrint := .T.
+
+LIN5   := 'NUM. DA O.P    DT.EMISSAO  DT.INI.PRD  DT.FIN.PRD PRODUTO..................  QT.PED  QT.ENT  SALDO  DESCRICAO DO PRODUTO............'   
+LIN6   := '   OPERACAO..............  OPERADOR     QTY.ENT  QTY.SAI  DT.INI    HR.INI  DT.FINAL  HR.FINAL      TEMPO   OBSERVACAO..............'   
+******     xxxxxx.xx.xxx  99/99/99    99/99/99    99/99/99   x-----------------------x   99999   99999  99999  x------------------------------x     
+******        xx.x-x---------------x  x----------x   99999    99999  99/99/99  99:99   99/99/99  99:99         99:99   x----------------------x  
+******     0---------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130-------140-------150-------160-------170-------180-------190
+******     01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+dbSelectArea("SC2")
+SetRegua(LastRec())
+SetPrc(0,0)
+@ 00,000 PSAY &(aDriver[3])
+dbSelectArea("TMP")
+dbGoTop()
+DO WHILE !EOF()
+   IncRegua()
+	aOper := {}
+	DO CASE
+		CASE ( mv_par08 == 3 )
+			dbSelectArea("SG2")
+			dbSetOrder(3)
+			dbSeek(xFilial("SG2")+TMP->C2_PRODUTO+"ZZ",.T.)
+			dbSkip(-1)
+			DO WHILE !EOF().AND.G2_FILIAL==xFilial("SG2").AND.G2_PRODUTO==TMP->C2_PRODUTO
+				IF ( SG2->G2_CODIGO == "01" )
+					AADD(aOper , { SG2->G2_OPERAC  , ;
+										"1"				 , ;
+										SG2->G2_DESCRI  , ;
+										0.00            , ;
+										0.00            , ;
+										SPACE(8)        , ;
+										SPACE(8)        , ;
+										SPACE(8)        , ;
+										SPACE(8)        , ;
+										SPACE(6)        , ;
+										SPACE(22)       , ;
+										SPACE(15) } )                  
+				ENDIF
+				dbSkip()
+			ENDDO
+			nX       := LEN(aOper)
+			cUltOper := IIF(nX > 0 , aOper[nX,1] , "" )
+			
+			dbSelectArea("SH6")
+			dbSetOrder(1)
+			dbSeek(xFilial("SH6")+TMP->C2_OP+TMP->C2_PRODUTO+cUltOper,.T.)			
+			DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_PRODUTO==TMP->C2_PRODUTO
+				xcOperacao := SH6->H6_OPERAC
+				xcOperador := SH6->H6_OPERADO
+				xdDataIni  := SPACE(8)
+				xcHoraIni  := SPACE(8)
+				xcHoraFin  := SPACE(8)
+				nx         := 0
+				nh         := 0
+				DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_PRODUTO==TMP->C2_PRODUTO.AND.H6_OPERAC==xcOperacao
+					IF ( SH6->H6_DATAFIN >= mv_par05 .AND. SH6->H6_DATAFIN <= mv_par06 )
+						xdDataIni := DTOC(SH6->H6_DATAINI)
+						xcHoraIni := SH6->H6_HORAINI
+						xdDataFin := DTOC(SH6->H6_DATAFIN)
+						xcHoraFin := SH6->H6_HORAFIN
+						xnSaldo   := SH6->( H6_X_QTE - H6_X_QTS )
+						nH1       := VAL(STRTRAN(xcHoraIni,":","."))
+						xcTempo   := SPACE(8)
+						xcStatus  := SPACE(21)
+						IF ( !EMPTY(xcHoraFin) )
+							nH2     := VAL(STRTRAN(xcHoraFin,":","."))
+							xcTempo := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+							xcTempo := STRZERO(xcTempo,6,2)
+							xcTempo := STRTRAN(xcTempo,".",":")
+							IF ( xnSaldo > 0 )
+								xcStatus := "Entrega parcial"
+							ELSE
+								xcStatus := "Ok"
+							ENDIF
+						ELSE
+							xcStatus := "Aguardando..."
+						ENDIF
+						nx++
+						nh++
+						IF ( nx < 10 )
+							xn := STR(nx,1)
+						ELSE
+							xn := IIF(nx==10,"A",IIF(nx==11,"B",IIF(nx==12,"C",IIF(nx==13,"D",IIF(nx==14,"E",IIF(nx==15,"F",IIF(nx==16,"G",IIF(nx==17,"H","I"))))))))
+						ENDIF	
+						iw := ASCAN(aOper , { |xy| xy[1]+xy[2] == xcOperacao+xn } )
+						IF ( iw = 0 )
+							iw   := ASCAN(aOper , { |xy| xy[1] == xcOperacao } )
+							cOpr := IIF(iw == 0 , xcOperacao  , aOper[iw,1] )
+							cDsc := IIF(iw == 0 , "EXPEDICAO" , aOper[iw,3] )
+							AADD(aOper , { cOpr            , ;
+												xn       	    , ;
+												cDsc            , ;
+												0.00            , ;
+												0.00            , ;
+												SPACE(8)        , ;
+												SPACE(8)        , ;
+												SPACE(8)        , ;
+												SPACE(8)        , ;
+												SPACE(6)        , ;
+												SPACE(22)       , ;
+												SPACE(15) } )                  
+							iw := LEN(aOper)
+						ENDIF
+						aOper[iw,4] := SH6->H6_X_QTE 
+						aOper[iw,5] :=	SH6->H6_X_QTS 
+						aOper[iw,6] := xdDataIni                     
+						aOper[iw,7] :=	xcHoraIni                      
+						aOper[iw,8] := xdDataFin                      
+						aOper[iw,9] :=	xcHoraFin                      
+						aOper[iw,10] := xcTempo 
+						aOper[iw,11] := xcStatus
+						aOper[iw,12] := SH6->H6_OPERADO
+					
+					ENDIF
+					
+					dbSkip()
+					
+				ENDDO	
+				/*
+				IF ( xcOperacao <> "99" .AND. nh > 1 )
+					nQtEn := 0
+					nQtSd := 0
+					FOR nZ:=nh TO 1 STEP -1
+						 nQtEn += aOper[nZ,4]
+						 nQtSd += aOper[nZ,5]
+						 IF ( nZ > 1 )
+							 ADEL(aOper,nZ)
+						 ENDIF
+					NEXT
+					
+					ASIZE(aOper , 1 )						
+					
+					nH1         := VAL(STRTRAN(aOper[1,7],":","."))
+					nH2         := VAL(STRTRAN(xcHoraFin,":","."))
+					xcTempo     := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+					xcTempo     := STRZERO(xcTempo,6,2)
+					xcTempo     := STRTRAN(xcTempo,".",":")
+					xcStatus    := IIF(nQtSd = 0 , "Aguardando" , IIF(nQtEn > nQtSd , "Entrega parcial" , "Ok" ) )
+					aOper[1,8]  := xdDataFin
+					aOper[1,9]  := xcHoraFin
+					aOper[1,10] := xcTempo 
+					aOper[1,11] := xcStatus
+					
+				ENDIF
+				*/
+			ENDDO
+			
+		OTHERWISE
+
+			dbSelectArea("SG2")
+			dbSetOrder(3)
+			dbSeek(xFilial("SG2")+TMP->C2_PRODUTO,.T.)
+			DO WHILE !EOF().AND.G2_FILIAL==xFilial("SG2").AND.G2_PRODUTO==TMP->C2_PRODUTO
+				IF ( SG2->G2_CODIGO == "01" )
+					AADD(aOper , { SG2->G2_OPERAC  , ;
+										"1"				 , ;
+										SG2->G2_DESCRI  , ;
+										0.00            , ;
+										0.00            , ;
+										SPACE(8)        , ;
+										SPACE(8)        , ;
+										SPACE(8)        , ;
+										SPACE(8)        , ;
+										SPACE(6)        , ;
+										SPACE(22)       , ;
+										SPACE(15) } )                  
+				ENDIF
+				dbSkip()
+			ENDDO
+			
+			dbSelectArea("SH6")
+			dbSetOrder(1)		
+			dbSeek(xFilial("SH6")+TMP->C2_OP,.T.)			
+			DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP)
+				xcOperacao := SH6->H6_OPERAC
+				xcOperador := SH6->H6_OPERADO
+				xdDataIni  := SPACE(8)
+				xcHoraIni  := SPACE(8)
+				xcHoraFin  := SPACE(8)
+				nx         := 0
+				DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_OPERAC==xcOperacao
+					xdDataIni := DTOC(SH6->H6_DATAINI)
+					xcHoraIni := SH6->H6_HORAINI
+					xdDataFin := DTOC(SH6->H6_DATAFIN)
+					xcHoraFin := SH6->H6_HORAFIN
+					xnSaldo   := SH6->( H6_X_QTE - H6_X_QTS )
+					nH1       := VAL(STRTRAN(xcHoraIni,":","."))
+					xcTempo   := SPACE(8)
+					xcStatus  := SPACE(21)
+					IF ( !EMPTY(xcHoraFin) )
+						nH2     := VAL(STRTRAN(xcHoraFin,":","."))
+						xcTempo := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+						xcTempo := STRZERO(xcTempo,6,2)
+						xcTempo := STRTRAN(xcTempo,".",":")
+						IF ( xnSaldo > 0 )
+							xcStatus := "Entrega parcial"
+						ELSE
+							xcStatus := "Ok"
+						ENDIF
+					ELSE
+						xcStatus := "Aguardando..."
+					ENDIF
+					nx := ( nx + 1 )
+					IF ( nx < 10 )
+						xn := STR(nx,1)
+					ELSE
+						xn := IIF(nx==10,"A",IIF(nx==11,"B",IIF(nx==12,"C",IIF(nx==13,"D",IIF(nx==14,"E",IIF(nx==15,"F",IIF(nx==16,"G",IIF(nx==17,"H","I"))))))))
+					ENDIF	
+					iw := ASCAN(aOper , { |xy| xy[1]+xy[2] == xcOperacao+xn } )
+					IF ( iw = 0 )
+						iw   := ASCAN(aOper , { |xy| xy[1] == xcOperacao } )
+						cOpr := IIF(iw == 0 , xcOperacao , aOper[iw,1] )
+						cDsc := IIF(iw == 0 , "EXPEDICAO" , aOper[iw,3] )
+						AADD(aOper , { cOpr            , ;
+											xn  			    , ;
+											cDsc            , ;
+											0.00            , ;
+											0.00            , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(8)        , ;
+											SPACE(6)        , ;
+											SPACE(22)       , ;
+											SPACE(15) } )                  
+						iw := LEN(aOper)
+					ENDIF
+					aOper[iw,4] := SH6->H6_X_QTE    ///xnQtdProd
+					aOper[iw,5] :=	SH6->H6_X_QTS    ///xnSaldo                        
+					aOper[iw,6] := xdDataIni                     
+					aOper[iw,7] :=	xcHoraIni                      
+					aOper[iw,8] := xdDataFin                      
+					aOper[iw,9] :=	xcHoraFin                      
+					aOper[iw,10] := xcTempo 
+					aOper[iw,11] := xcStatus
+					aOper[iw,12] := SH6->H6_OPERADO
+					dbSkip()
+				ENDDO	
+			ENDDO
+	ENDCASE	
+	
+	/*
+	dbSelectArea("SH6")
+	dbSetOrder(1)
+	dbSeek(xFilial("SH6")+TMP->C2_OP,.T.)
+   DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP)
+		xcOperacao := SH6->H6_OPERAC
+		xcOperador := SH6->H6_OPERADO
+		xdDataIni  := SPACE(8)
+		xcHoraIni  := SPACE(8)
+		xcHoraFin  := SPACE(8)
+		nx         := 0
+		DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_OPERAC==xcOperacao
+			xdDataIni := DTOC(SH6->H6_DATAINI)   ///IIF(EMPTY(xdDataIni) , DTOC(SH6->H6_DATAINI) , xdDataIni )
+			xcHoraIni := SH6->H6_HORAINI         ///IIF(EMPTY(xcHoraIni) , SH6->H6_HORAINI , xcHoraIni )
+			xdDataFin := DTOC(SH6->H6_DATAFIN)
+			xcHoraFin := SH6->H6_HORAFIN
+			xnSaldo   := SH6->( H6_X_QTE - H6_X_QTS )
+			nH1       := VAL(STRTRAN(xcHoraIni,":","."))
+			xcTempo   := SPACE(8)
+			xcStatus  := SPACE(21)
+			IF ( !EMPTY(xcHoraFin) )
+				nH2     := VAL(STRTRAN(xcHoraFin,":","."))
+				xcTempo := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+				xcTempo := STRZERO(xcTempo,6,2)
+				xcTempo := STRTRAN(xcTempo,".",":")
+				IF ( xnSaldo > 0 )
+					xcStatus := "Entrega parcial"
+				ELSE
+					xcStatus := "Ok"
+				ENDIF
+			ELSE
+				xcStatus := "Aguardando..."
+			ENDIF
+			nx := ( nx + 1 )
+			IF ( nx < 10 )
+				xn := STR(nx,1)
+			ELSE
+				xn := IIF(nx==10,"A",IIF(nx==11,"B",IIF(nx==12,"C",IIF(nx==13,"D",IIF(nx==14,"E",IIF(nx==15,"F",IIF(nx==16,"G",IIF(nx==17,"H","I"))))))))
+			ENDIF	
+			iw := ASCAN(aOper , { |xy| xy[1]+xy[2] == xcOperacao+xn } )
+			IF ( iw = 0 )
+				iw   := ASCAN(aOper , { |xy| xy[1] == xcOperacao } )
+				cOpr := IIF(iw == 0 , xcOperacao , aOper[iw,1] )
+				cDsc := IIF(iw == 0 , "EXPEDICAO" , aOper[iw,3] )
+				AADD(aOper , { cOpr            , ;
+									xn  			    , ;
+									cDsc            , ;
+									0.00            , ;
+									0.00            , ;
+									SPACE(8)        , ;
+									SPACE(8)        , ;
+									SPACE(8)        , ;
+									SPACE(8)        , ;
+									SPACE(6)        , ;
+									SPACE(22)       , ;
+									SPACE(15) } )                  
+				iw := LEN(aOper)
+			ENDIF
+			aOper[iw,4] := SH6->H6_X_QTE    ///xnQtdProd
+			aOper[iw,5] :=	SH6->H6_X_QTS    ///xnSaldo                        
+			aOper[iw,6] := xdDataIni                     
+			aOper[iw,7] :=	xcHoraIni                      
+			aOper[iw,8] := xdDataFin                      
+			aOper[iw,9] :=	xcHoraFin                      
+			aOper[iw,10] := xcTempo 
+			aOper[iw,11] := xcStatus
+			aOper[iw,12] := SH6->H6_OPERADO
+			dbSkip()
+		ENDDO	
+	ENDDO
+	*/
+	nSaldo := IIF(mv_par08<>2 , TMP->(C2_QUANT - C2_QUJE) , TMP->(C2_QTDPRD - C2_QUJE) )
+	lPrint := .T.
+
+	IF ( LEN(aOper) > 0 .AND.!EMPTY(aOper[1,6]) ) 
+
+		aSort(aOper,,, {|x,y| x[1]+x[2] < y[1]+y[2] } )
+
+		FOR ix:=1 TO LEN(aOper)
+
+			f_CabecR33()
+			
+			xcStatus := IIF(EMPTY(aOper[ix,6]) , "Aguardando..." , aOper[ix,11] )
+			
+			@ nLin,003 PSAY aOper[ix,1]+"."+aOper[ix,2]+"-"+LEFT(aOper[ix,3],17)
+			@ nLin,027 PSAY LEFT(aOper[ix,12],12)
+			@ nLin,042 PSAY TRANSF(aOper[ix,4],"@E 99999")
+			@ nLin,051 PSAY IIF(aOper[ix,5] > 0 , TRANSF(aOper[ix,5],"@E 99999") , IIF(aOper[ix,4] > 0 , "  ---" , " " ) )
+			@ nLin,058 PSAY aOper[ix,6]
+			@ nLin,068 PSAY aOper[ix,7]
+			@ nLin,076 PSAY aOper[ix,8]
+			@ nLin,086 PSAY aOper[ix,9]
+			@ nLin,099 PSAY aOper[ix,10]
+			@ nLin,108 PSAY xcStatus
+		NEXT
+		nLin++
+		@ nLin,000 PSAY REPL("=",132)
+	ENDIF	
+	dbSelectArea("TMP")
+	dbSkip()
+ENDDO
+@ 62,000 PSAY REPL('*',limite)
+@ 63,000 PSAY '* '+SM0->M0_NOMECOM+'  Software by T.I./COEL '+IF(lContinua,'','** PROGRAMA ABORTADO')
+@ 63,108 PSAY 'Hora Termino: '+LEFT(TIME(),8)+' *'
+@ 64,000 PSAY REPL('*',limite)
+*
+TMP->(dbCloseArea())
+
+If aReturn[5] == 1
+        dbcommitAll()
+        ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+
+RETURN
+
+///////////////////////////////////////////
+Static Function f_CabecR33()
+///////////////////////////////////////////
+IF ( nLin > 58 )
+	m_pag := m_pag +1
+	@ 00,000 PSAY repl("*",limite)
+	@ 01,000 PSAY '*T.I./COEL'
+	@ 01,038 PSAY 'EMPRESA....: ' + RTRIM(SM0->M0_NOMECOM)
+	@ 01,114 PSAY 'PAGINA.:    '+ STRZERO(m_pag,5,0)+'*'
+	@ 02,000 PSAY '*SYSTEM/CESTR033'
+	@ 02,038 PSAY "RELATORIO..: RELACAO DAS OP's POR OPERACAO "+IIF(mv_par08==1,"(EM ABERTO)",IIF(mv_par08==2,"(ENCERRADAS)","(EXPEDICAO)"))
+	@ 02,114 PSAY 'DT.REF.: ' + DTOC(ddatabase) + '*'
+	@ 03,000 PSAY IIF(m_pag==1,"*HORA: "+LEFT(TIME(),8),"*")
+	@ 03,038 PSAY "PARAMETROS.: "+IIF(mv_par08==1,"DT.EMISSAO DAS OP's DE ","DT.PRODUCAO DAS OP's DE ")+DTOC(mv_par05)+" A "+DTOC(mv_par06)
+	@ 03,114 PSAY 'EMISSAO: ' + DTOC(DATE())+"*"
+	@ 04,000 PSAY repl("*",limite)
+	@ 05,000 PSAY LIN5
+	@ 06,000 PSAY LIN6
+	@ 07,000 PSAY repl("*",limite)
+	nLin   := 7
+	lPrint := .T.    
+ENDIF
+IF ( lPrint )      
+	nLin++
+	@ nLin,000 PSAY TRANSF(RTRIM(TMP->C2_OP),"@R XXXXXX.XX.XXX")
+	@ nLin,015 PSAY STOD(TMP->C2_EMISSAO)
+	@ nLin,027 PSAY STOD(TMP->C2_DATPRI)
+	@ nLin,039 PSAY STOD(TMP->C2_DATPRF)
+	@ nLin,050 PSAY LEFT(TMP->C2_PRODUTO,25)
+	@ nLin,078 PSAY TMP->C2_QUANT             PICTURE "@E 99999"
+	@ nLin,086 PSAY TMP->C2_QUJE              PICTURE "@E 99999"
+	@ nLin,093 PSAY nSaldo                    PICTURE "@E 99999"
+	@ nLin,100 PSAY LEFT(TMP->B1_DESC,32)
+	lPrint := .F.
+ENDIF
+nLin++
+
+Return
+
+****************************************************************************************************************
+
+Static Function ValidPerg()
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03        | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | PYME | GRPSX5 | HELP | PICTURE | IDFIL |
+   aAdd(aRegs,{ cPerg,"01" , "Da OP                       ?",   ""   ,  ""    , "mv_ch1" , "C" ,   13   ,   0   ,   0   , "G" , "          "  , "mv_par01", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"02" , "Até a OP                    ?",   ""   ,  ""    , "mv_ch2" , "C" ,   13   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"03" , "Do Produto                  ?",   ""   ,  ""    , "mv_ch3" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"04" , "Até o Produto               ?",   ""   ,  ""    , "mv_ch4" , "C" ,   30   ,   0   ,   0   , "G" , "          "  , "mv_par04", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "SB1" , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"05" , "Do Periodo                  ?",   ""   ,  ""    , "mv_ch5" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par05", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"06" , "Até o Periodo               ?",   ""   ,  ""    , "mv_ch6" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par06", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "          " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"07" , "Tipo do Produto             ?",   ""   ,  ""    , "mv_ch7" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par07", "Prod.Acabado" , "     " , "     " , "   " , "   " , "Sub-Conjunto " , "     " , "     " , "   " , "   " , "Ambos     " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , " "  , "    " , " "  , " "     , " "   })
+   aAdd(aRegs,{ cPerg,"08" , "Condição da OP              ?",   ""   ,  ""    , "mv_ch8" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par08", "Em Aberto   " , "     " , "     " , "   " , "   " , "Encerrada    " , "     " , "     " , "   " , "   " , "Expedição " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , " "  , "    " , " "  , " "     , " "   })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+            *
+				cKey := "P.CESTR033" + STRZERO(i,2) + "."
+				aHelpPor := {}
+				aHelpSpa := {}
+				aHelpEng := {}
+				DO CASE
+					CASE i == 1
+						aAdd(aHelpPor,"Informe o numero da OP inicial.")
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 2
+						aAdd(aHelpPor,"Informe o numero da OP final.")
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 3
+						aAdd(aHelpPor,"Informe o codigo do Produto inicial.")
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 4
+						aAdd(aHelpPor,"Informe o codigo do Produto final.")
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 5
+						aAdd(aHelpPor,"Informe a Data de Emissao inicial")
+						aAdd(aHelpPor,'quando o parametro "Condiçao da OP"')
+						aAdd(aHelpPor,'for "Em Aberto" ou informe a Data de')
+						aAdd(aHelpPor,'Produçao inicial quando o parametro')
+						aAdd(aHelpPor,'"Condiçao da OP" for "Encerrada".')
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 6
+						aAdd(aHelpPor,"Informe a Data de Emissao final")
+						aAdd(aHelpPor,'quando o parametro "Condiçao da OP"')
+						aAdd(aHelpPor,'for "Em Aberto" ou informe a Data de')
+						aAdd(aHelpPor,'Produçao final quando o parametro')
+						aAdd(aHelpPor,'"Condiçao da OP" for "Encerrada".')
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 7
+						aAdd(aHelpPor,"Selecione o tipo do produto para as")
+						aAdd(aHelpPor,"OP's selecionadas.")
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+					CASE i == 8
+						aAdd(aHelpPor,'Selecione "Em aberto" quando a OP')
+						aAdd(aHelpPor,"se encontrar em produçao, ou     ")
+						aAdd(aHelpPor,'"Encerrada" quando for atendida  ')
+						aAdd(aHelpPor,"totalmente.                      ")
+						aAdd(aHelpSpa,".")
+						aAdd(aHelpEng,".")
+				ENDCASE
+				
+				PutSX1Help(cKey,aHelpPor,aHelpEng,aHelpSpa)
+				
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return
+
+/*
+   DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP)
+		xcProduto  := SH6->H6_PRODUTO
+		xcOperacao := SH6->H6_OPERAC
+		xcOperador := SH6->H6_OPERADO
+		xdDataIni  := SPACE(8)
+		xcHoraIni  := SPACE(8)
+		xcHoraFin  := SPACE(8)
+		xnQtdProd  := 0
+		DO WHILE !EOF().AND.H6_FILIAL==xFilial("SH6").AND.RTRIM(H6_OP)==RTRIM(TMP->C2_OP).AND.H6_PRODUTO==xcProduto.AND.H6_OPERAC==xcOperacao
+			xnQtdProd += SH6->H6_X_QTS               ///H6_QTDPROD               
+			xdDataIni := IIF(EMPTY(xdDataIni) , DTOC(SH6->H6_DATAINI) , xdDataIni )
+			xcHoraIni := IIF(EMPTY(xcHoraIni) , SH6->H6_HORAINI , xcHoraIni )
+			xdDataFin := DTOC(SH6->H6_DATAFIN)
+			xcHoraFin := SH6->H6_HORAFIN
+			dbSkip()
+		ENDDO
+		xnSaldo  := ( TMP->C2_QUANT - xnQtdProd )
+		nH1      := VAL(STRTRAN(xcHoraIni,":","."))
+		nH2      := VAL(STRTRAN(xcHoraFin,":","."))
+		xcTempo  := SPACE(8)
+		xcStatus := SPACE(21)
+		IF ( !EMPTY(xcHoraFin) )
+			xcTempo := DataHora2Val(CTOD(xdDataIni),nH1,CTOD(xdDataFin),nH2,"H")
+			xcTempo := STRZERO(xcTempo,6,2)
+			xcTempo := STRTRAN(xcTempo,".",":")
+			IF ( xnSaldo > 0 )
+				xcStatus := "Entrega parcial"
+			ELSE
+				xcStatus := "Ok"
+			ENDIF
+		ELSE
+			xcStatus := "Aguardando..."
+		ENDIF	
+		iw := ASCAN(aOper , { |xy| xy[1] == xcOperacao } )
+		IF ( iw > 0 )
+			aOper[iw,3] := xnQtdProd
+			aOper[iw,4] :=	xnSaldo                        
+			aOper[iw,5] := xdDataIni                     
+			aOper[iw,6] :=	xcHoraIni                      
+			aOper[iw,7] := xdDataFin                      
+			aOper[iw,8] :=	xcHoraFin                      
+			aOper[iw,9] := xcTempo 
+			aOper[iw,10] := xcStatus
+			aOper[iw,11] := xcOperador
+		ENDIF							
+	ENDDO
+
+	nSaldo := IIF(mv_par08==1 , TMP->(C2_QUANT - C2_QUJE) , TMP->(C2_QTDPRD - C2_QUJE) )
+*/

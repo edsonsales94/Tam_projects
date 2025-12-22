@@ -1,0 +1,30 @@
+#Include 'Protheus.ch'
+
+/*/{Protheus.doc} QSTIPONF
+P.E. para mudança de tipo de nf com base em regras especificas
+@author Gustavo Viana - Qsdobrasil
+@type User function
+@since Jul/2024
+@version 1.0
+/*/
+User Function QSTIPONF()
+
+    Local aArea     := GetArea()
+    Local cMIBTPB   := SuperGetMV("QS_MIBTPB", .F.,"011923330013665921#")  //-- CNPJ/CPF+CFOP que deve obrigatoriamente ir como beneficiamento Default HOnda
+    //Local cMIBCFOP  := SuperGetMV("QS_MIBCFOP", .F.,"5921#")  //-- CFOP para analise HONDA
+    Local cP1TipoSel:= PARAMIXB[1] //-- F1_TIPO podendo ser "B#D#N"
+    Local cP2Doc    := PARAMIXB[2] //-- F1_DOC a ser gerado
+    Local cP3Serie  := PARAMIXB[3] //-- F1_SERIE a ser gerado
+    Local cP4CNPJ   := PARAMIXB[4] //-- CNPJ/CPF do documento envolvido
+    Local cP5CFOP   := PARAMIXB[5] //-- CFOP do documento envolvido
+    Local cRet      := PARAMIXB[1] //-- Retorno o default que foi selecionado
+
+    If !Empty(cMIBTPB)
+        If Alltrim(cP4CNPJ+cP5CFOP) $ cMIBTPB //--CNPJ/CPF+CFOP
+            cRet := "N" //-- Muda para o tipo normal.
+        EndIf
+    EndIf
+
+    RestArea(aArea)
+
+Return cRet

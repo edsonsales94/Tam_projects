@@ -1,0 +1,133 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ LISTUSER ³ Autor ³ Carlos Nina           ³ Data ³ 17/12/10 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Lista de Usuarios - Resumida                               ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+#INCLUDE "RWMAKE.CH"
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "TOTVS.CH"
+#INCLUDE "TBICONN.CH"
+
+User Function CLISTUSER()        // incluido pelo assistente de conversao do AP5 IDE em 11/10/01
+
+Local oExcelApp
+Local mLinDet,cLinDet
+Local aLinhas,aRows
+Local nW
+Local aUsers     := AllUsers()
+Local cWorkSheet := "USUARIOS"
+Local cRelato    := "CLSTUSERS"
+Local cPerg      := "LISTUSER  "
+Local oExcel     := FWMSEXCEL():New()
+
+ValidPerg(cPerg)
+
+Pergunte(cPerg,.T.)
+
+aSort(aUsers,,,{ |aVar1,aVar2| aVar1[1][2] < aVar2[1][2]})
+
+cLinDet := "LISTA DE USUARIOS DO PROTHEUS - "+IIF(mv_par01==1," (ATIVOS)",IIF(mv_par01==2," (BLOQUEADOS)"," (TODOS)"))
+
+oExcel:AddworkSheet(cWorkSheet)
+oExcel:AddTable (cWorkSheet,cLinDet)
+oExcel:AddColumn(cWorkSheet,cLinDet,"ID",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"USUARIO",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"NOME COMPLETO",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"MATRICULA",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"DEPARTAMENTO",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"EMPRESA/FILIAL",1,1)                                      ///Alinhamento da coluna [3] - ( 1-Left,2-Center,3-Right )
+oExcel:AddColumn(cWorkSheet,cLinDet,"RELATO",1,1)                                            ///Codigo de formatação  [2] - ( 1-General,2-Number,3-Monetário,4-DateTime )
+oExcel:AddColumn(cWorkSheet,cLinDet,"MENU",1,1)
+*********************************************
+
+FOR ix:=1 TO LEN(aUsers)
+    cUser  := UPPER(RTRIM(aUsers[ix,1,2]))
+    lBlq   := aUsers[ix,1,17]
+    lBlq   := ( mv_par01==3 ) .OR. ( mv_par01==2 .AND. lBlq ) .OR. ( mv_par01==1 .AND. !lBlq )
+    lPrint := ( cUser >= mv_par02 .AND. cUser <= mv_par03 )
+    lPrint := ( lPrint .AND. lBlq )
+    IF ( lPrint )
+       lQuebra    := .T.
+       lFirstTime := .T.
+       nLenMod    := LEN(aUsers[ix,3])
+       cEmpresa   := ""
+       cModulos   := ""
+       FOR iw:=1 TO LEN(aUsers[ix,2,6])
+           cEmpresa := ( cEmpresa + aUsers[ix,2,6,iw] + ";" )
+       NEXT
+       cEmpresa := IIF(LEFT(cEmpresa,4)=="@@@@","TODAS",STUFF(cEmpresa,LEN(cEmpresa),1,""))
+       FOR iw:=1 TO nLenMod
+           IF ( SUBS(aUsers[ix,3,iw],3,1) <> "X" )
+              xModulo  := RTRIM(aUsers[ix,3,iw])
+              iz       := RAT("\" , xModulo )
+              ik       := AT("." , xModulo )
+	           cModulos := ( cModulos + SUBS(xModulo,3,1) + "-" + SUBS(xModulo,iz+1,ik-iz-1) + ";" )
+           ENDIF
+       NEXT
+       cModulos := STUFF(cModulos,LEN(cModulos),1,"")
+
+		 aRows  := { IIF(aUsers[ix,1,17],"*","")+aUsers[ix,1,1]       , ;
+						 aUsers[ix,1,2] , ;
+						 aUsers[ix,1,4]        , ;
+						 SUBS(aUsers[ix,1,22],5,6) , ;
+						 LEFT(aUsers[ix,1,12],20)  , ;
+						 cEmpresa                  , ;
+						 aUsers[ix,2,3]            , ;
+						 cModulos  }
+		
+		 oExcel:AddRow(cWorkSheet,cLinDet,aRows)
+		 
+    ENDIF
+NEXT
+
+oExcel:Activate()
+oExcel:GetXMLFile("C:\RELATO\"+cRelato)
+oExcel:DeActivate()
+
+///
+///Abre o Excel
+///
+If ! ApOleClient( 'MsExcel' )                                                 //Verifica se o Excel esta instalado
+	MsgStop( 'MsExcel nao instalado' )
+	Return
+EndIf
+
+oExcelApp := MsExcel():New()                                                  // Cria um objeto para o uso do Excel
+oExcelApp:WorkBooks:Open("C:\Relato\"+cRelato)               						// Atribui à propriedade WorkBooks do Excel
+oExcelApp:SetVisible(.T.)                                                     // Abre o Excel com o arquivo criado exibido na Primeira planilha.
+oExcelApp:Destroy()                                                           //Encerra o processo do gerenciador de tarefas
+
+RETURN
+
+********************************
+Static Function ValidPerg(cPerg)
+********************************
+Local i,j
+Local aRegs
+
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs := {} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01          | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03    | DefSPA3 | DefEng3 | CNT03 | var04 | Def04 | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs, { cPerg,"01" , "Tipo                        ?",   ""   ,  ""    , "mv_ch1" , "N" ,   01   ,   0   ,   1   , "C" , "          "  , "mv_par01", "Desbloqueado" , "     " , "     " , "   " , "   " , "Bloqueado    " , "     " , "     " , "   " , "   " , "Ambos " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs, { cPerg,"02" , "Do Usuario (Login)          ?",   ""   ,  ""    , "mv_ch2" , "C" ,   15   ,   0   ,   0   , "G" , "          "  , "mv_par02", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+   aAdd(aRegs, { cPerg,"03" , "Até o Usuario (Login)       ?",   ""   ,  ""    , "mv_ch3" , "C" ,   15   ,   0   ,   0   , "G" , "          "  , "mv_par03", "            " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "      " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+Return

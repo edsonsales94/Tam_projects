@@ -1,0 +1,25 @@
+{
+    "totvsLanguageServer.welcomePage": false,
+    "totvsLanguageServer.askCompileResult": true,
+    "totvsLanguageServer.folder.extensionsAllowed": [
+    
+        ".PRW",
+        ".PRX",
+        ".PRG",
+        ".PPX",
+        ".PPP",
+        ".TLPP",
+        ".APW",
+        ".APH",
+        ".APL",
+        ".AHU",
+        ".TRES",
+        ".PNG",
+        ".BMP",
+        ".RES",
+        ".4GL",
+        ".PER",
+        ".JS"
+    ],
+    "totvsLanguageServer.editor.linter.includes": "C:\\smartclient_Dev\\includes;C:\\smartclient_Dev\\includes"
+}

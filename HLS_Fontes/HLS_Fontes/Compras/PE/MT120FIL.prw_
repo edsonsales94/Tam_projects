@@ -1,0 +1,39 @@
+#INCLUDE "URZUM.CH"
+/*/{protheus.doc}mt120fil
+PE para Pedidos Importados
+@author aFill Tecnologia
+@since 15/07/2013
+/*/
+//+-----------------------------------------------------------------------------------//
+//|Empresa...: aFill Tecnologia
+//|Funcao....: U_MT120FIL
+//|Autor.....: aFill Tecnologia - suporte@afill.com.br
+//|Data......: 15 de julho de 2013, 15:30
+//|Uso.......: SIGACOM   
+//|Versao....: Protheus
+//|Descricao.: PE para Pedidos Importados
+//|Observação: 
+//+-----------------------------------------------------------------------------------//
+*-----------------------------------------*
+User Function MT120FIL()
+*-----------------------------------------*
+
+Local cRet := U_UzxPCBrow("FIL")
+
+//Return(cRet)
+ 
+Local cRetorno := .F.
+Local _cFilter
+
+dbSelectArea("SC7")
+
+cRetorno := Msgbox("DESEJA VISUALIZAR APENAS OS PEDIDOS EM ABERTO?","PEDIDOS DE COMPRA","YESNO")
+
+If cRetorno
+	_cFilter := "SC7->C7_ENCER <> 'E' .AND. SC7->C7_RESIDUO <> 'S'"
+Else
+	_cFilter := ''
+EndIf
+
+Return(_cFilter)     
+Return(cRet)

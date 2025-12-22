@@ -1,0 +1,463 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡ao    ³ CESTR340 ³ Autor ³ Carlos Nina           ³ Data ³ 19/02/14 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡ao ³ Producao Realizada                                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico  - Producao                                       ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+/*/
+#include "rwmake.ch"
+#include "protheus.ch"
+#include "topconn.ch"
+
+User Function CESTR340()
+
+Private oDlg,oButton1,oButton2,oButton3,oSay1,oSay2,oSay3,oSay4,oSay5,oSay6,oSay7,oSay8,oSay9,oSay10,oSay11,oSay12,oSay13,oSay14
+Private mvPeriodo,dDatIni,dDatFin,nTamCpo
+Private Tabmes    := 'JANFEVMARABRMAIJUNJULAGOSETOUTNOVDEZ'
+Private mvLocal   := IIF(M->cNumEmp=="0301" , "02" , "01" )
+Private cPerg     := PADR("CESTR340",10)
+Private cRelato   := "Produção Realizada Em "
+Private aMensal   := {}
+Private nNroMes   := 0
+Private nOpcA     := 0
+
+ValidPerg()
+
+Pergunte(cPerg,.F.)
+
+  DEFINE MSDIALOG oDlg TITLE "Relatório: Produção Realizada" FROM 000, 000  TO 240, 500 COLORS 0, 16777215 PIXEL
+
+    @ 005, 005 SAY oSay1       PROMPT "Gera uma planilha pré-formatada para analise da Produção       "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 012, 005 SAY oSay2       PROMPT "Realizada no periodo informado.                                "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 020, 005 SAY oSay3       PROMPT ""                                                                           SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 027, 005 SAY oSay4       PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 035, 005 SAY oSay5       PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 042, 005 SAY oSay6       PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 050, 005 SAY oSay7       PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 057, 005 SAY oSay8       PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 065, 005 SAY oSay9       PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 072, 005 SAY oSay10      PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 080, 005 SAY oSay11      PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+	 @ 087, 005 SAY oSay11      PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 095, 005 SAY oSay12      PROMPT "                                                               "            SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 102, 005 SAY oSay13      PROMPT "                                                                   "        SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    @ 110, 005 SAY oSay14      PROMPT "                                                                   "        SIZE 300, 007 OF oDlg COLORS 0, 16777215 PIXEL
+    
+    @ 005, 203 BUTTON oButton1 PROMPT "Parametros"          SIZE 037, 015 OF oDlg PIXEL Action Pergunte(cPerg,.T.)
+    @ 025, 203 BUTTON oButton2 PROMPT "Gera Planilha"       SIZE 037, 015 OF oDlg PIXEL Action (nOpcA := 1 , oDlg:End())
+    @ 045, 203 BUTTON oButton3 PROMPT "Sair"                SIZE 037, 015 OF oDlg PIXEL Action (nOpcA := 2 , oDlg:End())
+
+	 ACTIVATE MSDIALOG oDlg CENTERED Valid nOpcA > 0
+
+IF ( nOpcA == 1 )
+
+	MsAguarde( { || f_filtraQuery()   } , "Filtra Parametros." ,"" , .T.                )
+	Processa( { || f_GeraTxtResumo() } , "Balanço de Material - Gerando Arquivo" , "Aguarde...." , .T. )
+	MsAguarde( { || f_loadExcel()     } , "Carrega o Excel para gerar a Planilha."      )
+
+ENDIF
+	
+Return
+
+////////////////////////////////////////////
+Static Function f_LoadExcel()
+////////////////////////////////////////////
+Local oExcelApp
+
+   ///
+   ///Abre o Excel
+   ///
+
+	If ! ApOleClient( 'MsExcel' )                                                 //Verifica se o Excel esta instalado
+		MsgStop( 'MsExcel nao instalado' )
+		Return
+	EndIf
+
+	oExcelApp := MsExcel():New()                                                  // Cria um objeto para o uso do Excel
+  	oExcelApp:WorkBooks:Open("C:\Relato\Balanco Material\"+cRelato)               // Atribui à propriedade WorkBooks do Excel
+	oExcelApp:SetVisible(.T.)                                                     // Abre o Excel com o arquivo criado exibido na Primeira planilha.
+
+Return
+	
+////////////////////////////////////////////////////////////////////////////
+Static Function f_GeraTxtResumo()
+////////////////////////////////////////////////////////////////////////////
+Local cProduto,cAno,cExt,dxData
+Local fArq
+Local mLinDet,cLinDet
+Local aLinhas
+Local nRecCount,nMes
+Local cData      := DTOC(mv_par01)
+Local nCtd       := 0
+Local oExcel     := FWMSEXCEL():New()
+Local cWorkSheet := "PRODUCAO"
+Local aRows      := {"PRODUTO","DESCRIÇÃO","TIPO","ESTOQUE ANT.","NUMERO","QTY.PEDIDA","QTY.PRODUZIDA","ROTEIRO","OPERAÇÃO","ENTRADA","SAIDA","OPERADOR"}
+
+nMes    := MONTH(mv_par01)
+cAno    := STR(YEAR(mv_par01),4)
+cExt    := STRZERO(DAY(mv_par01),2)+Rtrim(Subs(Tabmes,(nMes*3)-2,3))+cAno
+cRelato += cExt
+
+cLinDet := "M O V I M E N T O    D I A R I O    D E    P R O D U Ç A O   -   "+cExt
+
+oExcel:AddworkSheet(cWorkSheet)
+oExcel:AddTable (cWorkSheet,cLinDet)
+oExcel:AddColumn(cWorkSheet,cLinDet,"FAMILIA",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",2,1)
+oExcel:AddColumn(cWorkSheet,cLinDet,"SALDO DE",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet,"----- ORDEM DE PRODUÇÃO -----",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet,"----- ULTIMO APONTAMENTO P/OPERAÇÃO -----",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",1,1)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",3,2)
+oExcel:AddColumn(cWorkSheet,cLinDet," ",1,1)
+*********************************************
+
+oExcel:AddRow(cWorkSheet,cLinDet,aRows)
+
+dbSelectArea("TMP")
+dbGoTop()
+ProcRegua(RECCOUNT())
+Do While !Eof()
+	cClcFam := TMP->B1_CLCFAM
+	cCldFam := TMP->B1_CLDFAM
+	aRow    := {RTRIM(cCldFam)," "," ",0," ",0,0," "," ",0,0," "}
+	
+	oExcel:AddRow(cWorkSheet,cLinDet,aRow)
+	
+	DO WHILE !EOF().AND.TMP->B1_CLCFAM==cClcFam
+		D3COD  := TMP->D3_COD
+		iX     := 0
+		aSaldo := CalcEst(TMP->D3_COD,TMP->D3_LOCAL,mv_par01)
+		amRow  := {TMP->D3_COD,TMP->B1_DESC,TMP->B1_TIPO,aSaldo[1]," ",0,0," "," ",0,0," "}
+		aRow1  := aRow2 := aRow3 := aRow4 := aRow5 := aRow6 := aRow7 := aRow8 := aRow9 := aRow10 := aRow11 := aRow12 := {}
+		DO WHILE !EOF().AND.TMP->B1_CLCFAM==cClcFam.AND.TMP->D3_COD==D3COD
+			
+			amRow[05] := TRANSF(TMP->D3_OP,"@R XXXXXX.99.999")
+			amRow[06] := TMP->C2_QUANT
+			amRow[07] := TMP->D3_QUANT
+			amRow[08] := TMP->G2_OPERAC
+			amRow[09] := TMP->H6_OPERAC
+			amRow[10] := TMP->H6_X_QTE
+			amRow[11] := TMP->H6_X_QTS
+			amRow[12] := TMP->H6_OPERADO
+			
+			iX++
+			
+			aRow  := "aRow" + LTRIM(STR(iX,2))
+			
+			&aRow := ACLONE(amRow)
+			
+			oExcel:AddRow(cWorkSheet,cLinDet,&aRow)
+			
+			amRow[1] := " "
+			amRow[2] := " "
+			amRow[3] := " "
+			amRow[4] := " "
+			
+			dbSkip()
+			
+		ENDDO
+		
+	ENDDO
+	
+	aRow := {" "," "," ",0," ",0,0," "," ",0,0," "}
+	
+	oExcel:AddRow(cWorkSheet,cLinDet,aRow)
+	
+Enddo
+oExcel:Activate()
+oExcel:GetXMLFile("C:\RELATO\Balanco Material\"+cRelato)
+oExcel:DeActivate()
+
+TMP->(dbCloseArea())
+
+RETURN NIL
+
+//////////////////////////////////////////////////////////////////////
+Static Function f_filtraQuery()
+//////////////////////////////////////////////////////////////////////
+Local iX
+Local cRotFin,cIndex
+Local lBenef
+Local aStru    := {}
+Local nTamProd := TamSX3("B1_COD")[1]          ///Tamanho do campo
+Local cRotIni  := "01"
+Local dDatIni  := FIRSTDAY(mv_par01)
+
+AADD(aStru,{"D3_COD"     , "C" , nTamProd,0})
+AADD(aStru,{"D3_OP"      , "C" , 13,0})
+AADD(aStru,{"D3_SEQ"     , "C" , 02,0})
+AADD(aStru,{"D3_LOCAL"   , "C" , 02,0})
+AADD(aStru,{"D3_QUANT"   , "N" , 10,0})
+AADD(aStru,{"D3_ACM"     , "N" , 10,0})
+AADD(aStru,{"C2_QUANT"   , "N" , 10,0})
+AADD(aStru,{"B1_CLCFAM"  , "C" , 04,0})
+AADD(aStru,{"B1_CLDFAM"  , "C" , 25,0})
+AADD(aStru,{"B1_DESC"    , "C" , 60,0})
+AADD(aStru,{"B1_TIPO"    , "C" , 04,0})
+AADD(aStru,{"G2_OPERAC"  , "C" , 08,0})
+AADD(aStru,{"H6_OPERAC"  , "C" , 23,0})
+AADD(aStru,{"H6_X_QTE"   , "N" , 10,0})
+AADD(aStru,{"H6_X_QTS"   , "N" , 10,0})
+AADD(aStru,{"H6_OPERADO" , "C" , 10,0})
+
+cArqTrab:=CriaTrab(aStru,.T.)
+dbUseArea(.T.,,cArqTrab,"TMP",.F.,.F.)
+cIndex := CriaTrab(,.F.)
+cKey   := 'D3_OP'
+IndRegua("TMP",cIndex,cKey,,," Criando Indice ...   ")
+
+///
+///Extrai Producao do periodo
+///
+cQry := "SELECT D3.D3_COD,D3.D3_OP,D3.D3_LOCAL,B1_DESC,B1_TIPO,B1_CLCFAM,SUM(D3.D3_QUANT) D3_QUANT,"
+cQry += "(SELECT SUM(D33.D3_QUANT) FROM "+RetSqlName("SD3")+" D33"
+cQry += " WHERE D33.D3_FILIAL = '"+xFilial("SD3")+"'"
+cQry += " AND D33.D3_ESTORNO = ' '"
+cQry += " AND D33.D3_CF      = 'PR0'"
+cQry += " AND D33.D3_LOCAL   = '"+mvLocal+"'"
+cQry += " AND D33.D3_EMISSAO BETWEEN '"+DTOS(dDatIni)+"' AND '"+DTOS((mv_par01-1))+"'"
+cQry += " AND D33.D3_COD = D3.D3_COD AND D33.D3_OP = D3.D3_OP) AS D3_ACM"
+cQry += " FROM "+RetSqlName("SD3")+" D3,"+RetSqlName("SB1")+" B1"
+cQry += " WHERE D3.D3_FILIAL = '"+xFilial("SD3")+"' AND B1_FILIAL = D3.D3_FILIAL"
+cQry += " AND D3.D3_ESTORNO = ' '"
+cQry += " AND D3.D3_CF      = 'PR0'"
+cQry += " AND D3.D3_LOCAL   = '"+mvLocal+"'"
+cQry += " AND D3.D3_EMISSAO = '"+DTOS(mv_par01)+"'"       
+cQry += " AND B1_COD = D3.D3_COD"
+cQry += " AND B1_TIPO IN ('PA','PI')"
+cQry += " AND D3.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' '"
+cQry += " GROUP BY D3.D3_COD,D3.D3_OP,D3.D3_LOCAL,B1_DESC,B1_TIPO,B1_CLCFAM"
+cQry += " ORDER BY B1_CLCFAM,D3.D3_COD,D3.D3_OP "
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TEMPOR', .T., .T.)
+
+dbSelectArea("SC2")
+dbSetOrder(1)
+*
+dbSelectArea("SZE")
+dbSetOrder(1)
+*
+dbSelectArea("SH1")
+dbSetOrder(1)
+*
+dbSelectArea("TEMPOR")
+dbGoTop()
+DO WHILE !EOF()
+	////
+	////Verifica se é producao externa (Beneficiamento)
+	////Se for, descarta
+	////
+	lBenef := .F.
+	dbSelectArea("SD3")
+	dbSetOrder(1)
+	dbSeek(xFilial("SD3")+TEMPOR->D3_OP,.T.)
+	DO WHILE !EOF().AND.SD3->D3_FILIAL==xFilial("SD3").AND.SD3->D3_OP==TEMPOR->D3_OP.AND.!lBenef
+		lBenef := ( SD3->D3_CF == "RE5" )
+		dbSkip()
+	ENDDO
+	IF ( lBenef )
+		dbSelectArea("TEMPOR")
+		dbSkip()
+		Loop
+	ENDIF
+	
+	SC2->( dbSeek( xFilial("SC2")+RTRIM(TEMPOR->D3_OP) ) )
+	SZE->( dbSeek( xFilial("SZE")+TEMPOR->B1_CLCFAM ) )
+	
+	cRotFin := "99"
+	dbSelectArea("SG2")
+	dbSetOrder(3)
+	dbSeek(xFilial("SG2")+TEMPOR->D3_COD,.T.)
+	DO WHILE !EOF().AND.SG2->G2_FILIAL==xFilial("SG2").AND.SG2->G2_PRODUTO==TEMPOR->D3_COD
+		cRotFin := SG2->G2_OPERAC
+		dbSkip()
+	ENDDO
+	
+	////
+	////Seleciona a ultima operacao efetuada pelo apontamento por operacao
+	////
+	cQry := "SELECT TOP 1 H6_OPERAC,H6_RECURSO,H6_OPERADO,H6_HORAFIN,SUM(H6_X_QTE) H6_X_QTE,SUM(H6_X_QTS) H6_X_QTS FROM "+RetSqlName("SH6")
+	cQry += " WHERE H6_FILIAL = '"+xFilial("SH6")+"'"
+	cQry += " AND H6_OP = '"+TEMPOR->D3_OP+"'"
+	cQry += " AND ( H6_DATAINI = '"+DTOS(mv_par01)+"' OR H6_DATAFIN = '"+DTOS(mv_par01)+"' )"  
+	cQry += " AND D_E_L_E_T_ = ' '"
+	cQry += " GROUP BY H6_OPERAC,H6_RECURSO,H6_OPERADO,H6_HORAFIN"
+	cQry += " ORDER BY H6_OPERAC DESC,H6_HORAFIN DESC "
+	
+	cQry := ChangeQuery(cQry)
+
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TSH6', .T., .T.)
+
+	SG2->( dbSeek( xFilial("SG2")+TEMPOR->D3_COD+TSH6->H6_OPERAC) )
+	
+	cOperac   := RTRIM(TSH6->H6_OPERAC)+"-"+RTRIM(SG2->G2_DESCRI)
+	cRecurso  := TSH6->H6_RECURSO
+	cOperador := TSH6->H6_OPERADO
+	nQtyE     := TSH6->H6_X_QTE
+	nQtyS     := TSH6->H6_X_QTS
+	
+	TSH6->(dbCloseArea())
+
+	cClcFam := IIF(SZE->(EOF()) , "9999" , TEMPOR->B1_CLCFAM )
+	cCldFam := IIF(SZE->(EOF()) , "A CLASSIFICAR" , SZE->ZE_DESCRIC )
+	
+	IF ( TEMPOR->B1_TIPO == "PI" .AND. !EMPTY(cRecurso) )
+		SH1->(dbSeek(xFilial("SH1")+cRecurso))
+		cClcFam := IIF(SH1->(EOF()) , "9999" , cRecurso )
+		cCldFam := IIF(SH1->(EOF()) , "A CLASSIFICAR" , SH1->H1_DESCRI )
+	ENDIF
+	
+	RecLock("TMP",.T.)
+	TMP->D3_COD     := TEMPOR->D3_COD
+	TMP->D3_OP      := TEMPOR->D3_OP
+	TMP->D3_SEQ     := "01"
+	TMP->D3_QUANT   := TEMPOR->D3_QUANT
+	TMP->D3_ACM     := TEMPOR->D3_ACM
+	TMP->D3_LOCAL   := TEMPOR->D3_LOCAL
+	TMP->C2_QUANT   := SC2->C2_QUANT
+	TMP->B1_CLCFAM  := cClcFam
+	TMP->B1_CLDFAM  := cCldFam
+	TMP->B1_DESC    := TEMPOR->B1_DESC
+	TMP->B1_TIPO    := TEMPOR->B1_TIPO
+	TMP->G2_OPERAC  := IIF(cRotFin <> "99" , ( cRotIni+" a "+cRotFin ) , "" )
+	TMP->H6_OPERAC  := cOperac
+	TMP->H6_X_QTE   := nQtyE
+	TMP->H6_X_QTS   := nQtyS
+	TMP->H6_OPERADO := cOperador
+	MsUnlock()
+	
+	dbSelectArea("TEMPOR")
+	
+	dbSkip()
+	
+ENDDO
+
+TEMPOR->(dbCloseArea())
+
+////
+////Seleciona os apontamentos por operacao na data informada e depois adicionar no arquivo temporario TMP, as op's que nao foram apontadas no ultimo roteiro
+////
+cQry := "SELECT H6_OP,H6_PRODUTO,H6_OPERAC,H6_RECURSO,H6_OPERADO,B1_CLCFAM,B1_TIPO,B1_DESC,SUM(H6_X_QTE) H6_X_QTE,SUM(H6_X_QTS) H6_X_QTS"
+cQry += " FROM "+RetSqlName("SH6")+" H6,"+RetSqlName("SB1")+" B1"
+cQry += " WHERE H6_FILIAL = '"+xFilial("SH6")+"' AND B1_FILIAL = '"+xFilial("SB1")+"'"
+cQry += " AND ( H6_DATAINI = '"+DTOS(mv_par01)+"' OR H6_DATAFIN = '"+DTOS(mv_par01)+"' )"  
+cQry += " AND B1_COD = H6_PRODUTO"
+cQry += " AND H6.D_E_L_E_T_ = ' ' AND B1.D_E_L_E_T_ = ' '"
+cQry += " GROUP BY H6_OP,H6_PRODUTO,H6_OPERAC,H6_RECURSO,H6_OPERADO,B1_CLCFAM,B1_TIPO,B1_DESC"
+cQry += " ORDER BY H6_OP,H6_OPERAC DESC "
+
+cQry := ChangeQuery(cQry)
+
+dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TSH6', .T., .T.)
+
+dbSelectArea("TSH6")
+dbGoTop()
+DO WHILE !EOF()
+	H6OP      := TSH6->H6_OP
+	H6PRODUTO := TSH6->H6_PRODUTO
+	lFirst    := .T.
+	DO WHILE !EOF().AND.TSH6->H6_OP==H6OP.AND.TSH6->H6_PRODUTO==H6PRODUTO
+		IF ( lFirst )
+			lFirst := .F.
+			dbSelectArea("TMP")
+			dbSeek(TSH6->H6_OP)
+			IF ( EOF() )
+			
+				SC2->( dbSeek( xFilial("SC2")+RTRIM(TSH6->H6_OP) ) )
+				SZE->( dbSeek( xFilial("SZE")+TSH6->B1_CLCFAM ) )
+
+				cClcFam := IIF(SZE->(EOF()) , "9999" , TSH6->B1_CLCFAM )
+				cCldFam := IIF(SZE->(EOF()) , "A CLASSIFICAR" , SZE->ZE_DESCRIC )
+				
+				IF ( TSH6->B1_TIPO == "PI" .AND. !EMPTY(TSH6->H6_RECURSO) )
+					SH1->(dbSeek(xFilial("SH1")+TSH6->H6_RECURSO))
+					cClcFam := IIF(SH1->(EOF()) , "9999" , TSH6->H6_RECURSO )
+					cCldFam := IIF(SH1->(EOF()) , "A CLASSIFICAR" , SH1->H1_DESCRI )
+				ENDIF
+				
+				cRotFin := "99"
+				cOperac := ""
+				dbSelectArea("SG2")
+				dbSetOrder(3)
+				dbSeek(xFilial("SG2")+TSH6->H6_PRODUTO,.T.)
+				DO WHILE !EOF().AND.SG2->G2_FILIAL==xFilial("SG2").AND.SG2->G2_PRODUTO==TSH6->H6_PRODUTO
+					cRotFin := SG2->G2_OPERAC
+					cOperac := IIF(SG2->G2_OPERAC==TSH6->H6_OPERAC , RTRIM(TSH6->H6_OPERAC)+"-"+RTRIM(SG2->G2_DESCRI) , cOperac )
+					dbSkip()
+				ENDDO
+
+				RecLock("TMP",.T.)
+				TMP->D3_COD     := TSH6->H6_PRODUTO
+				TMP->D3_OP      := TSH6->H6_OP
+				TMP->D3_SEQ     := "02"
+				TMP->D3_QUANT   := 0
+				TMP->D3_ACM     := 0
+				TMP->D3_LOCAL   := mvLocal
+				TMP->C2_QUANT   := SC2->C2_QUANT
+				TMP->B1_CLCFAM  := cClcFam
+				TMP->B1_CLDFAM  := cCldFam
+				TMP->B1_DESC    := TSH6->B1_DESC
+				TMP->B1_TIPO    := TSH6->B1_TIPO
+				TMP->G2_OPERAC  := IIF(cRotFin <> "99" , ( cRotIni+" a "+cRotFin ) , "" )
+				TMP->H6_OPERAC  := cOperac
+				TMP->H6_X_QTE   := TSH6->H6_X_QTE
+				TMP->H6_X_QTS   := TSH6->H6_X_QTS
+				TMP->H6_OPERADO := TSH6->H6_OPERADO
+				MsUnlock()
+						
+			ENDIF
+			
+			dbSelectArea("TSH6")
+
+		ENDIF
+		
+		dbSkip()
+		
+	ENDDO
+	
+ENDDO
+
+TSH6->(dbCloseArea())
+
+////
+////Cria novo indice
+////
+cIndex := LEFT(cIndex,7)+"A"
+dbSelectArea("TMP")
+cKey:="B1_CLCFAM+D3_COD+D3_SEQ"
+IndRegua("TMP",cIndex,cKey,,,)
+	
+Return(.T.)
+
+***************************
+Static Function ValidPerg()
+***************************
+   _sAlias := Alias()
+   DbSelectArea("SX1")
+   DbSetOrder(1)
+   aRegs :={} //Grupo|Ordem| Pegunt                         | perspa | pereng | VariaVL  | tipo| Tamanho|Decimal| Presel| GSC | Valid         |   var01   | Def01              | DefSPA1 | DefEng1 | CNT01 | var02 | Def02           | DefSPA2 | DefEng2 | CNT02 | var03 | Def03           | DefSPA3 | DefEng3 | CNT03 | var04 | Def04      | DefSPA4 | DefEng4 | CNT04 | var05 | Def05 | DefSPA5 | DefEng5 | CNT05 | F3    | GRPSX5 |
+   aAdd(aRegs,{ cPerg,"01" , "Data de produção            ?",   ""   ,  ""    , "mv_ch1" , "D" ,   08   ,   0   ,   0   , "G" , "          "  , "mv_par01", "                " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "             " , "     " , "     " , "   " , "   " , "        " , "     " , "     " , "   " , "   " , "   " , "     " , "     " , "   " , "   " , "    " })
+		For i:=1 to Len(aRegs)
+			If !DbSeek(cPerg+aRegs[i,2])
+				RecLock("SX1",.T.)
+				For j:=1 to FCount()
+					If j <= Len(aRegs[i])
+						FieldPut(j,aRegs[i,j])
+					Endif
+				Next
+				MsUnlock()
+			Endif
+		Next
+		dbSelectArea(_sAlias)
+Return

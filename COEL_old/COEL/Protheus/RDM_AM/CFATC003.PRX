@@ -1,0 +1,826 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 17/10/01
+
+User Function CFATC003()        
+
+SetPrvt("AITENS,FIT,ASTRUCT,FARQ,AOPCOES,NOPCA")
+SetPrvt("FCLIEFOR,FDOC,FSERIE,MCOND,NRECNO,VP")
+SetPrvt("CCODIGO,CLOJA,CFORNECE,ACAMPOS,FLOJA,AMENS")
+SetPrvt("LSF8,LSZ9,CTRANSP,CCNH,CSER,F1EMISSAO")
+SetPrvt("CDOCANT,CSERIE,CFORN,CPICM,CIPI,CCFO")
+SetPrvt("NTOTNF,CDESC,CUM,NTOTITEM,LFLAG,F1DTDIGIT")
+SetPrvt("NMENS,NLIN,E2VENCTO,E1VENCTO,CDESCBCO,CMENPAD")
+SetPrvt("F2EMISSAO,XPESO,D2QUANT,NPESO,NPESOL,F2VALMERC")
+SetPrvt("F2VALBRUT,C5BANCO,ACAMP,DDATVER")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³ CFATC003 ³ Autor ³ Carlos Nina           ³ Data ³ 22/05/12 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡„o ³ Consulta de N.Fiscal de Entrada/Saida                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Motivo   ³                                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+aItens := {}
+Aadd(aItens,{"It_Cod   ","C",30,0})
+Aadd(aItens,{"It_Desc  ","C",30,0})
+Aadd(aItens,{"It_Qt    ","N",10,2})
+Aadd(aItens,{"It_UM    ","C",3,0})
+Aadd(aItens,{"It_Bruto ","N",14,6})
+Aadd(aItens,{"It_TotIT ","N",10,2})
+Aadd(aItens,{"It_Pedido","C",9,0})
+
+fIt := CriaTrab(aItens,.T.)
+Use &fIt Alias fITem New
+
+aOpcoes  := {"Entrada  ","Saida  "}
+dDatVer  := CTOD("01/03/2003")
+nOpcA    := 1
+FCLIEFOR := SPACE(06)
+FDOC     := SPACE(09)
+FSERIE   := SPACE(03)
+mvLocal  := IIF(M->cNumEmp=="0301" , "02" , "01" ) 
+
+@ 100,100 To 180,600 DIALOG oDlg TITLE "Consulta de Nota Fiscal de Entrada/Saida"
+@ 005,005 To 038,060  TITLE "Tipo de Nota Fiscal"
+@ 005,065 To 038,210  TITLE "Dados Para a Consulta"
+@ 013,070 To 033,127  TITLE "Cliente/Fornecedor"
+@ 013,133 To 033,172  TITLE "N.Fiscal"
+@ 013,175 To 033,203  TITLE "Série"
+
+@ 13,10 RADIO aOpcoes VAR nOpcA
+
+@ 20,073 Get FCLIEFOR
+@ 20,135 Get FDOC
+@ 20,178 Get FSERIE
+
+@ 08,215 BMPBUTTON TYPE 01 ACTION VerNota()
+@ 25,215 BMPBUTTON TYPE 02 ACTION Sair()
+
+ACTIVATE DIALOG oDlg
+
+Return
+
+
+Static Function VerNota()
+aStruct := {}
+
+Aadd(aStruct,{"Tm_Tipo"   ,"C",1,0 })
+Aadd(aStruct,{"Tm_Doc"    ,"C",9,0 })
+Aadd(aStruct,{"Tm_Serie"  ,"C",3,0 })
+Aadd(aStruct,{"Tm_Emissao","D",8,0 })
+Aadd(aStruct,{"Tm_Fornece","C",50,0})
+Aadd(aStruct,{"Tm_Codigo" ,"C",06,0})
+Aadd(aStruct,{"Tm_Loja"   ,"C",02,0})
+fArq := CriaTrab(aStruct,.T.)
+Use &fArq Alias TRB New
+
+   nCounter := 0
+   IF nOpcA == 1
+      dbSelectArea("SA2")
+      dbSetOrder(1)
+      dbSeek(xFilial("SA2")+FCLIEFOR)
+      F1LOJA := SA2->A2_LOJA
+      IF ( !EMPTY(FCLIEFOR).AND.!EMPTY(FDOC).AND.!EMPTY(FSERIE) )
+         dbSelectArea("SF1")
+         dbSetOrder(2)
+         dbSeek(xFilial("SF1")+FCLIEFOR+F1LOJA+FDOC+FSERIE,.T.)
+         mCond := "F1_FORNECE==FCLIEFOR.AND.F1_LOJA==F1LOJA.AND.F1_DOC==FDOC.AND.F1_SERIE==FSERIE"
+      ELSEIF ( EMPTY(FCLIEFOR).AND.!EMPTY(FDOC).AND.!EMPTY(FSERIE) )
+         dbSelectArea("SF1")
+         dbSetOrder(1)
+         dbSeek(xFilial("SF1")+FDOC+FSERIE,.T.)
+         mCond := "F1_DOC==FDOC.AND.F1_SERIE==FSERIE"
+      ELSEIF ( EMPTY(FCLIEFOR).AND.!EMPTY(FDOC) )
+         dbSelectArea("SF1")
+         dbSetOrder(1)
+         dbSeek(xFilial("SF1")+FDOC,.T.)
+         mCond := "F1_DOC==FDOC"
+      ELSE
+         dbSelectArea("SF1")
+         dbSetOrder(2)
+         dbSeek(xFilial("SF1")+FCLIEFOR+F1LOJA,.T.)
+         mCond := "F1_FORNECE==FCLIEFOR.AND.F1_LOJA==F1LOJA"
+      ENDIF
+      nRecNo := RECNO()
+      VP     := {}
+      DO WHILE !EOF().AND. &(mCond)
+         IF F1_TIPO $ "B,D"
+            dbSelectArea("SA1")
+            dbSetOrder(1)
+            dbSeek(xFilial("SA1")+SF1->F1_FORNECE+SF1->F1_LOJA)
+            cCodigo :=SA1->A1_COD
+            cLoja   :=SA1->A1_LOJA
+            cFornece:=SA1->A1_NREDUZ
+         ELSE
+            dbSelectArea("SA2")
+            dbSetOrder(1)
+            dbSeek(xFilial("SA2")+SF1->F1_FORNECE+SF1->F1_LOJA)
+            cCodigo :=SA2->A2_COD
+            cLoja   :=SA2->A2_LOJA
+            cFornece:=SA2->A2_NREDUZ
+         ENDIF
+
+         DbSelectArea("TRB")
+         RecLock("TRB",.T.)
+         Replace Tm_Tipo    With  SF1->F1_TIPO
+         Replace Tm_Doc     With  SF1->F1_DOC
+         Replace Tm_Serie   With  SF1->F1_SERIE
+         Replace Tm_Emissao With  SF1->F1_EMISSAO
+         Replace Tm_Fornece With  cFornece
+         Replace Tm_Codigo  With  cCodigo
+         Replace Tm_Loja    With  cLoja
+         MsUnLock()
+         nCounter := ( nCounter + 1 )         
+         dbSelectArea("SF1")
+         dbSkip()
+      ENDDO
+   ELSE
+      dbSelectArea("SA1")
+      dbSetOrder(1)
+      dbSeek(xFilial("SA1")+FCLIEFOR)
+      F2LOJA := SA1->A1_LOJA
+      IF ( !EMPTY(FCLIEFOR).AND.!EMPTY(FDOC) )
+         dbSelectArea("SF2")
+         dbSetOrder(2)
+         dbSeek(xFilial("SF2")+FCLIEFOR+F2LOJA+FDOC,.T.)
+         mCond := "F2_CLIENTE==FCLIEFOR.AND.F2_LOJA==F2LOJA.AND.F2_DOC==FDOC"
+      ELSEIF ( EMPTY(FCLIEFOR).AND.!EMPTY(FDOC) )
+         dbSelectArea("SF2")
+         dbSetOrder(1)
+         dbSeek(xFilial("SF2")+FDOC,.T.)
+         mCond := "F2_DOC==FDOC"
+      ELSE
+         dbSelectArea("SF2")
+         dbSetOrder(2)
+         dbSeek(xFilial("SF2")+FCLIEFOR+F2LOJA,.T.)
+         mCond := "F2_CLIENTE==FCLIEFOR.AND.F2_LOJA==F2LOJA"
+      ENDIF
+      nRecNo := RECNO()
+      DO WHILE !EOF().AND. &(mCond)
+         IF F2_TIPO $ "B,D"
+            dbSelectArea("SA2")
+            dbSetOrder(1)
+            dbSeek(xFilial("SA2")+SF2->F2_CLIENTE+SF2->F2_LOJA)
+            cCodigo :=SA2->A2_COD
+            cLoja   :=SA2->A2_LOJA
+            cFornece:=SA2->A2_NREDUZ
+         ELSE
+            dbSelectArea("SA1")
+            dbSetOrder(1)
+            dbSeek(xFilial("SA1")+SF2->F2_CLIENTE+SF2->F2_LOJA)
+            cCodigo :=SA1->A1_COD
+            cLoja   :=SA1->A1_LOJA
+            cFornece:=SA1->A1_NREDUZ
+         ENDIF
+         dbSelectArea("TRB")
+         RecLock("TRB",.T.)
+         Replace Tm_Tipo    With SF2->F2_TIPO
+         Replace Tm_Doc     With SF2->F2_DOC
+         Replace Tm_Serie   With  SF2->F2_SERIE
+         Replace Tm_Emissao With  SF2->F2_EMISSAO
+         Replace Tm_Fornece With  cFornece
+         Replace Tm_Codigo  With  cCodigo
+         Replace Tm_Loja    With  cLoja
+         MsUnLock()
+         nCounter := ( nCounter + 1 )
+         dbSelectArea("SF2")
+         dbSkip()
+      ENDDO
+   ENDIF
+   IF nCounter == 0
+      MsgBox("** Os Parametros informados não existe no Banco de Dados.","AVISO","INFO")
+   ELSEIF nCounter == 1
+      fDisplay()
+   ELSE
+      ViewNF()
+   ENDIF
+   dbSelectArea("TRB")
+   USE   
+Return
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Static Function ViewNF()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  aCampos := {}
+  AADD(aCampos,{"Tm_Tipo"   ,"TP"        })
+  AADD(aCampos,{"Tm_Doc "   ,"N.Fiscal"  })
+  AADD(aCampos,{"Tm_Serie"  ,"Serie"     })
+  AADD(aCampos,{"Tm_Emissao","DT.Emissao"})
+  AADD(aCampos,{"Tm_Fornece","Fornecedor"})
+  AADD(aCampos,{"Tm_Codigo" ,"Codigo"    })
+  AADD(aCampos,{"Tm_Loja"   ,"Loja"      })
+
+
+  @ 205,100 To 450,600 DIALOG oDlg2 TITLE "Resultado da Consulta"
+  @ 005,010 To 087,245 TITLE Transform(nCounter,"99999 Nota(s) Fiscal(is) Encontradas")
+  
+  @ 100,180 BMPBUTTON TYPE 01 ACTION fDisplay()
+  @ 100,210 BMPBUTTON TYPE 02 ACTION Close(oDlg2)
+
+  DbSelectArea("TRB")
+  DbGoTop()
+  
+  @ 015,015 TO 080,250 BROWSE "TRB" FIELDS aCampos
+  
+  ACTIVATE DIALOG oDlg2
+  
+Return
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+Static Function fDisplay()
+///////////////////////////////////////////////////////////////////////////////////////////////
+Local cQry
+Local cQuant,cObserv
+Local cNFOrig
+
+  aHeader := {}
+  AADD(aHeader,{"Codigo"     , "TB_COD    " , "@!               " , 15,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"Peso(Kg)"   , "TB_PESO   " , "@E 9999.999      " , 06,3  , SPACE(29) , "€€€€€€€" , "N" , "SC5"})
+  AADD(aHeader,{"Quantidade" , "TB_QUANT  " , "@E 9999999.99    " , 08,2  , SPACE(29) , "€€€€€€€" , "N" , "SC5"})
+  AADD(aHeader,{"UM"         , "TB_UM     " , "@!               " , 03,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"Local"      , "TB_LOCAL  " , "@!               " , 02,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"Vlr.Unit."  , "TB_VLUNIT " , "@E 99999.99999   " , 08,5  , SPACE(29) , "€€€€€€€" , "N" , "SC5"})
+  AADD(aHeader,{"Total"      , "TB_TOTITEM" , "@E 99999,999.99  " , 08,2  , SPACE(29) , "€€€€€€€" , "N" , "SC5"})
+  AADD(aHeader,{"C.Custo"    , "TB_CC     " , "@!               " , 07,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"(%)ICMS"    , "TB_PICM   " , "@!               " , 03,0  , SPACE(29) , "€€€€€€€" , "C" , "TRB"})
+  AADD(aHeader,{"(%)IPI"     , "TB_PIPI   " , "@!               " , 03,0  , SPACE(29) , "€€€€€€€" , "C" , "TRB"})
+  AADD(aHeader,{"Pedido"     , "TB_PEDIDO " , "@!               " , 11,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"NF.Original", "TB_NFORIG " , "@!               " , 20,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"Observação" , "TB_OBSERV " , "@!               " , 20,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  AADD(aHeader,{"Descrição"  , "TB_DESC   " , "@!               " , 67,0  , SPACE(29) , "€€€€€€€" , "C" , "SC5"})
+  DO CASE
+     CASE nOpcA == 1
+          nDespesas := 0
+          aObs      := {}
+          cCNH      := ""			 
+          dbSelectArea("SF1")
+          dbSetOrder(1)
+          dbSeek(xFilial("SF1")+Trb->Tm_Doc+Trb->Tm_Serie+Trb->Tm_Codigo+Trb->Tm_Loja+Trb->Tm_Tipo)
+          nRecNo := SF1->(RECNO())
+          dbSelectArea("SF8")
+          dbSetOrder(2)
+          dbSeek(xFilial("SF8")+SF1->F1_DOC+SF1->F1_SERIE+SF1->F1_FORNECE+SF1->F1_LOJA)
+          lSF8 := EOF()
+          M->F1TRANSP := " "
+          IF ( !lSF8 .OR. SF1->F1_TIPO=="C" )
+             IF ( SF1->F1_TIPO=="C" )
+                dbSelectArea("SF8")
+                dbSetOrder(3)
+                dbSeek(xFilial("SF8")+SF1->F1_DOC+SF1->F1_SERIE+SF1->F1_FORNECE+SF1->F1_LOJA)
+                DO WHILE !EOF().AND.F8_NFDIFRE==SF1->F1_DOC.AND.F8_SEDIFRE==SF1->F1_SERIE.AND.F8_TRANSP==SF1->F1_FORNECE.AND.F8_LOJTRAN==SF1->F1_LOJA
+                   cCNH := cCNH + SF8->F8_NFORIG + ","
+                   dbSkip()
+                ENDDO
+                cCNH := STUFF(cCNH , LEN(cCNH) , 1 , " " )
+             ELSE
+                cCNH := SF8->F8_NFDIFRE+"/"+SF8->F8_SEDIFRE
+                dbSelectArea("SA2")
+                dbSetOrder(1)
+                dbSeek(xFilial("SA2")+SF8->F8_TRANSP+SF8->F8_LOJTRAN)
+                M->F1TRANSP := SA2->A2_NREDUZ
+             ENDIF
+          ENDIF
+          IF ( SF1->F1_EST == "EX".AND.SF1->F1_FORMUL == 'S' )
+             nDespesas := ( SF1->F1_DESPESAS + SF1->F1_FRETE )
+             AADD(aObs,SF1->F1_OBSNFE4+CHR(13))
+          ENDIF
+          IF SF1->F1_TIPO $ "B,D"
+             dbSelectArea("SA1")
+             dbSetOrder(1)
+             dbSeek(xFilial("SA1")+SF1->F1_FORNECE+SF1->F1_LOJA)
+             M->F1CLIENTE := RTRIM(SF1->F1_FORNECE) + " " + SA1->A1_NOME
+          ELSE
+             dbSelectArea("SA2")
+             dbSetOrder(1)
+             dbSeek(xFilial("SA2")+SF1->F1_FORNECE+SF1->F1_LOJA)
+             M->F1CLIENTE := RTRIM(SF1->F1_FORNECE) + " " + SA2->A2_NOME
+          ENDIF
+          dbSelectArea("SE4")
+          dbSetOrder(1)
+          dbSeek(xFilial("SE4")+SF1->F1_COND)
+			 *
+          dbSelectArea("SD1")
+          dbSetOrder(1)
+          dbSeek(xFilial("SD1")+SF1->F1_DOC+SF1->F1_SERIE+SF1->F1_FORNECE+SF1->F1_LOJA,.T.)
+          lBenef := !EMPTY(SD1->D1_IDENTB6)
+			 *
+          dbSelectArea("SF4")
+          dbSetOrder(1)
+          dbSeek(xFilial("SF4")+SD1->D1_TES)
+			 *
+          cDocant  := SD1->D1_DOC
+          cSerie   := SD1->D1_SERIE
+          cForn    := SD1->D1_FORNECE
+			 cLoj     := SD1->D1_LOJA
+          cPICM    := SD1->D1_PICM
+          cIPI     := SD1->D1_IPI
+          cCFO     := SD1->D1_CF
+          nTotNf   := 0
+			 nDescont := 0
+			 xNF      := STRZERO(VAL(TRB->TM_DOC),9)
+			 xNF      := IIF(VAL(TRB->TM_DOC) > 999999 , "NF"+RIGHT(xNF,7) , "NFD"+RIGHT(xNF,6) )
+          aSD1     := {}
+			 *
+          dbSelectArea("SD1")
+          DO WHILE !EOF().AND.(D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA == cDocant+cSerie+cForn+cLoj)
+				 cQuant  := "1"
+				 cNFOrig := ""
+				 IF SF1->F1_TIPO=="D"
+					 cNFOrig := ( SD1->D1_SERIORI+" "+RTRIM(SD1->D1_NFORI)+"/"+SD1->D1_ITEMORI )
+					 IF ( SD1->D1_LOCAL <> mvLocal )
+						 cQry := "SELECT D3_QUANT FROM "+RetSqlName("SD3")
+						 cQry += " WHERE D_E_L_E_T_ = ' ' AND D3_FILIAL = '"+xFilial("SD3")+"'"
+						 cQry += " AND D3_ESTORNO = ' '"
+						 cQry += " AND D3_COD = '"+SD1->D1_COD+"' AND D3_DOC = '"+xNF+"'"
+						 cQry += " AND D3_CF = 'RE4' AND D3_LOCAL = '"+SD1->D1_LOCAL+"' "
+						 
+						 cQry := ChangeQuery(cQry)
+
+						 dbUseArea( .T., 'TOPCONN', TCGENQRY(,,cQry), 'TMP', .T., .T.)
+						 
+						 cQuant := IIF(TMP->D3_QUANT > 0 , "3" , "2" )
+						 
+						 TMP->(dbCloseArea())
+						 
+					 ENDIF
+				 ENDIF
+				 *
+             dbSelectArea("SB1")
+             dbSetOrder(1)
+             dbSeek(xFilial("SB1")+SD1->D1_COD)
+             dbSelectArea("SC7")
+             dbSetOrder(4)
+             dbSeek(xFilial("SC7")+SD1->D1_COD+SD1->D1_PEDIDO+SD1->D1_ITEMPC,.T.)
+             IF ( !LEFT(SD1->D1_COD,3) $ '000' )
+                cDesc   := SB1->B1_DESC
+                cUM     := SD1->D1_UM
+                cCodigo := SD1->D1_COD
+                nPeso   := SB1->B1_PESBRU
+             ELSE
+                cCodigo := SD1->D1_COD
+                IF SD1->D1_TIPO $ "CIP".AND.LEFT(SF1->F1_ORIGLAN,1)<>"F"
+                   cDesc := "COMPLEMENTO DE "+IIF(SD1->D1_TIPO=="P","IPI   ",IIF(SD1->D1_TIPO=="I","ICMS  ","PRECO "))
+                   cUM   := " "
+                ELSE
+                   cDesc := SC7->C7_DESCRI
+                   cUM   := SC7->C7_UM
+                ENDIF
+                nPeso := SD1->D1_PESBRU
+             ENDIF
+				 cObserv  := IIF(cQuant=="2","** FALTA TRANSFERIR",IIF(cQuant=="3","** TRANSFERIDO",""))
+				 nDescont := ( nDescont + SD1->D1_VALDESC )
+             D1TOTAL  := ( SD1->D1_TOTAL - SD1->D1_VALDESC ) 
+             D1BRUTO  := SD1->D1_TOTAL 
+             D1UNBRUT := SD1->D1_VUNIT 
+             nTotItem := IIF(SD1->D1_QUANT > 0 , D1BRUTO , ( D1TOTAL + SD1->D1_VALICM ) )
+             nTotNf   := ( nTotNf + nTotItem )
+             D1PEDIDO := IIF(!EMPTY(SD1->D1_PEDIDO) , SD1->D1_PEDIDO+"/"+SD1->D1_ITEMPC , SD1->D1_NFORI+"/"+SD1->D1_SERIORI )
+             AADD(aSD1 , { cCodigo                           , ;                  ////01
+                           nPeso                             , ;                  ////02
+                           SD1->D1_QUANT                     , ;                  ////03
+                           cUM                               , ;                  ////04
+									SD1->D1_LOCAL                     , ;                  ////05
+                           D1UNBRUT                          , ;                  ////06
+                           nTotItem                          , ;                  ////07
+                           LEFT(SD1->D1_CC,4)                , ;                  ////08
+                           TRANSF(SD1->D1_PICM,"@E 99")      , ;                  ////09
+                           TRANSF(SD1->D1_IPI,"@E 99")       , ;                  ////10
+                           D1PEDIDO                          , ;                  ////11
+									cNFOrig                           , ;                  ////12
+									cObserv                           , ;                  ////13
+                           cDesc  } )                                             ////14
+									
+             dbSelectArea("SD1")
+             dbSkip()
+          ENDDO
+					 ///AADD(aObs,"DEVOLUÇÃO REF. S/NF "+SF1->F1_NFORIG+"-"+SF1->F1_SERORIG+CHR(13))
+          IF SF1->F1_TIPO=="N".AND.LEFT(cCFO,1)=="2".AND.cPICM>0
+             AADD(aObs,"Desconto de "+LTRIM(STR(cPICM,2))+"%............. R$ "+LTRIM(TRANSF(SF1->F1_DESCONT,"@E 9999,999.99"))+CHR(13))
+          ENDIF
+
+          aDupl    := {}
+          nVlrInss := 0
+          nVlrIrrf := 0
+          nVlrIss  := 0
+          IF ( SF1->F1_TIPO $ "NPCI" )
+             dbSelectArea("SE2")
+             dbSetOrder(6)
+             dbSeek(xFilial("SE2")+SF1->F1_FORNECE+SF1->F1_LOJA+SF1->F1_SERIE+SF1->F1_DOC)
+             DO WHILE !EOF().AND.E2_FORNECE==SF1->F1_FORNECE.AND.E2_LOJA==SF1->F1_LOJA.AND.E2_PREFIXO==SF1->F1_SERIE.AND.E2_NUM==SF1->F1_DOC
+                IF E2_TIPO == "NF "
+                   E2BANCO  := IIF(EMPTY(E2_BCOPAG) , "CX1" , E2_BCOPAG )
+                   nVlrInss := ( nVlrInss + E2_INSS )
+                   nVlrIrrf := ( nVlrIrrf + E2_IRRF )
+                   nVlrIss  := ( nVlrIss  + E2_ISS )
+                   dbSelectArea("SA6")
+                   dbSetOrder(1)
+                   dbSeek(xFilial("SA6")+E2BANCO)
+                   cPago := IIF(SE2->E2_SALDO==0,"S",IIF(SE2->E2_SALDO<>SE2->E2_VALOR,"P","N"))
+                   AADD( aDupl , SE2->E2_NUM+"/"+SE2->E2_PARCELA          + ;
+                                 SPACE(10)+DTOC(SE2->E2_VENCREA)          + ;
+                                 SPACE(10)                                + ;
+                                 TRANSF(SE2->E2_VALOR,"@E 999999,999.99") + ;
+                                 SPACE(10)+E2BANCO+SPACE(05)              + ;
+                                 SA6->A6_NREDUZ+SPACE(10)+cPago )
+                   dbSelectArea("SE2")
+                ENDIF
+                dbSkip()
+             ENDDO
+          ELSE
+             dbSelectArea("SE1")
+             dbSetOrder(1)
+             dbSeek(xFilial("SE1")+SF1->F1_SERIE+SF1->F1_DOC)
+             DO WHILE !EOF().AND.E1_PREFIXO==SF1->F1_SERIE.AND.E1_NUM==SF1->F1_DOC
+                IF E1_TIPO == "NCC"
+                   E1BANCO := IIF(EMPTY(E1_PORTADO) , "CX1" , E1_PORTADO )
+                   cPago   := IIF(SE1->E1_SALDO==0,"S",IIF(SE1->E1_SALDO<>SE1->E1_VALOR,"P","N"))
+                   dbSelectArea("SA6")
+                   dbSetOrder(1)
+                   dbSeek(xFilial("SA6")+E1BANCO)
+                   AADD( aDupl , SE1->E1_NUM+"/"+SE1->E1_PARCELA          + ;
+                                 SPACE(10)+DTOC(SE1->E1_VENCREA)          + ;
+                                 SPACE(10)                                + ;
+                                 TRANSF(SE1->E1_VALOR,"@E 999999,999.99") + ;
+                                 SPACE(10)+E1BANCO+SPACE(05)              + ;
+                                 SA6->A6_NREDUZ+SPACE(10)+cPago )
+                   dbSelectArea("SE1")
+                ENDIF
+                dbSkip()
+             ENDDO
+          ENDIF
+          IF ( nVlrIss > 0.00 )
+             AADD(aObs,"I.S.S.............. R$ "+LTRIM(TRANSF(nVlrIss,"@E 9999,999.99"))+CHR(13))
+          ENDIF
+          IF ( nVlrInss > 0.00 )
+             AADD(aObs,"I.N.S.S............ R$ "+LTRIM(TRANSF(nVlrInss,"@E 9999,999.99"))+CHR(13))
+          ENDIF
+          IF ( nVlrIrrf > 0.00 )
+             AADD(aObs,"I.R.R.F............ R$ "+LTRIM(TRANSF(nVlrIrrf,"@E 9999,999.99"))+CHR(13))
+          ENDIF
+          M->F1OBS := ""
+          FOR ij:=1 TO LEN(aObs)
+              M->F1OBS := M->F1OBS + aObs[ij]
+          NEXT
+          M->F1VALMERC := SF1->F1_VALBRUT 
+          M->F1VALMERC := ( M->F1VALMERC - nVlrInss - nVlrIrrf - nVlrIss )
+          M->F1VALBRUT := SF1->F1_VALMERC 
+          M->F1BASEICM := SF1->F1_BASEICM
+          M->F1VALICM  := SF1->F1_VALICM
+          M->F1BASEIPI := SF1->F1_BASEIPI
+          M->F1VALIPI  := SF1->F1_VALIPI
+          M->F1VALMERC := " "+LTRIM(TRANSFORM(M->F1VALMERC,"@E 99999,999.99"))
+          M->F1VALBRUT := " "+LTRIM(TRANSFORM(M->F1VALBRUT,"@E 99999,999.99"))
+          M->F1BASEICM := " "+LTRIM(TRANSFORM(M->F1BASEICM,"@E 99999,999.99"))
+          M->F1VALICM  := " "+LTRIM(TRANSFORM(M->F1VALICM ,"@E 99999,999.99"))
+          M->F1BASEIPI := " "+LTRIM(TRANSFORM(M->F1BASEIPI,"@E 99999,999.99"))
+          M->F1VALIPI  := " "+LTRIM(TRANSFORM(M->F1VALIPI ,"@E 99999,999.99"))
+          M->F1DFOBUS  := " "+LTRIM(TRANSFORM(0,"@E 99999,999.99"))
+          M->F1DVFORN  := " "+LTRIM(TRANSFORM(SF1->F1_VALMERC,"@E 99999,999.99"))
+          M->F1DESP    := " "+LTRIM(TRANSFORM(nDespesas,"@E 99999,999.99"))
+          *
+          M->F1DOC     := RTRIM(SF1->F1_DOC)+"/"+SF1->F1_SERIE
+          M->F1EMISSAO := SF1->F1_EMISSAO
+          M->F1TES     := TRANSF(cCFO,"@R 9.999") + "   " + SF4->F4_TEXTO
+          M->F1TIPO    := IIF(SF1->F1_TIPO=="D","Devolucao"           , ;
+                          IIF(SF1->F1_TIPO=="B","Benefic."            , ;
+                          IIF(SF1->F1_TIPO=="N".AND.lBenef,"Beneficiamento" , ;
+                          IIF(SF1->F1_TIPO=="P","Compl.IPI"           , ;
+                          IIF(SF1->F1_TIPO=="I","Compl.ICMS"          , ;
+                          IIF(SF1->F1_TIPO=="N".AND.SF1->F1_EST=="EX".AND.SF1->F1_FORMUL=="S","Importação"    , ;
+                          IIF(SF1->F1_TIPO=="C","Frete","Compra Normal")))))))
+          M->F1CONHEC  := cCNH
+          M->F1COND    := IIF(LEFT(M->F1TIPO,3)<>"Imp",SE4->E4_DESCRI," ")
+          M->F1ENTRADA := SF1->F1_DTDIGIT
+          M->F1PIMN    := " "   ///SF1->F1_PIMN
+          nDuplic      := 1
+          aCols        := aSD1
+          n            := 1
+          @ 000,000 TO 565,720 DIALOG oDlgNFS TITLE "N.Fiscal de Entrada"
+          @ 003,005 TO 024,060 TITLE "N.Fiscal"
+          @ 003,065 TO 024,110 TITLE "Emissão"
+          @ 003,115 TO 024,255 TITLE "Natureza da Operação"
+          @ 003,260 TO 024,357 TITLE "Tipo"
+          @ 027,005 TO 047,175 TITLE "Fornecedor"
+          @ 027,180 TO 047,280 TITLE "Transportador"
+          IF ( SF1->F1_TIPO == "C" )
+             @ 027,285 TO 047,357 TITLE "N.Fiscal Origem"
+          ELSE
+             @ 027,285 TO 047,357 TITLE "Nro.Conhecto"
+          ENDIF
+          @ 049,005 TO 122,357 TITLE "Itens da N.Fiscal"
+          @ 125,005 TO 159,357 TITLE "Observação"
+          @ 162,005 TO 185,060 TITLE "Base do ICMS"
+          @ 162,065 TO 185,120 TITLE "Valor do ICMS"
+          @ 162,125 TO 185,180 TITLE "Base do IPI"
+          @ 162,185 TO 185,240 TITLE "Valor do IPI"
+          @ 162,245 TO 185,300 TITLE "Valor Mercadoria"
+          @ 162,305 TO 185,357 TITLE "Vlr.Total da Nota"
+          @ 189,005 TO 212,070 TITLE "DT.Entrada"
+          @ 189,075 TO 212,135 TITLE "P.I.M.N."
+          @ 189,140 TO 212,240 TITLE "Cond.Pagamento"
+          @ 189,245 TO 212,300 TITLE "Vlr.FOB(US$)"
+          @ 189,305 TO 212,357 TITLE "Vlr.Fornec.(R$)"
+          @ 215,005 TO 269,240 TITLE "Desdobramento de Duplicata"
+          @ 215,245 TO 239,300 TITLE "Vlr.Despesas(R$)"
+          @ 222,010 SAY              "DUPLICATA    VENCIMENTO            VALOR          BANCO                               PAGO?"  Size 210,10
+          ///@ 258,005 TO 280,357 TITLE "Localiza‡Æo da N.Fiscal quando arquivada"
+          F1LOCAL := "SETOR FISCAL"
+          ///@ 265,010 SAY "Local:"         Size 15,10
+          ///@ 266,028 GET F1LOCAL          Size 50,10  WHEN .F.
+          @ 010,010 GET M->F1DOC         Size 50,10                             WHEN   .F.
+          @ 010,070 GET M->F1EMISSAO     Size 33,10  PICTURE "@K"               WHEN   .F.
+          @ 010,120 GET M->F1TES         Size 130,10 PICTURE "@!"               WHEN   .F.
+          @ 010,265 GET M->F1TIPO        Size 85,10  PICTURE "@!"               WHEN   .F.
+          @ 034,010 GET M->F1CLIENTE     Size 160,10 PICTURE "@!"               WHEN   .F.
+          @ 034,185 GET M->F1TRANSP      Size 90,10                             WHEN   .F.
+          @ 034,290 GET M->F1CONHEC      Size 65,10                             WHEN   .F.
+          @ 132,010 GET M->F1OBS         SIZE 342,25 MEMO                       WHEN   .F.
+          @ 170,010 GET M->F1BASEICM     Size 48,10  PICTURE "@!"               WHEN   .F.
+          @ 170,070 GET M->F1VALICM      Size 48,10  PICTURE "@!"               WHEN   .F.
+          @ 170,130 GET M->F1BASEIPI     Size 48,10  PICTURE "@!"               WHEN   .F.
+          @ 170,190 GET M->F1VALIPI      Size 48,10  PICTURE "@!"               WHEN   .F.
+          @ 170,250 GET M->F1VALBRUT     Size 48,10  PICTURE "@!"               WHEN   .F.
+          @ 170,310 GET M->F1VALMERC     Size 45,10  PICTURE "@!"               WHEN   .F.
+          @ 197,010 GET M->F1ENTRADA     Size 57,10                             WHEN   .F.
+          @ 197,080 GET M->F1PIMN        Size 45,10                             WHEN   .F.
+          @ 197,145 GET M->F1COND        Size 70,10  PICTURE "@!"               WHEN   .F.
+          @ 197,250 GET M->F1DFOBUS      Size 45,10  PICTURE "@!"               WHEN   .F.
+          @ 197,310 GET M->F1DVFORN      Size 45,10  PICTURE "@!"               WHEN   .F.
+          @ 223,250 GET M->F1DESP        Size 45,10  PICTURE "@!"               WHEN   .F.
+          @ 055,010 TO 118,354 MULTILINE
+          @ 230,010 LISTBOX nDuplic ITEMS aDupl  SIZE 220,36
+          @ 220,325 BMPBUTTON TYPE 1                            Action Close(oDlgNFS)
+
+          ACTIVATE DIALOG oDlgNFS CENTER
+
+      CASE nOpcA == 2
+           dbSelectArea("SF2")
+           dbSetOrder(1)
+           dbSeek(xFilial("SF2")+Trb->Tm_Doc+Trb->Tm_Serie)
+           IF ( SF2->F2_TIPO $ "DB" )
+              dbSelectArea("SA2")
+              dbSetOrder(1)
+              dbSeek(xFilial("SA2")+SF2->F2_CLIENTE+SF2->F2_LOJA)
+              M->F2CLIENTE := SA2->A2_COD + " " + RTRIM(SA2->A2_NOME)
+           ELSE
+              dbSelectArea("SA1")
+              dbSetOrder(1)
+              dbSeek(xFilial("SA1")+SF2->F2_CLIENTE+SF2->F2_LOJA)
+              M->F2CLIENTE := SA1->A1_COD + " " + RTRIM(SA1->A1_NOME)
+           ENDIF
+           dbSelectArea("SD2")
+           dbSetOrder(3)
+           dbSeek(xFilial("SD2")+SF2->F2_DOC+SF2->F2_SERIE)
+           dbSelectArea("SA4")
+           dbSetOrder(1)
+           dbSeek(xFilial("SA4")+SF2->F2_TRANSP)
+           dbSelectArea("SE4")
+           dbSetOrder(1)
+           dbSeek(xFilial("SE4")+SF2->F2_COND)
+           dbSelectArea("SF4")
+           dbSetOrder(1)
+           dbSeek(xFilial("SF4")+SD2->D2_TES)
+           dbSelectArea("SC5")
+           dbSetOrder(1)
+           dbSeek(xFilial("SC5")+SD2->D2_PEDIDO)
+           dbSelectArea("SM4")
+           dbSetOrder(1)
+           dbSeek(xFilial("SM4")+SC5->C5_MENPAD)
+           dbSelectArea("SA6")
+           dbSetOrder(1)
+           dbSeek(xFilial("SA6")+SC5->C5_BANCO)
+           cAgencia := IIF(SM0->M0_CODIGO<>"06".AND.SC5->C5_BANCO=="237","1376 ",SA6->A6_AGENCIA)
+           dbSelectArea("SA6")
+           dbSetOrder(1)
+           dbSeek(xFilial("SA6")+SC5->C5_BANCO+cAgencia)
+           cDescBco  := IIF(SC5->C5_BANCO=="999","TITULO EM CARTEIRA",SA6->A6_NREDUZ)
+           cAgencia  := SA6->A6_AGENCIA
+           M->F2TES  := TRANSFORM(SD2->D2_CF,"@R 9.999")
+           nTotPL    := 0
+           aSD2      := {}
+           dbSelectArea("SD2")
+           DO WHILE !EOF().AND.D2_DOC==SF2->F2_DOC
+              dbSelectArea("SB1")
+    	        dbSetOrder(1)
+              dbSeek(xFilial("SB1")+SD2->D2_COD)
+              dbSelectArea("SB5")
+              dbSetOrder(1)
+              dbSeek(xFilial("SB5")+SD2->D2_COD)
+              dbSelectArea("SC6")
+              dbSetOrder(1)
+              dbSeek(xFilial("SC6")+SD2->D2_PEDIDO+SD2->D2_ITEMPV+SD2->D2_COD)
+              IF ( LEFT(SD2->D2_COD,3) <> '000' )
+					  cCodigo := SD2->D2_COD
+					  D2QUANT := IIF(SD2->D2_TIPO $ "CI",1,SD2->D2_QUANT)
+                 IF ( SD2->D2_TIPO $ "CIP" )
+                    cDesc   := "COMPLEMENTO DE "+IIF(SD2->D2_TIPO=="C","PRECO ",IIF(SD2->D2_TIPO=="P","IPI   ","ICMS  "))  
+                    cUM     := "UN"
+                    D2QUANT := 1
+                    nPeso   := 0
+                 ELSE
+                    cDesc := RTRIM(SC6->C6_DESCRI)
+                    cUM   := SD2->D2_UM
+                    nPeso := SD2->D2_PESO
+                 ENDIF
+              ENDIF
+				 
+				  cNFOrig := IIF(SF2->F2_TIPO=="D" , ( SD2->D2_SERIORI+" "+RTRIM(SD2->D2_NFORI)+"/"+SD2->D2_ITEMORI ) , "" )
+				  
+              nTotPL := ( nTotPL + ( nPeso * D2QUANT ) )
+              D2PEDIDO := IIF(!EMPTY(SD2->D2_PEDIDO) , SD2->D2_PEDIDO+"/"+SD2->D2_ITEMPV , SD2->D2_NFORI+"/"+SD2->D2_SERIORI )
+              AADD(aSD2 , { cCodigo                           , ;
+                            nPeso                             , ;
+                            D2QUANT                           , ;
+                            cUM                               , ;
+									 SD2->D2_LOCAL                     , ;
+                            SD2->D2_PRUNIT                    , ;
+                            SD2->(D2_TOTAL + D2_DESCON)       , ;
+                            SPACE(4)                          , ;   ///LEFT(SD2->D2_CC,4)                , ;
+                            TRANSF(SD2->D2_PICM,"@E 99")      , ;
+                            TRANSF(SD2->D2_IPI,"@E 99")       , ;
+                            D2PEDIDO                          , ;
+									 cNFOrig                           , ;
+									 " "                               , ;
+                            cDesc   } )
+									 
+              dbSelectArea("SD2")
+              dbSkip()
+           ENDDO
+           *
+           aObs := {}
+           IF !EMPTY(SC5->C5_MENNOTA)
+              AADD(aObs,RTRIM(SC5->C5_MENNOTA)+CHR(13))
+           ENDIF
+			  IF !Empty(SC5->C5_MENPAD)
+				  AADD(aObs,AllTrim(FORMULA(SC5->C5_MENPAD)))
+			  EndIf
+				If SM0->M0_CODIGO == "03" .and. SM0->M0_CODFIL == "01" 
+					If !Empty(SF2->F2_TRANSP)   //se empresa 03 não vazio de SC5->C5_X_TRANSP e não vazio SF2->F2_TRANSP
+						dbSelectArea("SA4")
+						dbSetOrder(1)
+						MsSeek(xFilial("SA4")+SF2->F2_TRANSP)   //POSICIONA TRANSPORTADORA ORIGINAL REDESPACHO
+
+						If SC5->C5_X_FRETE == "C"
+								AADD(aObs," -Redespacho , " + ALLTRIM(SA4->A4_NOME)+" ")
+								AADD(aObs,ALLTRIM(SA4->A4_END) + " - " + ALLTRIM(SA4->A4_MUN)+" - "+(SA4->A4_EST)+" BAIRRO "+ALLTRIM(SA4->A4_CLBAIRR))
+								AADD(aObs," Cep :"+SA4->A4_CEP+" - Tel :"+(SA4->A4_TEL))
+								AADD(aObs,"Via de transporte: " + alltrim(SA4->A4_VIA))
+								AADD(aObs,", frete de redespacho sera pago pela Coel *")
+						endif
+					EndIf
+				EndIf	
+           /*/
+           ///IF SF2->F2_DESCONT > 0
+           ///   AADD(aObs,IIF(EMPTY(SC5->C5_MENPAD).AND.EMPTY(SF2->F2_MSG1).AND.EMPTY(SF2->F2_MSG2),"Obs.: ","      ")+"DESCONTO DE 7%..: R$ "+LTRIM(TRANSF(SF2->F2_DESCONT,"@E 9999,999.99")))
+           ///ENDIF
+           ///IF SF2->F2_SERIE == "1  "
+           ///   AADD(aObs,IIF(EMPTY(SC5->C5_MENPAD).AND.EMPTY(SF2->F2_MSG1).AND.EMPTY(SF2->F2_MSG2),"Obs.: ","      ")+"DESCONTO DE 5%..: R$ "+LTRIM(TRANSF(SF2->F2_VALISS,"@E 9999,999.99")))
+           ///ENDIF
+           /*/
+           M->F2OBS := ""
+           FOR ij:=1 TO LEN(aObs)
+               M->F2OBS := M->F2OBS + aObs[ij]
+           NEXT
+           M->F2VALMERC := SF2->F2_VALMERC 
+           ///M->F2VALBRUT := ( SF2->F2_VALBRUT - SF2->F2_VALIPI )
+           ///M->F2VALMERC := ( M->F2VALMERC + SF2->F2_VALIPI - SF2->F2_DESCONT )
+           M->F2VALBRUT := SF2->F2_VALBRUT
+           M->F2BASEICM := SF2->F2_BASEICM
+           M->F2VALICM  := SF2->F2_VALICM
+           M->F2BASEIPI := SF2->F2_BASEIPI
+           M->F2VALIPI  := SF2->F2_VALIPI
+           M->F2VOLUME  := STR(SF2->F2_VOLUME1,4) + "  "+IIF(EMPTY(SF2->F2_ESPECI1),"VOLUMES",SF2->F2_ESPECI1)
+           M->F2PLIQUI  := IIF(SC5->C5_PESOL==0,nTotPL,SF2->F2_PLIQUI)
+           M->F2PBRUTO  := IIF(SF2->F2_TIPO $ "CIP",0,SF2->F2_PBRUTO)
+           M->F2DESCRI  := LEFT(SE4->E4_DESCRI,15)
+           M->F2VIA     := IIF(LEFT(M->F2TES,1)=="5","RODO","AEREO")
+           M->F2VALMERC := " "+LTRIM(TRANSFORM(M->F2VALMERC,"@E 99999,999.99"))
+           M->F2VALBRUT := " "+LTRIM(TRANSFORM(M->F2VALBRUT,"@E 99999,999.99"))
+           M->F2BASEICM := " "+LTRIM(TRANSFORM(M->F2BASEICM,"@E 99999,999.99"))
+           M->F2VALICM  := " "+LTRIM(TRANSFORM(M->F2VALICM ,"@E 99999,999.99"))
+           M->F2BASEIPI := " "+LTRIM(TRANSFORM(M->F2BASEIPI,"@E 99999,999.99"))
+           M->F2VALIPI  := " "+LTRIM(TRANSFORM(M->F2VALIPI ,"@E 99999,999.99"))
+           aDupl        := {}
+           IF SF2->F2_TIPO $ "B,D"
+              dbSelectArea("SE2")
+              dbSetOrder(6)
+              dbSeek(xFilial("SE2")+SF2->F2_CLIENTE+SF2->F2_LOJA+SF2->F2_SERIE+SF2->F2_DOC)
+              DO WHILE !EOF().AND.E2_FORNECE==SF2->F2_CLIENTE.AND.E2_LOJA==SF2->F2_LOJA.AND.E2_PREFIXO==SF2->F2_SERIE.AND.E2_NUM==SF2->F2_DOC
+                 IF ( E2_TIPO == "NDF" )
+                    cPago   := IIF(SE2->E2_SALDO==0,"S",IIF(SE2->E2_SALDO<>SE2->E2_VALOR,"P","N"))
+                    C5BANCO := IIF(EMPTY(SE2->E2_BCOPAG),SC5->C5_BANCO,SE2->E2_BCOPAG)
+                    dbSelectArea("SA6")
+                    dbSetOrder(1)
+                    dbSeek(xFilial("SA6")+C5BANCO)
+                    AADD( aDupl , SE2->E2_NUM+"/"+SE2->E2_PARCELA          + ;
+                                  SPACE(10)+DTOC(SE2->E2_VENCREA)          + ;
+                                  SPACE(10)                                + ;
+                                  TRANSF(SE2->E2_VALOR,"@E 999999,999.99") + ;
+                                  SPACE(10)+C5BANCO+SPACE(05)              + ;
+                                  SA6->A6_NREDUZ+SPACE(10)+cPago )
+                    dbSelectArea("SE2")
+                 ENDIF
+                 dbSkip()
+              ENDDO
+           ELSE
+              dbSelectArea("SE1")
+              dbSetOrder(1)
+              dbSeek(xFilial("SE1")+SF2->F2_SERIE+SF2->F2_DOC)
+              DO WHILE !EOF().AND.E1_PREFIXO==SF2->F2_SERIE.AND.E1_NUM==SF2->F2_DOC
+                 IF ( E1_TIPO == "NF " )
+                    cPago   := IIF(SE1->E1_SALDO==0,"S",IIF(SE1->E1_SALDO<>SE1->E1_VALOR,"P","N"))
+                    C5BANCO := IIF(EMPTY(SE1->E1_PORTADO),SC5->C5_BANCO,SE1->E1_PORTADO)
+                    dbSelectArea("SA6")
+                    dbSetOrder(1)
+                    dbSeek(xFilial("SA6")+C5BANCO)
+                    AADD( aDupl , SE1->E1_NUM+"/"+SE1->E1_PARCELA          + ;
+                                  SPACE(10)+DTOC(SE1->E1_VENCREA)          + ;
+                                  SPACE(10)                                + ;
+                                  TRANSF(SE1->E1_VALOR,"@E 999999,999.99") + ;
+                                  SPACE(10)+C5BANCO+SPACE(05)              + ;
+                                  SA6->A6_NREDUZ+SPACE(10)+cPago )
+                    dbSelectArea("SE1")
+                 ENDIF
+                 dbSkip()
+              ENDDO
+           ENDIF
+           *
+           M->F2DOC     := RTRIM(SF2->F2_DOC)+"/"+SF2->F2_SERIE
+           M->F2EMISSAO := SF2->F2_EMISSAO
+           M->F2TES     := M->F2TES + "   " + SF4->F4_TEXTO
+           M->F2TRANSP  := SF2->F2_TRANSP + SA4->A4_NREDUZ
+           M->F2TIPO    := IIF(SF2->F2_TIPO=="D","Devolucao" , ;
+                           IIF(SF2->F2_TIPO=="B","Beneficiamento"  , ;
+                           IIF(SF2->F2_TIPO=="P","Compl.IPI" , ;
+                           IIF(SF2->F2_TIPO=="I","Compl.ICMS", ;
+                           IIF(SF2->F2_TIPO=="C","Compl.Preco","Venda Normal")))))
+           M->F2TPFRETE := IIF(SC5->C5_TPFRETE=="C","CIF",IIF(SC5->C5_TPFRETE=="F","FOB",IIF(SC5->C5_TPFRETE=="S","CIF ATE S.PAULO","********")))
+           M->F2COND    := SE4->E4_DESCRI
+           nDuplic      := 1
+           aCols        := aSD2
+           n            := 1
+           @ 000,000 TO 565,720 DIALOG oDlgNFS TITLE "N.Fiscal de Saída"
+           @ 003,005 TO 024,060 TITLE "N.Fiscal"
+           @ 003,065 TO 024,110 TITLE "Emissão"
+           @ 003,115 TO 024,255 TITLE "Natureza da Operação"
+           @ 003,260 TO 024,357 TITLE "Tipo"
+           @ 027,005 TO 047,185 TITLE "Cliente"
+           @ 027,190 TO 047,295 TITLE "Transportador"
+           @ 027,300 TO 047,357 TITLE "Tipo de Frete"
+           @ 049,005 TO 122,357 TITLE "Itens da N.Fiscal"
+           @ 125,005 TO 159,357 TITLE "Observação"
+           @ 162,005 TO 185,060 TITLE "Base do ICMS"
+           @ 162,065 TO 185,120 TITLE "Valor do ICMS"
+           @ 162,125 TO 185,180 TITLE "Base do IPI"
+           @ 162,185 TO 185,240 TITLE "Valor do IPI"
+           @ 162,245 TO 185,300 TITLE "Vl.Total da NF"
+           @ 162,305 TO 185,355 TITLE "Vl.Liquido da NF"
+           @ 189,005 TO 212,070 TITLE "Espécie"
+           @ 189,075 TO 212,135 TITLE "Peso Líquido(Kg)"
+           @ 189,140 TO 212,205 TITLE "Peso Bruto(Kg)"
+           @ 189,210 TO 212,295 TITLE "Cond.Pagamento"
+           @ 189,300 TO 212,355 TITLE "Via Transporte"
+           @ 215,005 TO 269,235 TITLE "Desdobramento de Duplicata"
+           @ 222,010 SAY              "DUPLICATA    VENCIMENTO            VALOR          BANCO                               PAGO?"  Size 210,10
+           ///@ 258,005 TO 280,357 TITLE "Localiza‡Æo da N.Fiscal quando arquivada"
+           ///F1LOCAL := "SETOR FISCAL"
+           ///@ 265,010 SAY "Local:"         Size 15,10
+           ///@ 266,028 GET F1LOCAL          Size 50,10  WHEN .F.
+           @ 010,010 GET M->F2DOC         Size 55,10                             WHEN   .F.
+           @ 010,070 GET M->F2EMISSAO     Size 33,10  PICTURE "@K"               WHEN   .F.
+           @ 010,120 GET M->F2TES         Size 130,10 PICTURE "@!"               WHEN   .F.
+           @ 010,265 GET M->F2TIPO        Size 85,10  PICTURE "@!"               WHEN   .F.
+           @ 034,010 GET M->F2CLIENTE     Size 170,10 PICTURE "@!"               WHEN   .F.
+           @ 034,195 GET M->F2TRANSP      Size 90,10  PICTURE "@!"               WHEN   .F.
+           @ 034,305 GET M->F2TPFRETE     Size 50,10  PICTURE "@!"               WHEN   .F.
+           @ 132,010 GET M->F2OBS         SIZE 342,25 MEMO                       WHEN   .F.
+           @ 170,010 GET M->F2BASEICM     Size 48,10  PICTURE "@!"               WHEN   .F.
+           @ 170,070 GET M->F2VALICM      Size 48,10  PICTURE "@!"               WHEN   .F.
+           @ 170,130 GET M->F2BASEIPI     Size 48,10  PICTURE "@!"               WHEN   .F.
+           @ 170,190 GET M->F2VALIPI      Size 48,10  PICTURE "@!"               WHEN   .F.
+           @ 170,250 GET M->F2VALBRUT     Size 48,10  PICTURE "@!"               WHEN   .F.
+           @ 170,310 GET M->F2VALMERC     Size 45,10  PICTURE "@!"               WHEN   .F.
+           @ 197,010 GET M->F2VOLUME      Size 57,10  PICTURE "@!"               WHEN   .F.
+           @ 197,080 GET M->F2PLIQUI                  PICTURE "@E 99999.999"     WHEN   .F.
+           @ 197,145 GET M->F2PBRUTO                  PICTURE "@E 99999.999"     WHEN   .F.
+           @ 197,215 GET M->F2COND        Size 70,10  PICTURE "@!"               WHEN   .F.
+           @ 197,305 GET M->F2VIA         Size 45,10  PICTURE "@!"               WHEN   .F.
+           @ 055,010 TO 118,354 MULTILINE
+           @ 230,010 LISTBOX nDuplic ITEMS aDupl  SIZE 220,36
+           @ 220,310 BMPBUTTON TYPE 1                            Action Close(oDlgNFS)
+
+           ACTIVATE DIALOG oDlgNFS CENTER
+   ENDCASE
+Return
+
+Static Function Sair()
+  DbSelectArea("fItem")
+  Use
+  Close(oDlg)
+Return
