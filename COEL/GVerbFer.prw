@@ -198,27 +198,27 @@ Static Function fProssess()
 
 		if aVerba[nX] == 'A09'
 			nValorVerba := (xA01FOL + xA05FOL)  // VERBA INSS EMPRESA
-			nValorVerba := iff((x778FOL - nValorVerba)<=0,x778FOL,(x778FOL - nValorVerba))  // DIFERENCA INSS EMPRESA
+			nValorVerba := IIF((x778FOL - nValorVerba)<=0,x778FOL,(x778FOL - nValorVerba))  // DIFERENCA INSS EMPRESA
 			cVerba := aVerba[nX]
 			nValorBase := X778BAS    // valor base
 		elseif aVerba[nX] == 'A10'
 			nValorVerba := (xA02TERC + xA06TERC)  // VERBA TERCEIRO EMPRESA
-			nValorVerba := iff((x779TERC - nValorVerba)<=0,x779TERC,(x779TERC - nValorVerba))  // DIFERENCA TERCEIRO EMPRESA
+			nValorVerba := IIF((x779TERC - nValorVerba)<=0,x779TERC,(x779TERC - nValorVerba))  // DIFERENCA TERCEIRO EMPRESA
 			cVerba := aVerba[nX]
 			nValorBase := X779BAS    // valor base
 		elseif aVerba[nX] == 'A11'
 			nValorVerba := (xA03ACID + xA07ACID)  // VERBA ACID TRAB EMPRESA
-			nValorVerba := iff((x780ACID - nValorVerba)<=0,x780ACID,(x780ACID - nValorVerba))  // DIFERENCA ACID TRAB EMPRESA
+			nValorVerba := IIF((x780ACID - nValorVerba)<=0,x780ACID,(x780ACID - nValorVerba))  // DIFERENCA ACID TRAB EMPRESA
 			cVerba := aVerba[nX]
 			nValorBase := X780BAS    // valor base
 		elseif aVerba[nX] == 'A12'
 			nValorVerba :=(xA04FGT + xA08FGT)  // VERBA FGTS EMPRESA
-			nValorVerba := iff((x732FGT - nValorVerba)<=0,x732FGT,(x732FGT - nValorVerba))  // DIFERENCA FGTS EMPRESA
+			nValorVerba := IIF((x732FGT - nValorVerba)<=0,x732FGT,(x732FGT - nValorVerba))  // DIFERENCA FGTS EMPRESA
 			cVerba := aVerba[nX]
 			nValorBase := X732BAS    // valor base
 		elseif aVerba[nX] == 'B12'
 			nValorVerba :=( xB04FGT + xB08FGT)  // VERBA FGTS EMPRESA			
-			nValorVerba := iff((x740FGT - nValorVerba)<=0,x740FGT,(x740FGT - nValorVerba))  // DIFERENCA FGTS EMPRESA
+			nValorVerba := IIF((x740FGT - nValorVerba)<=0,x740FGT,(x740FGT - nValorVerba))  // DIFERENCA FGTS EMPRESA
 			cVerba := aVerba[nX]
 			nValorBase := X740BAS    // valor base
 		endif
@@ -244,8 +244,8 @@ Static Function fProssess()
 				SRC->RC_PROCES  := cProcess
 				SRC->(MSUNLOCK())
 
-				cVbGravProcesso += aVerba[nz]
-				If nz < Len(aVerba)
+				cVbGravProcesso += aVerba[NX]
+				If nX < Len(aVerba)
 					cVbGravProcesso += ","
 				EndIf
 
