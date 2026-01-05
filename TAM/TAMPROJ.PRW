@@ -42,6 +42,7 @@ User Function TAMPROJ(cProjeto,cCliente,cLoja,cOrigem,nAgdId)
 	Private aCores    	:= {}
 	Private aSeek    	:= {}
 	Private cCadastro 	:= "Título do Cadastro"
+	Private cRot	:= 'TAMPROJ'
 	Private aRotina   	:= MenuDef()
 	Private lInverte 	:= .F.
 
@@ -66,6 +67,8 @@ User Function TAMPROJ(cProjeto,cCliente,cLoja,cOrigem,nAgdId)
 	oPanGrid := tPanel():New(033, 006, "", oDlgGrp, , , , RGB(000,000,000), RGB(254,254,254), (nJanLarg/2 - 13),     (nJanAltu/2 - 45))
 
 //Criando o FWMarkBrowse
+	ZP8->(DbSelectArea('ZP8'))
+	ZP8->(DbSetOrder(5))
 	oMark := FWMBrowse():New()
 	oMark:SetAlias('ZP8')
 	// oMark:SetSemaphore(.T.)
@@ -93,8 +96,8 @@ Return
 
 Static Function MenuDef()
 	Local aRot := {}
-
-	ADD OPTION aRot Title 'Novo Contato'     Action 'U_AddContat()' Operation 3 Access 0
+	cRot := 'TAMPROJ'
+	ADD OPTION aRot Title 'Novo Contato'     Action 'U_AddCont("","","",cRot,"")' Operation 3 Access 0
 	// ADD OPTION aRot Title 'Alt/contato'  Action 'U_fVincDesv(2)' Operation 6 Access 0
 	ADD OPTION aRot Title 'Alterar'  Action 'VIEWDEF.TAMPROJ' Operation 4 Access 0
 	ADD OPTION aRot Title 'Desvincular'  Action 'U_fVincDesv(2)' Operation 6 Access 0
@@ -131,11 +134,11 @@ Static Function ModelDef()
 Return oModel
 
 Static Function ViewDef()
-	//Na montagem da estrutura da visualização de dados, vamos chamar o modelo criado anteriormente, no cabeçalho vamos mostrar somente 3 campos, e na grid vamos carregar conforme a função fViewStruct
+	//Na montagem da estrutura da visualização de dados, vamos chamar o modelo criado anteriormente, no cabeçalho vamos mostrar somente 3 campos, e na grid vamos carregar conforme a função fViewStr
 	Local oView        := NIL
 	Local oModel    := FWLoadModel('TAMPROJ')
 	Local oStruCab  := FWFormStruct(2, "ZP8", {|cCampo| AllTRim(cCampo) $ "ZP8_CODPRO;ZP8_DESCPR;ZP8_CLIENT;ZP8_LOJA;"})
-	Local oStruGRID := fViewStruct()
+	Local oStruGRID := fViewStr()
 
 	//Define que no cabeçalho não terá separação de abas (SXA)
 	oStruCab:SetNoFolder()
@@ -168,7 +171,7 @@ Static Function fModStruct()
 Return oStruct
 
 //Função chamada para montar a visualização de dados da Grid
-Static Function fViewStruct()
+Static Function fViewStr()
 	Local cCampoCom := "ZP8_CODPRO;ZP8_DESCPR;ZP8_CLIENT;ZP8_LOJA;"
 	Local oStruct
 
@@ -177,20 +180,28 @@ Static Function fViewStruct()
 Return oStruct
 
 
-USER FUNCTION AddContat()
+USER FUNCTION AddCont(_cProj,_cCli,_cLoj,_cRotina,_cAgId)
 	local cCodContato := ''
-	Private oBrowse
+	Private oBrwCont
+	Private oDlgCont
+	Private CORDEM := ''
+	Private CGRUPO := ''
+	Private cCli := _cCli
+	Private cLoj := _cLoj
+	Private cRotina := _cRotina
+	Private cProj := iif(cRotina=='TAMPROJ',AF8->AF8_PROJET,_cProj)
+	Private cAgId := _cAgId
 	// Local oOK := LoadBitmap(GetResources(),'br_verde')
 	// Local oNO := LoadBitmap(GetResources(),'br_vermelho')
 	// Local aList := {}
-
-
-	DEFINE DIALOG oDlg TITLE "Exemplo TCBrowse" FROM 180,180 TO 550,700 PIXEL
+	DEFINE DIALOG oDlgCont TITLE "Exemplo TCBrowse" FROM 180,180 TO 550,700 PIXEL
 
 	DBSELECTAREA('ZP8')
 	DBSETORDER(1)
 	ZP8->(DBGOTOP())
-	cSeek := AF8->(AF8->AF8_PROJET+AF8_CLIENT)
+
+	cSeek :=  iif(cRotina=='TAMPROJ',AF8->(AF8_PROJET+AF8_CLIENT),cProj+cCli )
+
 	ZP8->(MSSEEK(XFILIAL('ZP8')+cSeek))
 	while !ZP8->(eof()) .and. cSeek == ZP8->(ZP8_CODPRO+ZP8_CLIENT)
 		cCodContato += "'" + ZP8->ZP8_CONTID +"',"
@@ -199,46 +210,47 @@ USER FUNCTION AddContat()
 
 	cCodContato := iif(Empty(cCodContato),'',"("+left(cCodContato,len(cCodContato)-1)+")")
 	// buscar contato para adicionar
-	aBrowse := BuscCont(cCodContato)
+	aBrwCont := BuscCont(cCodContato,cRotina)
 
 
 	// // Vetor com elementos do Browse
-	if Empty(aBrowse)
-		aBrowse := { {'','',''}}
+	if Empty(aBrwCont)
+		aBrwCont := { {'','',''}}
 	endif
 
 	// Cria Browse
-	oBrowse := TCBrowse():New( 01 , 01, 260, 156,, {'Codigo','Nome','Valor'},{20,50,50,50}, oDlg,,,,,{||},,,,,,,.F.,,.T.,,.F.,,, )
+	oBrwCont := TCBrowse():New( 01 , 01, 260, 156,, {'Codigo','Nome','Valor'},{20,50,50,50}, oDlgCont,,,,,{||},,,,,,,.F.,,.T.,,.F.,,, )
 
 	// Seta vetor para a browse
-	oBrowse:SetArray(aBrowse)
+	oBrwCont:SetArray(aBrwCont)
 
 	// Monta a linha a ser exibina no Browse
-	oBrowse:bLine := {||{  aBrowse[oBrowse:nAt,01],;
-		aBrowse[oBrowse:nAt,02],;
-		aBrowse[oBrowse:nAt,03] } }
+	oBrwCont:bLine := {||{  aBrwCont[oBrwCont:nAt,01],;
+		aBrwCont[oBrwCont:nAt,02],;
+		aBrwCont[oBrwCont:nAt,03] } }
 
 	// Evento de clique no cabeçalho da browse
-	// oBrowse:bHeaderClick := {|o, nCol| alert('bHeaderClick') }
+	// oBrwCont:bHeaderClick := {|o, nCol| alert('bHeaderClick') }
 
 	// Evento de duplo click na celula
-	// oBrowse:bLDblClick := {|| alert('bLDblClick') }
-
+	// oBrwCont:bLDblClick := {|| alert('bLDblClick') }
+	cButton := iif(cRotina=='TAMPROJ',"Vincular",'Adicionar')
 	// Cria Botoes com metodos básicos
-	TButton():New( 160, 002, "Vincular", oDlg,{|| /*oBrowse:GoUp(),*/ Fvincul(oBrowse:nAt,aBrowse) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
-	// TButton():New( 160, 052, "GoDown()" , oDlg,{|| oBrowse:GoDown(), oBrowse:setFocus() },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
-	// TButton():New( 160, 102, "GoTop()" , oDlg,{|| oBrowse:GoTop(),oBrowse:setFocus()}, 40, 010,,,.F.,.T.,.F.,,.F.,,,.F.)
-	// TButton():New( 160, 152, "GoBottom()", oDlg,{|| oBrowse:GoBottom(),oBrowse:setFocus() },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
-	// TButton():New( 172, 002, "Linha atual", oDlg,{|| alert(oBrowse:nAt) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
-	// TButton():New( 172, 052, "Nr Linhas", oDlg,{|| alert(oBrowse:nLen) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
-	// TButton():New( 172, 102, "Linhas visiveis", oDlg,{|| alert(oBrowse:nRowCount()) },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
-	// TButton():New( 172, 152, "Alias", oDlg,{|| alert(oBrowse:cAlias) },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
+	TButton():New( 160, 002, cButton , oDlgCont,{|| /*oBrwCont:GoUp(),*/ Fvincul(oBrwCont:nAt,aBrwCont,cProj,cRotina) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
+	// TButton():New( 160, 052, "GoDown()" , oDlgCont,{|| oBrwCont:GoDown(), oBrwCont:setFocus() },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
+	// TButton():New( 160, 102, "GoTop()" , oDlgCont,{|| oBrwCont:GoTop(),oBrwCont:setFocus()}, 40, 010,,,.F.,.T.,.F.,,.F.,,,.F.)
+	// TButton():New( 160, 152, "GoBottom()", oDlgCont,{|| oBrwCont:GoBottom(),oBrwCont:setFocus() },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
+	// TButton():New( 172, 002, "Linha atual", oDlgCont,{|| alert(oBrwCont:nAt) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
+	// TButton():New( 172, 052, "Nr Linhas", oDlgCont,{|| alert(oBrwCont:nLen) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
+	// TButton():New( 172, 102, "Linhas visiveis", oDlgCont,{|| alert(oBrwCont:nRowCount()) },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
+	// TButton():New( 172, 152, "Alias", oDlgCont,{|| alert(oBrwCont:cAlias) },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
 
-	ACTIVATE DIALOG oDlg CENTERED
+	ACTIVATE DIALOG oDlgCont CENTERED
+
 RETURN
 
 // buscar os contatos que ainda não estão vinculados
-Static Function BuscCont(cCodContato)
+Static Function BuscCont(cCodContato,cRotina)
 	Local cAliasCont := GetNextAlias()
 	Local aBrw := {}
 	Local CCLIENTE := AF8->(AF8_CLIENT+AF8_LOJA)
@@ -247,7 +259,7 @@ Static Function BuscCont(cCodContato)
 	cQry += "  SELECT * FROM " + RetSqlName('AC8') + " AC8 (NOLOCK)"
 	cQry += " WHERE D_E_L_E_T_='' AND "
 	cQry += " AC8_CODENT= '"+CCLIENTE+"' "
-	If !Empty(AllTrim(cCodContato))
+	If !Empty(AllTrim(cCodContato)) .and. cRotina=='TAMPROJ'
 		cQry += " AND AC8_CODCON NOT IN "+cCodContato
 	EndIf
 
@@ -262,14 +274,15 @@ Static Function BuscCont(cCodContato)
 	ENDDO
 Return aBrw
 
-Static Function Fvincul(nPos,aBrowse)
+Static Function Fvincul(nPos,aBrwCont,cProj,cRotina)
 	Local cZp8 := GetNextAlias()
-	Local CGRUPO := '0001'
+
+	CGRUPO := '0001'
 
 	CGRUPO := TGRUPO()
 
-	if Empty(aBrowse[nPos,1])
-		MsgStop('Não .')
+	if Empty(aBrwCont[nPos,1])
+		MsgStop('Não exitem contatos para serem vinculados.')
 		Return
 	endif
 
@@ -285,6 +298,7 @@ Static Function Fvincul(nPos,aBrowse)
            AND ZP8.ZP8_CLIENT = %EXP:AF8->(AF8_CLIENT)%
            AND ZP8.ZP8_LOJA = %EXP:AF8->(AF8_LOJA)%
            AND ZP8.ZP8_GRUPO =  %EXP:CGRUPO%
+           AND ZP8.ZP8_CODPRO =  %EXP:cProj%
 	EndSql
 
 	if Empty((cZp8)->MAX)
@@ -293,19 +307,36 @@ Static Function Fvincul(nPos,aBrowse)
 		CORDEM := SOMA1((cZp8)->MAX)
 	endif
 
-	ZP8->(reclock('ZP8',.T.))
-	ZP8->ZP8_CODPRO := AF8->AF8_PROJET
-	ZP8->ZP8_DESCPR := AF8->AF8_DESCRI
-	ZP8->ZP8_CLIENT := AF8->AF8_CLIENT
-	ZP8->ZP8_LOJA 	:= AF8->AF8_LOJA
-	ZP8->ZP8_ORDEM 	:=  strzero(val(CORDEM),3)
-	ZP8->ZP8_GRUPO 	:= strzero(val(CGRUPO),4)
-	ZP8->ZP8_CONTID := aBrowse[nPos,1]
-	ZP8->ZP8_NOME 	:= aBrowse[nPos,2]
-	ZP8->ZP8_EMAIL 	:= aBrowse[nPos,3]
-	ZP8->(MSUNLOCK())
+	if cRotina =='TAMPROJ'
+		ZP8->(reclock('ZP8',.T.))
+		ZP8->ZP8_CODPRO := AF8->AF8_PROJET
+		ZP8->ZP8_DESCPR := AF8->AF8_DESCRI
+		ZP8->ZP8_CLIENT := AF8->AF8_CLIENT
+		ZP8->ZP8_LOJA 	:= AF8->AF8_LOJA
+		ZP8->ZP8_ORDEM 	:=  strzero(val(CORDEM),3)
+		ZP8->ZP8_GRUPO 	:= strzero(val(CGRUPO),4)
+		ZP8->ZP8_CONTID := aBrwCont[nPos,1]
+		ZP8->ZP8_NOME 	:= aBrwCont[nPos,2]
+		ZP8->ZP8_EMAIL 	:= aBrwCont[nPos,3]
+		ZP8->(MSUNLOCK())
+		oDlg:END()
+		// chamar a função para atualizar a lista
+		U_AddCont(cProj,cCli,cLoj,cRotina,cAgId)
+	Else
+		// ACONTATOS É UMA VARIAVEL PRIVATE VINDO DA ROTINA EXTERNA ITVSA010 CHAMADO NO TBUTTON ALTERAR CONTATOS.
+		if empty(aContatos[1,1])
+			aContatos := {}
+		endif
+		AADD(aContatos,{CORDEM,CGRUPO,AllTRim(aBrwCont[nPos,2]),AllTrim(aBrwCont[NPOS,3])})
+		ASort(aContatos,,, {|a,b| ;
+			IIf( a[2] == b[2], ;    // Mesmo GRUPO?
+			a[1] < b[1], ;         // Ordena pela ORDEM
+			a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+		oContatos:SetArray(aContatos)
+		oContatos:Refresh()
+	endif
 
-	oBrowse:refresh()
+
 Return
 
 Static Function TGRUPO()

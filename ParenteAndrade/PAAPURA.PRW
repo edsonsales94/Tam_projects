@@ -63,7 +63,7 @@ Static Function ModelDef()
 	Local oStruGrid := fModStruct()
 
 	//Monta o modelo de dados, e na Pós Validação, informa a função fValidGrid
-	oModel := MPFormModel():New('PAAPURAM',{|oModel| fValidGrid(oModel)} /*bPreValidacao*/, /*{|oModel| fValidGrid(oModel)}*/, /*bCommit*/, /*bCancel*/ )
+	oModel := MPFormModel():New('PAAPURAM',/*{|oModel| fValidGrid(oModel)} bPreValidacao*/, /*bPosValidacao*/, {|oModel| fValidGrid(oModel)}/*bCommit*/, /*bCancel*/ )
 
 	//Agora, define no modelo de dados, que terá um Cabeçalho e uma Grid apontando para estruturas acima
 	oModel:AddFields('MdFieldZZ2', NIL, oStruCab)
