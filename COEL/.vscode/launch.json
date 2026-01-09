@@ -33,5 +33,6 @@
 			"label": "SIGAADV"
 		}
 	],
-	"lastProgramExecuted": "SIGAMDI"
+	"lastProgramExecuted": "SIGAMDI",
+	"lastProgramArguments": []
 }

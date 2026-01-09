@@ -538,7 +538,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 	Local xREC_EST     := ""  //*COEL:
 	Local cmens        := ""  //*COEL:
 	Local cTextobase   := ""  //*COEL:
-	Local aII          := {}  //*COEL:
+
 	Local cMVCODBRP1   := SuperGetMV("MV_CODBRP1", ," ")  //*COEL:
 	Local cMensRed     := ""  //*COEL:
 	Private _lImport   := .F. //*COEL:
@@ -3136,15 +3136,15 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								//	aPedido := {"",AllTrim(SC6->C6_PEDCLI),""}
 								//EndIf
 
-						/*
-						if ! empty(cMensclfis)  //mensagem classificaçao fiscal ncm coel
-						if (!(AllTrim(SB1->B1_CLCLASF)+ "-" + AllTrim(SB1->B1_POSIPI)) $ cMensclfis)
-						cMensclfis +=  " -" + AllTrim(SB1->B1_CLCLASF)+ "-" + AllTrim(SB1->B1_POSIPI)
-						endif
-						else
-						cMensclfis := AllTrim(SB1->B1_CLCLASF)+ "-" + AllTrim(SB1->B1_POSIPI)
-						endif
-						*/
+								/*
+								if ! empty(cMensclfis)  //mensagem classificaçao fiscal ncm coel
+								if (!(AllTrim(SB1->B1_CLCLASF)+ "-" + AllTrim(SB1->B1_POSIPI)) $ cMensclfis)
+								cMensclfis +=  " -" + AllTrim(SB1->B1_CLCLASF)+ "-" + AllTrim(SB1->B1_POSIPI)
+								endif
+								else
+								cMensclfis := AllTrim(SB1->B1_CLCLASF)+ "-" + AllTrim(SB1->B1_POSIPI)
+								endif
+								*/
 
 								// *** Obsevacoes Fiscais coel tabela z1 f4 e z3 ***
 
@@ -3580,9 +3580,9 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								aadd(aProd,	{Len(aProd)+1,;
 									cCodProd,;
 									IIf(Val(SB1->B1_CODBAR)==0,"",ALLTRIM(cMVCODBRP1) + substr(alltrim(SB1->B1_CODBAR),1,5) + ALLTRIM(EANDIGITO(cMVCODBRP1 +  substr(alltrim(SB1->B1_CODBAR),1,5) ))),;    //(1):Coel: Alterado por Andre por motivo de duplicacao de codigo de barra pois o parametro mv_codbrp1 estava com um digito a mais errado e o substr foi aumentado para pegar 5 posicoes
-								x_Descric,;     ///(2):Coel
-								SB1->B1_POSIPI,;//Retirada validação do parametro MV_CAPPROD, de acordo com a NT2014/004 não é mais possível informar o capítulo do NCM
-								SB1->B1_EX_NCM,;
+									x_Descric,;     ///(2):Coel
+									SB1->B1_POSIPI,;//Retirada validação do parametro MV_CAPPROD, de acordo com a NT2014/004 não é mais possível informar o capítulo do NCM
+									SB1->B1_EX_NCM,;
 									cD2Cfop,;
 									SB1->B1_UM,;
 									(cAliasSD2)->D2_QUANT,;
@@ -3593,47 +3593,47 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 									(cAliasSD2)->D2_SEGURO,;
 									(nDesconto+nDescIcm+nDescRed+nDescNfDup+nDescFis),;
 									0,;// O valor unitario sera obtido pela divisao do valor do produto pela quantidade comercial de acordo com o  Manual do Contribuinte 6.00 realizado na tag <vUnCom>(ConvType(aProd[10]/aProd[09],21,8))
-								IIF(SB1->(FieldPos("B1_CODSIMP"))<>0,SB1->B1_CODSIMP,""),; //codigo ANP do combustivel
-								IIF(SB1->(FieldPos("B1_CODIF"))<>0,SB1->B1_CODIF,""),; //CODIF
-								(cAliasSD2)->D2_LOTECTL,;//Controle de Lote
-								(cAliasSD2)->D2_NUMLOTE,;//Numero do Lote
-								nValOutr,;//Outras despesas. Devolução com IPI. (Nota de compl.Ipi de uma devolução de compra(MV_IPIDEV=F) leva o IPI em voutros)
-								nRedBC,;//% Redução da Base de Cálculo
-								cCST,;//Cód. Situação Tributária
-								IIF((SF4->F4_AGREG='N' .And. !AllTrim(SF4->F4_CF) $ cMVCfopTran) .Or. (SF4->F4_ISS='S' .And. SF4->F4_ICM='N'),"0","1"),;// Tipo de agregação de valor ao total do documento
-								cInfAdic,;//Informacoes adicionais do produto(B5_DESCNFE)
-								nDescZF,;
+									IIF(SB1->(FieldPos("B1_CODSIMP"))<>0,SB1->B1_CODSIMP,""),; //codigo ANP do combustivel
+									IIF(SB1->(FieldPos("B1_CODIF"))<>0,SB1->B1_CODIF,""),; //CODIF
+									(cAliasSD2)->D2_LOTECTL,;//Controle de Lote
+									(cAliasSD2)->D2_NUMLOTE,;//Numero do Lote
+									nValOutr,;//Outras despesas. Devolução com IPI. (Nota de compl.Ipi de uma devolução de compra(MV_IPIDEV=F) leva o IPI em voutros)
+									nRedBC,;//% Redução da Base de Cálculo
+									cCST,;//Cód. Situação Tributária
+									IIF((SF4->F4_AGREG='N' .And. !AllTrim(SF4->F4_CF) $ cMVCfopTran) .Or. (SF4->F4_ISS='S' .And. SF4->F4_ICM='N'),"0","1"),;// Tipo de agregação de valor ao total do documento
+									cInfAdic,;//Informacoes adicionais do produto(B5_DESCNFE)
+									nDescZF,;
 									(cAliasSD2)->D2_TES,;
 									IIF(SB5->(FieldPos("B5_PROTCON"))<>0,SB5->B5_PROTCON,""),; //Campo criado para informar protocolo ou convenio ICMS
-								IIf(SubStr(SM0->M0_CODMUN,1,2) == "35" .And. cTpPessoa == "EP" .And. nDescIcm > 0, nDescIcm,0),;
+									IIf(SubStr(SM0->M0_CODMUN,1,2) == "35" .And. cTpPessoa == "EP" .And. nDescIcm > 0, nDescIcm,0),;
 									IIF((cAliasSD2)->(FieldPos("D2_TOTIMP"))<>0,(cAliasSD2)->D2_TOTIMP,0),;   //aProd[30] - Total imposto carga tributária.
-								(cAliasSD2)->D2_DESCZFP,;			//aProd[31] - Desconto Zona Franca PIS
-								(cAliasSD2)->D2_DESCZFC,;			//aProd[32] - Desconto Zona Franca CONFINS
-								(cAliasSD2)->D2_PICM,;		//aProd[33] - Percentual de ICMS
-								IIF(SB1->(FieldPos("B1_TRIBMUN"))<>0,RetFldProd(SB1->B1_COD,"B1_TRIBMUN"),""),;  //aProd[34]
-								IIF((cAliasSD2)->(FieldPos("D2_TOTFED"))<>0,(cAliasSD2)->D2_TOTFED,0),;   //aProd[35] - Total carga tributária Federal
-								IIF((cAliasSD2)->(FieldPos("D2_TOTEST"))<>0,(cAliasSD2)->D2_TOTEST,0),;   //aProd[36] - Total carga tributária Estadual
-								IIF((cAliasSD2)->(FieldPos("D2_TOTMUN"))<>0,(cAliasSD2)->D2_TOTMUN,0),;   //aProd[37] - Total carga tributária Municipal
-								(cAliasSD2)->D2_PEDIDO,;	 //aProd[38]
-								(cAliasSD2)->D2_ITEMPV,;	 //aProd[39]
-								IIF((cAliasSD2)->(FieldPos("D2_GRPCST")) > 0 .and. !Empty((cAliasSD2)->D2_GRPCST),(cAliasSD2)->D2_GRPCST,IIF(SB1->(FieldPos("B1_GRPCST")) > 0 .and. !Empty(SB1->B1_GRPCST),SB1->B1_GRPCST, IIF(SF4->(FieldPos("F4_GRPCST")) > 0 .and. !Empty(SF4->F4_GRPCST),SF4->F4_GRPCST,"999"))),; //aProd[40]
-								IIF(SB1->(FieldPos("B1_CEST"))<>0,SB1->B1_CEST,""),; //aProd[41] NT2015/003
-								"",; //aprod[42] apenas na entrada é utilizado para montar a tag indPres=1 para nota de devolução de venda
-								nValIFecp,; //aprod[43]  Valor do FECP.
-								cCodlan,; //aprod[44]  Código de Benefício Fiscal na UF aplicado ao item .
-								IIf(SB5->(ColumnPos("B5_2CODBAR")) > 0,IIf(Val(SB5->B5_2CODBAR)==0,"",StrZero(Val(SB5->B5_2CODBAR),Len(Alltrim(SB5->B5_2CODBAR)),0)),""),;//aprod[45]  Código de barra da segunda unidade de medida.
-								IIf(SB1->(ColumnPos("B1_CODGTIN")) > 0,SB1->B1_CODGTIN,""),;  //aprod[46]
-								cIndEscala,; //aprod[47]  Indicador de Escala Relevante
-								SF4->F4_ART274,;  //aprod[48]
-								0,;  //aprod[49]   nValLeite
-								IIf(!Empty(cBarra) .and. SB1->(ColumnPos(cBarra)),SB1->&(cBarra),""),; //aprod[50]   cBarra
-								IIf(!Empty(cBarTrib) .and. SB1->(ColumnPos(cBarTrib)),SB1->&(cBarTrib),""),; //aprod[51]   cBarraTrib
-								cInfAdOnu,;					//aprod[52]
-								aObsItem,; 					//aprod[53]
-								(cAliasSD2)->D2_VALICM,;	//aprod[54]
-								(cAliasSD2)->D2_ITEM,;		//aprod[55]
-								"S";						//aprod[56]
-								})
+									(cAliasSD2)->D2_DESCZFP,;			//aProd[31] - Desconto Zona Franca PIS
+									(cAliasSD2)->D2_DESCZFC,;			//aProd[32] - Desconto Zona Franca CONFINS
+									(cAliasSD2)->D2_PICM,;		//aProd[33] - Percentual de ICMS
+									IIF(SB1->(FieldPos("B1_TRIBMUN"))<>0,RetFldProd(SB1->B1_COD,"B1_TRIBMUN"),""),;  //aProd[34]
+									IIF((cAliasSD2)->(FieldPos("D2_TOTFED"))<>0,(cAliasSD2)->D2_TOTFED,0),;   //aProd[35] - Total carga tributária Federal
+									IIF((cAliasSD2)->(FieldPos("D2_TOTEST"))<>0,(cAliasSD2)->D2_TOTEST,0),;   //aProd[36] - Total carga tributária Estadual
+									IIF((cAliasSD2)->(FieldPos("D2_TOTMUN"))<>0,(cAliasSD2)->D2_TOTMUN,0),;   //aProd[37] - Total carga tributária Municipal
+									(cAliasSD2)->D2_PEDIDO,;	 //aProd[38]
+									(cAliasSD2)->D2_ITEMPV,;	 //aProd[39]
+									IIF((cAliasSD2)->(FieldPos("D2_GRPCST")) > 0 .and. !Empty((cAliasSD2)->D2_GRPCST),(cAliasSD2)->D2_GRPCST,IIF(SB1->(FieldPos("B1_GRPCST")) > 0 .and. !Empty(SB1->B1_GRPCST),SB1->B1_GRPCST, IIF(SF4->(FieldPos("F4_GRPCST")) > 0 .and. !Empty(SF4->F4_GRPCST),SF4->F4_GRPCST,"999"))),; //aProd[40]
+									IIF(SB1->(FieldPos("B1_CEST"))<>0,SB1->B1_CEST,""),; //aProd[41] NT2015/003
+									"",; //aprod[42] apenas na entrada é utilizado para montar a tag indPres=1 para nota de devolução de venda
+									nValIFecp,; //aprod[43]  Valor do FECP.
+									cCodlan,; //aprod[44]  Código de Benefício Fiscal na UF aplicado ao item .
+									IIf(SB5->(ColumnPos("B5_2CODBAR")) > 0,IIf(Val(SB5->B5_2CODBAR)==0,"",StrZero(Val(SB5->B5_2CODBAR),Len(Alltrim(SB5->B5_2CODBAR)),0)),""),;//aprod[45]  Código de barra da segunda unidade de medida.
+									IIf(SB1->(ColumnPos("B1_CODGTIN")) > 0,SB1->B1_CODGTIN,""),;  //aprod[46]
+									cIndEscala,; //aprod[47]  Indicador de Escala Relevante
+									SF4->F4_ART274,;  //aprod[48]
+									0,;  //aprod[49]   nValLeite
+									IIf(!Empty(cBarra) .and. SB1->(ColumnPos(cBarra)),SB1->&(cBarra),""),; //aprod[50]   cBarra
+									IIf(!Empty(cBarTrib) .and. SB1->(ColumnPos(cBarTrib)),SB1->&(cBarTrib),""),; //aprod[51]   cBarraTrib
+									cInfAdOnu,;					//aprod[52]
+									aObsItem,; 					//aprod[53]
+									(cAliasSD2)->D2_VALICM,;	//aprod[54]
+									(cAliasSD2)->D2_ITEM,;		//aprod[55]
+									"S";						//aprod[56]
+									})
 
 
 								aadd(aCST,{cCSTrib,cOrigem})
@@ -6624,7 +6624,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 
 
 					aadd(aCST,{IIF(!Empty((cAliasSD1)->D1_CLASFIS),SubStr((cAliasSD1)->D1_CLASFIS,2,2),'50'),;
-						IIF(!Empty((cAliasSD1)->D1_CLASFIS),SubStr((cAliasSD1)->D1_CLASFIS,1,1),'0')})
+					IIF(!Empty((cAliasSD1)->D1_CLASFIS),SubStr((cAliasSD1)->D1_CLASFIS,1,1),'0')})
 					aadd(aICMS,{})
 					aadd(aIPI,{})
 					aadd(aICMSST,{})

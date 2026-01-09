@@ -26,9 +26,11 @@ User Function PAAPURA()
 	// 	return
 	// endif
 	// U_fProcBen()
+
 	DbSelectArea('ZZ2')
 	ZZ2->(dbSetOrder(3))
-	cCondicao := ""//"ZZ2_CODIGO == '0001'"
+
+	cCondicao := ''//"ZZ2_CODIGO == '0001'"
 
 	//Cria um browse para a ZZ2
 	oBrowse := FWMBrowse():New()
@@ -61,7 +63,7 @@ Static Function ModelDef()
 	Local oStruGrid := fModStruct()
 
 	//Monta o modelo de dados, e na Pós Validação, informa a função fValidGrid
-	oModel := MPFormModel():New('PAAPURAM', /*bPreValidacao*/, /*POSVALIDAÇÃO*/, {|oModel| fValidGrid(oModel)}/*bCommit*/, /*bCancel*/ )
+	oModel := MPFormModel():New('PAAPURAM',/*{|oModel| fValidGrid(oModel)} bPreValidacao*/, /*bPosValidacao*/, {|oModel| fValidGrid(oModel)}/*bCommit*/, /*bCancel*/ )
 
 	//Agora, define no modelo de dados, que terá um Cabeçalho e uma Grid apontando para estruturas acima
 	oModel:AddFields('MdFieldZZ2', NIL, oStruCab)
@@ -79,7 +81,7 @@ Static Function ModelDef()
 	//Definindo outras informações do Modelo e da Grid
 	oModel:GetModel("MdGridZZ2"):SetMaxLine(9999)
 	oModel:SetDescription("Apuracao dos beneficios")
-	oModel:SetPrimaryKey({"ZZ2_FILIAL","ZZ2_CC","ZZ2_DATADE","ZZ2_DATATE"})
+	oModel:SetPrimaryKey({"ZZ2_FILIAL","ZZ2_DATADE","ZZ2_DATATE","ZZ2_CC"})
 
 Return oModel
 
@@ -136,7 +138,6 @@ Return oStruct
 //Função que faz a validação da grid
 Static Function fValidGrid(oModel)
 	Local lRet     := .T.
-	local lDel0001 := .F.
 	Local oModelGRID := oModel:GetModel('MdGridZZ2')
 	// Local oModelMain := oModel:GetModel('MdFieldZZ2')
 	// Local cCodAusencia := oModelMain:GetValue("ZZ2_CODAUS")

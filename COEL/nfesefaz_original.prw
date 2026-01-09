@@ -18,7 +18,7 @@ Static lCDVLanc		:= nil
 ±±³Retorno   ³String da Nota Fiscal Eletronica                            ³±±
 ±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
 ±±³Parametros³ExpC1: Tipo da NF                                           ³±±
-±±³          ³       [0] Entrada.                                          ³±±
+±±³          ³       [0] Entrada                                          ³±±
 ±±³          ³       [1] Saida                                            ³±±
 ±±³          ³ExpC2: Serie da NF                                          ³±±
 ±±³          ³ExpC3: Numero da nota fiscal                                ³±±
@@ -2937,12 +2937,6 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								EndIF
 							EndIf
 
-						//INICIO CUSTOMIZAÇÃO COEL PARA O ZERAR O VALOR DE DESCONTO DECORRENTE DO PEDIDO DE VENDAS
-						iF SF2->F2_CLIENTE  <> '010523' //destaque desconto
-							nDesconto := 0     ///COEL: 01/07/12						   
-						endif 
-						//FIM CUSTOMIZAÇÃO COEL PARA O ZERAR O VALOR DE DESCONTO DECORRENTE DO PEDIDO DE VENDAS
-
 							//Tratamento para verificar se o produto e controlado por terceiros (IDENTB6)
 							//e a partir do tipo do pedido (Cliente ou Fornecedor) verifica  se existe
 							//amarracao entre Produto X Cliente(SA7) ou Produto X Fornecedor(SA5)
@@ -3200,7 +3194,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								IIf(Val(SB1->B1_CODBAR)==0,"",StrZero(Val(SB1->B1_CODBAR),Len(Alltrim(SB1->B1_CODBAR)),0)),;
 								cDescProd,;
 								SB1->B1_POSIPI,;//Retirada validação do parametro MV_CAPPROD, de acordo com a NT2014/004 não é mais possível informar o capítulo do NCM
-								SB1->B1_EX_NCM,;
+							SB1->B1_EX_NCM,;
 								cD2Cfop,;
 								SB1->B1_UM,;
 								(cAliasSD2)->D2_QUANT,;
@@ -3269,7 +3263,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							aadd(aICMUFDest,{})
 							aadd(aIPIDevol,{})
 
-							aadd(aPedCom,{})
+							//aadd(aPedCom,{})
 							aadd(aPisAlqZ,{})
 							aadd(aCofAlqZ,{})
 							aadd(aCsosn,{})
@@ -4007,35 +4001,25 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							EndIf
 						EndIf
 
-						////AO DESENVOLVEDOR MEXA AQUI PARA REJEICAO DE VALOR TOTAL DO FRETE E VALOR DO DESCONTO
+						/* PISST e COFINSST deixam de compor ICMSTot/vOutro NT 2020.005
+						*/
+							aTotal[01] += (cAliasSD2)->D2_DESPESA + nIcmsST + nCrdPres
 
-						// PISST e COFINSST deixam de compor ICMSTot/vOutro NT 2020.005
-						aTotal[01] += (cAliasSD2)->D2_DESPESA + nIcmsST + nCrdPres
-					   
-						If (cAliasSD2)->D2_TIPO == "I"
-							If (cAliasSD2)->D2_ICMSRET > 0
-								aTotal[02] += (cAliasSD2)->D2_VALBRUT
-							ElseIf  ( (SF4->F4_AGREG == "S" .And. SF4->F4_AJUSTE == "S") .And. ("RESSARCIMENTO" $ Upper(cNatOper) .And. "RESSARCIMENTO" $ Upper(cDescProd)))
+							If (cAliasSD2)->D2_TIPO == "I"
+								If (cAliasSD2)->D2_ICMSRET > 0
+									aTotal[02] += (cAliasSD2)->D2_VALBRUT
+								ElseIf ( ( lSAgrgICM .And. SF4->F4_AJUSTE == "S") .And. ("RESSARCIMENTO" $ Upper(cNatOper) .And. "RESSARCIMENTO" $ Upper(cDescProd)))
+									aTotal[02] += (cAliasSD2)->D2_TOTAL
+								Else
+									aTotal[02] += 0
+								Endif
+							ElseIf (cAliasSD2)->D2_TIPO == "N" .And. AllTrim(SF4->F4_CF) $ cMVCfopTran
 								aTotal[02] += (cAliasSD2)->D2_TOTAL
+							ElseIf SF4->F4_PSCFST == "1" .And. SF4->F4_APSCFST == "1"
+								aTotal[02] += ((cAliasSD2)->D2_VALBRUT - ((cAliasSD2)->D2_VALPS3 + (cAliasSD2)->D2_VALCF3))
 							Else
-								aTotal[02] += 0
-							Endif
-						ElseIf (cAliasSD2)->D2_TIPO == "N" .And. AllTrim(SF4->F4_CF) $ cMVCfopTran
-							aTotal[02] += (cAliasSD2)->D2_TOTAL
-						ElseIf SF4->F4_PSCFST == "1" .And. SF4->F4_APSCFST == "1"
-							aTotal[02] += ((cAliasSD2)->D2_VALBRUT - ((cAliasSD2)->D2_VALPS3 + (cAliasSD2)->D2_VALCF3))
-						ElseIf (cAliasSD2)->D2_VALIPI > 0 .AND. (cAliasSD2)->D2_ICMSRET > 0 
-		                    aTotal[02] += (cAliasSD2)->D2_VALBRUT
-						ElseIf (cAliasSD2)->D2_VALIPI > 0 .OR. (cAliasSD2)->D2_VALFRE > 0 
-		                    aTotal[02] += (cAliasSD2)->D2_TOTAL+(cAliasSD2)->D2_VALIPI + (cAliasSD2)->D2_VALFRE
-						ElseIf  (cAliasSD2)->D2_ICMSRET > 0 .AND. Alltrim(SF4->F4_INCSOL) =="S"
-		                    aTotal[02] += (cAliasSD2)->D2_VALBRUT
-						
-						Elseif SF2->F2_CLIENTE  == '010523'  .OR.  SF2->F2_EST  == 'EX'  
-							aTotal[02] += (cAliasSD2)->D2_VALBRUT						
-						ELSE
-		                    aTotal[02] += (cAliasSD2)->D2_TOTAL  //D2_VALBRUT
-		              EndIf
+								aTotal[02] += (cAliasSD2)->D2_VALBRUT
+							EndIf
 
 							// Tratamento para que o valor de PISST, COFINSST sejam somados ao valor total da nota.
 							aTotal[03] += If( lSomaPISST, (cAliasSD2)->D2_VALPS3 , 0) + If( lSomaCOFINSST, (cAliasSD2)->D2_VALCF3, 0)
@@ -6952,21 +6936,22 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 										cIndPag := ""
 									endIf
 
-									aadd(aDetPag, {cForma, aTotal[02]+aTotal[03], 0.00, "", "", "", "", cIndPag, cDesc99,nil,{},"","" } )   
-								EndIf	
+									aadd(aDetPag, {cForma, aTotal[02]+aTotal[03], 0.00, "", "", "", "", cIndPag, cDesc99,nil,{},"","" } )
+								EndIf
 								//Exemplo de como gerar o Grupo Cobrança
 								//aadd(aFat,{"Número da Fatura",Valor Original da Fatura,Valor do desconto,Valor Líquido da Fatura})
 
 							EndIf
 
-//Tratamento para que se caso mude o cliente o mesmo busque dados do cliente da nota original.
+							//Tratamento para que se caso mude o cliente o mesmo busque dados do cliente da nota original.
 							If lHistTab .and. !Empty(aNfVinc) .and. aNota[5] == "D" .and. !cDevMerc == "S"
 								aDest := AjustaDest(aDest,aNfVinc,cCliefor,cLoja)
 							EndIf
 
 							If lPe01Nfe
 
-								aParam := {aProd,cMensCli,cMensFis,aDest,aNota,aInfoItem,aDupl,aTransp,aEntrega,aRetirada,aVeiculo,aReboque,aNfVincRur,aEspVol,aNfVinc,aDetPag,aObsCont,aProcRef,aMed,aLote,aPedCom,nValDifer}
+
+								aParam := {aProd,cMensCli,cMensFis,aDest,aNota,aInfoItem,aDupl,aTransp,aEntrega,aRetirada,aVeiculo,aReboque,aNfVincRur,aEspVol,aNfVinc,aDetPag,aObsCont,aProcRef,aMed,aLote}
 
 								aParam := ExecBlock("PE01NFESEFAZ",.F.,.F.,aParam)
 
@@ -7001,8 +6986,6 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 									if len(aParam) >= 20
 										aLote := aParam[20]
 									endIf
-									aPedCom   := aParam[21]
-									nValDifer := aParam[22]
 								EndIf
 							EndIf
 
@@ -7952,20 +7935,17 @@ Static Function NfeItem(aProd		, aICMS			, aICMSST	, aIPI			, aPIS	   		, aPISST
 		cDocItemId := GetAdvFVal('SD1','D1_IDTRIB', SF1->(F1_FILIAL + F1_DOC + F1_SERIE + F1_FORNECE + F1_LOJA) + aProd[2] + aProd[55], 1  ) //D1_FILIAL+D1_DOC+D1_SERIE+D1_CLIENTE+D1_LOJA+D1_COD+D1_ITEM
 	endIF
 
-	//Se o campo B1_CODGTIN estiver preenchido considera ele em primeiro lugar  para levar para nfe.
-	//Porem se  B1_CODGTIN  ='999999999999999' e levando "" sendo tratado pelo tss "SEM GETIN"
-	//Se B1_CODGTIN =  "" vazio continua pegando do legado B1_CODBAR para levar para nfe.
-	//cEan		:= IIF(!Empty(aProd[46]),iif( aProd[46] == "000000000000000","",aProd[46]), aProd[03]) //DSERTSS1-20151
+//Se o campo B1_CODGTIN estiver preenchido considera ele em primeiro lugar  para levar para nfe.
+//Porem se  B1_CODGTIN  ='999999999999999' e levando "" sendo tratado pelo tss "SEM GETIN"
+//Se B1_CODGTIN =  "" vazio continua pegando do legado B1_CODBAR para levar para nfe.
+//cEan		:= IIF(!Empty(aProd[46]),iif( aProd[46] == "000000000000000","",aProd[46]), aProd[03]) //DSERTSS1-20151
+	cEan		:= IIF(!Empty(aProd[46]),iif(Val(aProd[46])==0,"",aProd[46]), aProd[03])
 
-	// CUSTOMIZAÇÃO COEL PARA O CÓDIGO DE BARRAS
-	cEan		:= IIF(!Empty(aProd[46]),iif( aProd[46] == "000000000000000","",aProd[46]), ALLTRIM(aProd[03]))   //Coel
-	//FIM DA CUSTOMIZAÇÃO COEL PARA O CÓDIGO DE BARRAS
-
-	//Se a segunda unidade de medida estiver "B5_2CODBAR" estiver preenchido leva ele  para nfe.
-	//senão verifica se a unidade comercial e diferente da tributaria para considerar o mesmo valor da cEan se for igual.
+//Se a segunda unidade de medida estiver "B5_2CODBAR" estiver preenchido leva ele  para nfe.
+//senão verifica se a unidade comercial e diferente da tributaria para considerar o mesmo valor da cEan se for igual.
 	cEantrib	:= IIF(!Empty(aProd[45]),aProd[45], iif( aProd[08] <> aProd[11],"",cEan))
 
-	//Validação para controle das tags que deverão ser preenchidas apenas nas operações não destinadas a consumidor final RS
+//Validação para controle das tags que deverão ser preenchidas apenas nas operações não destinadas a consumidor final RS
 	lRetEfet := (cMVEstado == "RS" .and. cIndFinal == '0') .or. cMVEstado <> "RS"
 
 	cString += '<det nItem="'+ConvType(aProd[01])+'">'
@@ -8015,8 +7995,8 @@ Static Function NfeItem(aProd		, aICMS			, aICMSST	, aIPI			, aPIS	   		, aPISST
 	cString += NfeTag('<vFrete>',ConvType(aProd[13],15,2))
 	cString += NfeTag('<vSeg>'  ,ConvType(aProd[14],15,2))
 
-	//Tag <vDesc>
-	//Quando eh Zona Franca de Manaus
+//Tag <vDesc>
+//Quando eh Zona Franca de Manaus
 	If Len(aICMSZFM) > 0 .And. Len(aCST) > 0 .And. !Empty(aICMSZFM[1])
 		If !(lMvNFLeiZF)
 			cString += NfeTag('<vDesc>' ,ConvType((aProd[31]+aProd[32])+aProd[15],15,2))

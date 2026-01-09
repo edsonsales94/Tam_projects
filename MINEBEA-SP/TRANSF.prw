@@ -1,0 +1,181 @@
+#INCLUDE "RWMAKE.CH"
+#INCLUDE "COLORS.CH"
+#INCLUDE "TOPCONN.CH"
+
+/*/{protheus.doc}TRANSF
+Transferencia de materiais almoxarifado
+@author Vinicius 
+@since 12/09/16 
+/*/
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³WMS001    ºAutor  ³Vinicius            º Data ³  12/09/16   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Transferencia de materiais almoxarifado                    º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function TRANSF()
+
+	Local lAmb := RPCSetEnv('01','01')
+	Local aRotAuto := {}
+	Local _aItem := {}
+	Local _atotitem:={}
+	a_AreaGeral := GetArea()
+	a_aArea := GetArea()
+	_aCab := {}
+
+
+
+	cOpcao:="INCLUIR"
+
+	nOpcE:=3
+	nOpcG:=3
+
+	cTitulo        := "TRANSFERENCIA DE MATERIAIS"
+	cAliasEnchoice := "SB8"
+	cAliasGetD     := "SB1"
+	cLinOk         := "AllwaysTrue()"
+	cTudOk         := "AllwaysTrue()"
+	cFieldOk       := "AllwaysTrue()"
+	aCpoEnchoice   := {}
+
+	_lRet          := ModGBJ(cTitulo,cAliasEnchoice,cAliasGetD,aCpoEnchoice,cLinOk,cTudOk,nOpcE,nOpcG,cFieldOk)
+
+	RestArea(a_AreaGeral)
+
+Return
+
+//------------------------------------------------------------------------------------------------------------------
+Static Function ModGbj(cTitulo,cAlias1,cAlias2,aMyEncho,cLinOk,cTudoOk,nOpcE,nOpcG,cFieldOk,lVirtual,nLinhas,aAltEnchoice,lBaixa)
+
+	Local lRet, nOpca := 0,cSaveMenuh,nReg:=(cAlias1)->(Recno()),aButtons
+	Local oFontGbj
+
+	Private Altera:=.t.,Inclui:=.t.,lRefresh:=.t.,aTELA:=Array(0,0),aGets:=Array(0),;
+		bCampo:={|nCPO|Field(nCPO)},nPosAnt:=9999,nColAnt:=9999
+	Private cSavScrVT,cSavScrVP,cSavScrHT,cSavScrHP,CurLen,nPosAtu:=0
+	nOpcE := If(nOpcE==Nil,3,nOpcE)
+	nOpcG := If(nOpcG==Nil,3,nOpcG)
+	lVirtual := Iif(lVirtual==Nil,.F.,lVirtual)
+	nLinhas:=Iif(nLinhas==Nil,99,nLinhas)
+
+	OFONT  := TFONT():NEW("COURIER NEW",,-14,.T.,.T.)
+	OFONT2 := TFONT():NEW("COURIER NEW",,-16,.T.,.T.)
+	OFONT3 := TFONT():NEW("COURIER NEW",,-24,.T.,.T.)
+
+	nOpca := 1
+
+	While nOpca == 1
+		cProd      := Space(15)
+		cLote   := Space(10)
+		nQtd     := 0
+		cProduto := Space(15)
+		cDescPro := Space(01)
+		cLocal   := "01"
+
+		// DEFINE MSDIALOG oDlg TITLE cTitulo FROM 000, 000  TO 200, 800 OF oMainWnd COLORS 0, 16777215 PIXEL
+			// oSay:= TSay():Create(oDlg,{||'Produto'},040,10,,oFont,,,,.T.,CLR_RED,CLR_WHITE,060,20)
+			// oGet1 := TGet():New( 040, 060, { | u | If( PCount() == 0, cProduto, cProduto := u ) },oDlg, 0040, 010,  "!@" ,{|| VldPro() }, 0, 16777215,,.F.,,.T.,,.F.,,.F.,.F.,,.F./*edite*/,.F. ,,"cProduto",,,,/*lHasButton*/.F.  )
+			// oGet2 := TGet():New( 040, 0120, { | u | If( PCount() == 0, cDescPro, cDescPro := u ) },oDlg, 0250, 010, "!@" ,              , 0, 16777215,,.F.,,.T.,,.F.,,.F.,.F.,,.T./*edite*/,.F. ,,"cGet3",,,,/*lHa2Button*/.F.  )
+			// oSay:= TSay():Create(oDlg,{||'Quantidade'},060,10,,oFont,,,,.T.,CLR_RED,CLR_WHITE,0100,20)
+			// oGet3 := TGet():New( 060, 060, { | u | If( PCount() == 0, nQtd, nQtd := u ) },oDlg, 0100, 010, "@E 999.99"   ,              , 0, 16777215,,.F.,,.T.,,.F.,,.F.,.F.,,.F./*edite*/,.F. ,,"nQtd",,,,/*lHasButton*/.T.  )
+
+			// OSAY:= TSAY():NEW(018,140,{||"TRANSFERENCIA ALMOXARIFADO"},oDlg,,OFONT2,,,,.T.,CLR_BLUE,CLR_WHITE,300,10)
+			// ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg,{||nOpca:=1,If(.T.,nOpca:=1,nOpca := 0),oDlg:End()},{||nOpca := 0,oDlg:End()},,aButtons) Centered
+
+		DEFINE MSDIALOG oDlgA TITLE cTitulo From 9,0 to 25,100  of oMainWnd
+
+		@ 45,10 Say "Produto"
+		@ 45,50 Get cProd F3 "SB1" Size 50,10 Valid VldPro() When .T.
+		//  @ 45,130 Get cProduto Size 50,10 When .F.
+		@ 45,110 Get cDescPro Size 200,10 When .F.
+		@ 75,010 Say "Quantidade"
+		@ 75,050 Get nQtd  Picture "@E 999,999.99999"  Size 70,10 When .T.
+
+		// @ 75,110 Say "Lote"
+		// @ 75,130 Get cLote Size 70,10 When .t.
+
+		OSAY:= TSAY():NEW(018,140,{||"TRANSFERENCIA ALMOXARIFADO"},ODLGA,,OFONT2,,,,.T.,CLR_BLUE,CLR_WHITE,300,10)
+		ACTIVATE MSDIALOG oDlgA ON INIT EnchoiceBar(oDlgA,{||nOpca:=1,If(.T.,nOpca:=1,nOpca := 0),oDlgA:End()},{||nOpca := 0,oDlgA:End()},,aButtons) Centered
+
+		lRet:=(nOpca==1)
+		if nOpca == 1
+			GERA_TRANS(cProd,cLote,nQtd)
+		else
+
+		endif
+
+	End
+
+Return lRet
+
+Static Function VldPro()
+
+	lRet := .T.
+
+	dbSelectArea("SB1")
+	dbSetOrder(01)
+	If dbSeek(xFilial("SB1")+cProd)
+
+		dbSelectArea("SB1")
+		dbSetOrder(01)
+		dbSeek(xFilial("SB1")+SB1->B1_COD)
+
+		cProduto := SB1->B1_COD
+		cDescPro := SB1->B1_DESC
+		cLocal   := SB1->B1_LOCPAD
+
+	Else
+
+		lRet := .F.
+		Alert("Produto inexistente!")
+
+	Endif
+
+	// oDlg:Refresh()
+
+Return(lRet)
+
+Static Function GERA_TRANS(cProd,cLote,nQtd)
+
+	lMsErroAuto := .F.
+	lMsHelpAuto := .T.
+
+	If SB1->B1_TIPO = "BN"
+		lRet := .F.
+		alert("Produto nao pode ser transferido, Favor entrar em contato com o Almoxarifado.")
+	ENDIF
+
+	_atotitem:={}
+	_aCab :={{"D3_TM"      , "600"    , NIL},;
+		{"D3_EMISSAO" , DDATABASE , NIL}}
+	_aitem:={   {"D3_COD"     , cProd   , NIL },;
+		{"D3_UM"      , SB1->B1_UM    , NIL },;
+		{"D3_QUANT"   , nQtd           , NIL },;
+		{"D3_LOCAL"   , "01"  , NIL },;
+		{"D3_LOTECTL"   , cLote  , NIL }}
+
+	aadd(_atotitem,_aitem)
+
+	Begin Transaction
+
+		MSExecAuto({|x,y,z| MATA241(x,y,z)},_aCab,_atotitem,3)
+
+	End Transaction
+
+	If lMsErroAuto
+		Mostraerro()
+	EndIf
+
+Return(!lMsErroAuto)
+
+
