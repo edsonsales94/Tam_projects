@@ -7,7 +7,6 @@
 			"name": "MINEBEA-SP",
 			"program": "${command:AskForProgramName}",
 			"cwb": "${workspaceFolder}",
-			"smartclientURL": "https://192.168.1.2:4101/webapp/",
 			"isMultiSession": true,
 			"enableMultiThread": true,
 			"enableTableSync": true
@@ -36,6 +35,10 @@
 		},
 		{
 			"label": "XXXX"
+		},
+		{
+			"args": [],
+			"label": "u_XNUMSX8"
 		}
 	],
 	"lastProgramExecuted": "SIGAMDI",

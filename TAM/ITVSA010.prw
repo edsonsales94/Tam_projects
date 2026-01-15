@@ -526,6 +526,26 @@ Static Function telaAgenda(cOper)
 		endif
 
 		nRecnoId := aBrowse[oBrowse:nAt,16]
+
+		dbSelectArea('ZP9')
+		ZP9->(DbSetOrder(1))
+		MSSEEK(xFilial('ZP9')+aBrowse[oBrowse:nAt,14])
+
+		While !ZP9->(EOF()) .and. ZP9->ZP9_CODAGE == aBrowse[oBrowse:nAt,14]
+			if empty(aContatos[1,1])
+				aContatos := {}
+			endif
+			AAdd(aContatos,{ZP9->ZP9_ORDEM,ZP9->ZP9_GRUPO,ZP9->ZP9_NOME,ZP9->ZP9_EMAIL})
+			ZP9->(DbSkip())
+		EndDo
+
+		ASort(aContatos,,, {|a,b| ;
+			IIf( a[2] == b[2], ;    // Mesmo GRUPO?
+		a[1] < b[1], ;         // Ordena pela ORDEM
+		a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+
+		oContatos:SetArray(aContatos)
+		oContatos:Refresh()
 	EndIf
 
 	DEFINE MSDIALOG oDlg TITLE cTitulo  From 5,15 To 40,135 OF oMainWnd
@@ -584,11 +604,11 @@ Static Function telaAgenda(cOper)
 	oContatos:AddColumn(TCColumn():New("Ordem"  , {|| aContatos[oContatos:nAt,01]} ,"@D",,,"LEFT"  , nJanLarg/4*0.10,.F.,.F.,,{|| .F. },,.F.,) )
 	oContatos:AddColumn(TCColumn():New("Grupo"  , {|| aContatos[oContatos:nAt,02]} ,"@!",,,"LEFT"  , nJanLarg/4*0.15,.F.,.F.,,         ,,.F.,) )
 	oContatos:AddColumn(TCColumn():New("Nome"   , {|| aContatos[oContatos:nAt,03]} ,"@!",,,"LEFT"  , nJanLarg/4*0.15,.F.,.F.,,         ,,.F.,) )
-	oContatos:AddColumn(TCColumn():New("Email"  , {|| aContatos[oContatos:nAt,04]} ,"@!",,,"LEFT"  , nJanLarg/4*0.15,.F.,.F.,,         ,,.F.,) )	
+	oContatos:AddColumn(TCColumn():New("Email"  , {|| aContatos[oContatos:nAt,04]} ,"@!",,,"LEFT"  , nJanLarg/4*0.15,.F.,.F.,,         ,,.F.,) )
 	ASort(aContatos,,, {|a,b| ;
-       IIf( a[2] == b[2], ;        // Mesmo GRUPO?
-            a[1] < b[1], ;         // Ordena pela ORDEM
-            a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+		IIf( a[2] == b[2], ;        // Mesmo GRUPO?
+	a[1] < b[1], ;         // Ordena pela ORDEM
+	a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
 	oContatos:SetArray(aContatos)
 
 	if !(cOperac $ "VISUALIZAR,ALTPRJ,ALTPRD")
@@ -643,6 +663,7 @@ Return
 Static Function VldIncAgd(cReadVar)
 	Local lRet       := .T.
 	Local nI         := Nil
+	Local nQ         := Nil
 	Local aBkp       := {}
 	Default cReadVar := ReadVar()
 
@@ -677,23 +698,25 @@ Static Function VldIncAgd(cReadVar)
 
 			// carregar os contatos na grid de contatos da agenda.
 			// Edson Sales *** 31/12/2025
-			ZP8->(DbSetOrder(1))
-			If ZP8->(DbSeek(xFilial("ZP8")+cCodPrj))
-				while !ZP8->(Eof()) .and. AllTrim(cCodPrj) == AllTrim(ZP8->ZP8_CODPRO)
-					if empty(aContatos[1,1])
-						aContatos := {}
-					endif
-					aAdd(aContatos,{ZP8->ZP8_ORDEM,ZP8->ZP8_GRUPO,ZP8->ZP8_NOME,ZP8->ZP8_EMAIL})
-					ZP8->(dbSkip())
-				Enddo
+			if  cOperac == 'INCLUIR'
+				ZP8->(DbSetOrder(1))
+				If ZP8->(DbSeek(xFilial("ZP8")+cCodPrj))
+					while !ZP8->(Eof()) .and. AllTrim(cCodPrj) == AllTrim(ZP8->ZP8_CODPRO)
+						if empty(aContatos[1,1])
+							aContatos := {}
+						endif
+						aAdd(aContatos,{ZP8->ZP8_ORDEM,ZP8->ZP8_GRUPO,ZP8->ZP8_NOME,ZP8->ZP8_EMAIL})
+						ZP8->(dbSkip())
+					Enddo
 
-				if !empty(aContatos[1,1])					
-				ASort(aContatos,,, {|a,b| ;
-					IIf( a[2] == b[2], ;        // Mesmo GRUPO?
-							a[1] < b[1], ;         // Ordena pela ORDEM
-							a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
-					oContatos:SetArray(aContatos)
-					oContatos:Refresh()
+					if !empty(aContatos[1,1])
+						ASort(aContatos,,, {|a,b| ;
+							IIf( a[2] == b[2], ;        // Mesmo GRUPO?
+						a[1] < b[1], ;         // Ordena pela ORDEM
+						a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+						oContatos:SetArray(aContatos)
+						oContatos:Refresh()
+					endif
 				Else
 					MsgStop('Não Há contatos vinculados no projeto, verifique o cadastro (Projeto x Entidade)', 'Atenção')
 					lRet := .F.
@@ -774,11 +797,21 @@ Static Function VldIncAgd(cReadVar)
 				endif
 				aAdd(aContatos,{aBkp[nI,1],aBkp[nI,2],aBkp[nI,3],aBkp[nI,4]})
 			EndIf
-		Next nI		
+		Next nI
+
+		//REFAZER ORDENAÇÃO
+		if !Empty(aContatos[1,1])
+			CORDEM := '000'
+			for nQ := 1 to len(aContatos)
+				CORDEM := SOMA1(CORDEM)
+				aContatos[nQ,1] := CORDEM
+			next nQ
+		endif
+
 		ASort(aContatos,,, {|a,b| ;
-		IIf( a[2] == b[2], ;        // Mesmo GRUPO?
-			a[1] < b[1], ;         // Ordena pela ORDEM
-			a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+			IIf( a[2] == b[2], ;        // Mesmo GRUPO?
+		a[1] < b[1], ;         // Ordena pela ORDEM
+		a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
 		oContatos:SetArray(aContatos)
 		oContatos:Refresh()
 	ElseIf cReadVar == "CNEWPRJ"
@@ -912,6 +945,7 @@ Return lRet
 Static Function GrvAgenda()
 	Local aRet    := {.T.}
 	Local nI      := Nil
+	Local nP      := Nil
 	Local cCodAtv := ""
 
 	If cOperac == "ALTPRJ"
@@ -955,10 +989,26 @@ Static Function GrvAgenda()
 					MsgStop(aRet[2], "Atenção")
 					DisarmTransaction()
 				EndIf
+
+				// Gravar os contatos vinculados na agenda.  Edson Sales 12/01/2026
+				if aRet[1]
+					FOR nP := 1 TO len(aContatos)
+						DBSELECTAREA('ZP9')
+						RECLOCK('ZP9',.T.)
+						ZP9->ZP9_CODAGE := SZ1->Z1_CODIGO
+						ZP9->ZP9_CODPRO := SZ1->Z1_PROJETO
+						ZP9->ZP9_CLIENT := SZ1->Z1_CLIENTE
+						ZP9->ZP9_LOJA 	:= SZ1->Z1_LOJA
+						ZP9->ZP9_ORDEM 	:= aContatos[nP,1]
+						ZP9->ZP9_GRUPO 	:= aContatos[nP,2]
+						ZP9->ZP9_NOME 	:= aContatos[nP,3]
+						ZP9->ZP9_EMAIL 	:= aContatos[nP,4]
+						ZP9->(MSUNLOCK())
+					next nP
+				endif
 			Next nI
 		END TRANSACTION
 	EndIf
-
 
 	If aRet[1]
 		MsgInfo('Operação realizada com sucesso!', 'Cadastro de Agendas')

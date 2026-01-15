@@ -49,6 +49,7 @@ User Function TAMPROJ(cProjeto,cCliente,cLoja,cOrigem,nAgdId)
 	ModelDef()
 	VIEWDEF()
 
+	// CheckFile('ZP9', 'ZP9050')
 //Criando a janela
 	DEFINE MSDIALOG oDlgGrp TITLE "Projetos x Contatos" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
 //Labels gerais
@@ -182,6 +183,7 @@ Return oStruct
 
 USER FUNCTION AddCont(_cProj,_cCli,_cLoj,_cRotina,_cAgId)
 	local cCodContato := ''
+	local aBrwCont := {}
 	Private oBrwCont
 	Private oDlgCont
 	Private CORDEM := ''
@@ -194,7 +196,8 @@ USER FUNCTION AddCont(_cProj,_cCli,_cLoj,_cRotina,_cAgId)
 	// Local oOK := LoadBitmap(GetResources(),'br_verde')
 	// Local oNO := LoadBitmap(GetResources(),'br_vermelho')
 	// Local aList := {}
-	DEFINE DIALOG oDlgCont TITLE "Exemplo TCBrowse" FROM 180,180 TO 550,700 PIXEL
+
+	DEFINE DIALOG oDlgCont TITLE "Contatos ..." FROM 180,180 TO 550,700 PIXEL
 
 	DBSELECTAREA('ZP8')
 	DBSETORDER(1)
@@ -205,24 +208,48 @@ USER FUNCTION AddCont(_cProj,_cCli,_cLoj,_cRotina,_cAgId)
 	ZP8->(MSSEEK(XFILIAL('ZP8')+cSeek))
 	while !ZP8->(eof()) .and. cSeek == ZP8->(ZP8_CODPRO+ZP8_CLIENT)
 		cCodContato += "'" + ZP8->ZP8_CONTID +"',"
+		if cRotina=='AGENDA' // SE A CHAMADA FOR DA AGENDA.
+			AADD(aBrwCont,{ZP8->ZP8_CONTID,posicione('SU5',1,xFilial('SU5')+ZP8->ZP8_CONTID,'U5_CONTAT'),posicione('SU5',1,xFilial('SU5')+ZP8->ZP8_CONTID,'U5_EMAIL')   })
+		endif
 		ZP8->(dbSkip())
 	Enddo
 
 	cCodContato := iif(Empty(cCodContato),'',"("+left(cCodContato,len(cCodContato)-1)+")")
-	// buscar contato para adicionar
-	aBrwCont := BuscCont(cCodContato,cRotina)
-
+	If cRotina=='TAMPROJ'
+		// buscar contato para adicionar
+		aBrwCont := BuscCont(cCodContato,cRotina)
+	endif
 
 	// // Vetor com elementos do Browse
 	if Empty(aBrwCont)
 		aBrwCont := { {'','',''}}
 	endif
+	nTamCod := 30
+	nTamNom := 80
+	nTamEma := 120
 
 	// Cria Browse
-	oBrwCont := TCBrowse():New( 01 , 01, 260, 156,, {'Codigo','Nome','Valor'},{20,50,50,50}, oDlgCont,,,,,{||},,,,,,,.F.,,.T.,,.F.,,, )
+	oBrwCont := TCBrowse():New( 0,0,260,156, , , , oDlgCont )
 
-	// Seta vetor para a browse
+	oBrwCont:AddColumn( ;
+		TCColumn():New( "Codigo", ;
+		{|| If(oBrwCont:nAt>0 .and. oBrwCont:nAt<=Len(aBrwCont), aBrwCont[oBrwCont:nAt,1], "" ) }, ;
+		"@!", , , "LEFT", nTamCod ) )
+
+	oBrwCont:AddColumn( ;
+		TCColumn():New( "Nome", ;
+		{|| If(oBrwCont:nAt>0 .and. oBrwCont:nAt<=Len(aBrwCont), aBrwCont[oBrwCont:nAt,2], "" ) }, ;
+		"@!", , , "LEFT", nTamNom ) )
+
+	oBrwCont:AddColumn( ;
+		TCColumn():New( "Email", ;
+		{|| If(oBrwCont:nAt>0 .and. oBrwCont:nAt<=Len(aBrwCont), aBrwCont[oBrwCont:nAt,3], "" ) }, ;
+		"@!", , , "LEFT", nTamEma ) )
+
+	// Liga o array
 	oBrwCont:SetArray(aBrwCont)
+	oBrwCont:Refresh()
+	oBrwCont:SetFocus()
 
 	// Monta a linha a ser exibina no Browse
 	oBrwCont:bLine := {||{  aBrwCont[oBrwCont:nAt,01],;
@@ -237,6 +264,7 @@ USER FUNCTION AddCont(_cProj,_cCli,_cLoj,_cRotina,_cAgId)
 	cButton := iif(cRotina=='TAMPROJ',"Vincular",'Adicionar')
 	// Cria Botoes com metodos básicos
 	TButton():New( 160, 002, cButton , oDlgCont,{|| /*oBrwCont:GoUp(),*/ Fvincul(oBrwCont:nAt,aBrwCont,cProj,cRotina) },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
+	TButton():New( 160, 052, 'Fechar', oDlgCont,{|| /*oBrwCont:GoUp(),*/ oDlgCont:End() },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
 	// TButton():New( 160, 052, "GoDown()" , oDlgCont,{|| oBrwCont:GoDown(), oBrwCont:setFocus() },40,010,,,.F.,.T.,.F.,,.F.,,,.F. )
 	// TButton():New( 160, 102, "GoTop()" , oDlgCont,{|| oBrwCont:GoTop(),oBrwCont:setFocus()}, 40, 010,,,.F.,.T.,.F.,,.F.,,,.F.)
 	// TButton():New( 160, 152, "GoBottom()", oDlgCont,{|| oBrwCont:GoBottom(),oBrwCont:setFocus() },40,010,,,.F.,.T.,.F.,,.F.,,,.F.)
@@ -259,7 +287,7 @@ Static Function BuscCont(cCodContato,cRotina)
 	cQry += "  SELECT * FROM " + RetSqlName('AC8') + " AC8 (NOLOCK)"
 	cQry += " WHERE D_E_L_E_T_='' AND "
 	cQry += " AC8_CODENT= '"+CCLIENTE+"' "
-	If !Empty(AllTrim(cCodContato)) .and. cRotina=='TAMPROJ'
+	If !Empty(AllTrim(cCodContato)) //.and. cRotina=='TAMPROJ'
 		cQry += " AND AC8_CODCON NOT IN "+cCodContato
 	EndIf
 
@@ -276,10 +304,18 @@ Return aBrw
 
 Static Function Fvincul(nPos,aBrwCont,cProj,cRotina)
 	Local cZp8 := GetNextAlias()
+	local nq := 0
 
 	CGRUPO := '0001'
-
-	CGRUPO := TGRUPO()
+	// CASO SEJA CHAMADA DA AGENDA ITVSA010.PRW
+	if cRotina =='AGENDA'
+		lAchou := iif(aScan(aContatos,{|x| alltrim(x[3]) == alltrim(aBrwCont[nPos,2])})>0,.T.,.F.)
+		if !lAchou // SE O CONTATO NHA ESTIVER ASSOCIADO CHAMA A TELA DO GRUPO.
+			CGRUPO := TGRUPO()
+		endif
+	Else
+		CGRUPO := TGRUPO()
+	endif
 
 	if Empty(aBrwCont[nPos,1])
 		MsgStop('Não exitem contatos para serem vinculados.')
@@ -319,19 +355,40 @@ Static Function Fvincul(nPos,aBrwCont,cProj,cRotina)
 		ZP8->ZP8_NOME 	:= aBrwCont[nPos,2]
 		ZP8->ZP8_EMAIL 	:= aBrwCont[nPos,3]
 		ZP8->(MSUNLOCK())
-		oDlg:END()
-		// chamar a função para atualizar a lista
-		U_AddCont(cProj,cCli,cLoj,cRotina,cAgId)
+
+		// Remove o item vinculado do array
+		ADel(aBrwCont, nPos)
+		ASize(aBrwCont, Len(aBrwCont)-1)
+
+		// Ajusta posição atual
+		oBrwCont:nAt := Min(oBrwCont:nAt, Len(aBrwCont))
+
+		// Atualiza a browse
+		oBrwCont:SetArray(aBrwCont)
+		oBrwCont:Refresh()
+		oBrwCont:SetFocus()
 	Else
 		// ACONTATOS É UMA VARIAVEL PRIVATE VINDO DA ROTINA EXTERNA ITVSA010 CHAMADO NO TBUTTON ALTERAR CONTATOS.
 		if empty(aContatos[1,1])
 			aContatos := {}
 		endif
-		AADD(aContatos,{CORDEM,CGRUPO,AllTRim(aBrwCont[nPos,2]),AllTrim(aBrwCont[NPOS,3])})
+
+		// CASO SEJA CHAMADA DA AGENDA ITVSA010.PRW
+		if !lAchou // se não existe o contato na grid adiciona
+			AADD(aContatos,{CORDEM,CGRUPO,AllTRim(aBrwCont[nPos,2]),AllTrim(aBrwCont[NPOS,3])})
+			CORDEM := '000'
+			for nq := 1 to len(aContatos)
+				CORDEM := SOMA1(CORDEM)
+				aContatos[nq,1] := CORDEM
+			next nq
+		Else
+			FwAlertWarning('O contato ja esta associado a agenda, tente associar outro contato.','Atencao!')
+		EndIF
+
 		ASort(aContatos,,, {|a,b| ;
 			IIf( a[2] == b[2], ;    // Mesmo GRUPO?
-			a[1] < b[1], ;         // Ordena pela ORDEM
-			a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+		a[1] < b[1], ;         // Ordena pela ORDEM
+		a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
 		oContatos:SetArray(aContatos)
 		oContatos:Refresh()
 	endif

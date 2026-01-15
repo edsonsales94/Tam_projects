@@ -37,7 +37,7 @@ User Function HISPED01()
 // Local lAmb := RpcSetEnv('02', '01',,,"FAT")
 	Local aArea := GetArea()
 	Local cPerg       := "RSFATR20"
-    Private oPrintPvt
+	Private oPrintPvt
 	Private dDataGer  := Date()
 	Private cHoraGer  := Time()
 	Private cArquivo  := "HISPED01" + dToS(dDataGer) + "_" + StrTran(cHoraGer, ':', '-')
@@ -56,7 +56,7 @@ User Function HISPED01()
 		oPrintPvt:SetLandscape()
 		oPrintPvt:SetMargin(10, 10, 10, 10)
 
-        Processa({|| fMontaRel()}, "Processando...")
+		Processa({|| fMontaRel()}, "Processando...")
 
 	endif
 	RestArea(aArea)
@@ -113,11 +113,11 @@ Static Function fMontaRel()
             dbSetOrder(1)
             dbSeek(xFilial("SC6")+SC5->C5_NUM)
 
+            _nToTal  := 0
             lRet := .T.
             While !Eof() .And. SC5->(C5_FILIAL+C5_NUM) == SC6->(C6_FILIAL+C6_NUM)
             //Imprime o cabeçalho
                 titulo   := "Pedido de Venda"
-                _nToTal  := 0
                 nTotVal  := 0
                 nTotDesc := 0
                 nTotVal1 := 0
@@ -238,16 +238,37 @@ Static Function fMontaRel()
             oPrintPvt:SayAlign(nLinAtu, COL_CAI-20, Transform(nTotVal-nTotDesc  ,"@E 999,999,999.99") ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
 
             nLinAtu += nTamLin+30
-    
+
+            dbSelectArea('SD2')
+            DbSetOrder(8)
+            cNota := ''
+            cEmissao := ''
+            if MsSeek(xFilial('SC6')+SC6->C6_NUM)
+                cNota    := SD2->D2_DOC
+                cEmissao := DTOC(SD2->D2_EMISSAO)
+            EndIf
+
             oPrintPvt:SayAlign(nLinAtu, COL_GRUPO, "Separado por :" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
             oPrintPvt:SayAlign(nLinAtu, COL_GRUPO+50, "________________________________________" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
             oPrintPvt:SayAlign(nLinAtu, COL_DTFAB, "Nota Fiscal:"        ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
-            oPrintPvt:SayAlign(nLinAtu, COL_DTFAB+50, "________________________________________" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
+            
+            if Empty(cNota)
+                oPrintPvt:SayAlign(nLinAtu, COL_DTFAB+50, "________________________________________" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
+            else
+                oPrintPvt:SayAlign(nLinAtu, COL_DTFAB+50, +"   "+cNota ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
+            endif
+            
             nLinAtu += nTamLin+10
             oPrintPvt:SayAlign(nLinAtu, COL_GRUPO, "Conferido por:" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
             oPrintPvt:SayAlign(nLinAtu, COL_GRUPO+50, "________________________________________" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
             oPrintPvt:SayAlign(nLinAtu, COL_DTFAB, "Data:" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
-            oPrintPvt:SayAlign(nLinAtu, COL_DTFAB+50, "_____/_____/_______" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
+            
+            if Empty(cEmissao)
+                oPrintPvt:SayAlign(nLinAtu, COL_DTFAB+50, "_____/_____/_______" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
+            else
+                oPrintPvt:SayAlign(nLinAtu, COL_DTFAB+50, cEmissao ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
+            endif
+
             nLinAtu += nTamLin+10
             oPrintPvt:SayAlign(nLinAtu, COL_GRUPO, "Responsável  :" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)
             oPrintPvt:SayAlign(nLinAtu, COL_GRUPO+50, "________________________________________" ,oFontDet, 00300, nTamLin, COR_PRETO, PAD_LEFT, 0)

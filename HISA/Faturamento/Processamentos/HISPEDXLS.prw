@@ -172,18 +172,18 @@ User Function HISPEDXLS(_aProduto)
 
 	//QUANTIDADE X PESO
 	//ICE COLD SPRAY
-	aadd(aQuant ,{"61222",60,"7,521 kg G"})
-	//AIR SALONPAS
-	aadd(aQuant ,{"45100",10,"2,00 kg G"})
-	aadd(aQuant ,{"45100",20,"3,00 kg G"})
-	aadd(aQuant ,{"45100",30,"4,00 kg G"})
-	aadd(aQuant ,{"45100",40,"5,00 kg G"})
-	aadd(aQuant ,{"45100",50,"6,00 kg G"})
-	aadd(aQuant ,{"45100",60,"7,00 kg G"})
-	aadd(aQuant ,{"45100",70,"8,00 kg G"})
-	aadd(aQuant ,{"45100",80,"9,00 kg G"})
-	aadd(aQuant ,{"45100",90,"10,00 kg G"})
-	aadd(aQuant ,{"45100",100,"9,800 kg G"})
+		aadd(aQuant ,{"61222",60,"7,521 kg G"}) // aadd(aQuant ,{"61222",60,"7,521 kg G"})
+		//AIR SALONPAS ////AIR SALONPAS			   aadd(aQuant ,{"61222",60,"7,521 kg G"})
+		aadd(aQuant ,{"45100",10,"1,00 kg G"}) //  aadd(aQuant ,{"45100",10,"2,00 kg G"})
+		aadd(aQuant ,{"45100",20,"2,00 kg G"}) //  aadd(aQuant ,{"45100",20,"3,00 kg G"})
+		aadd(aQuant ,{"45100",30,"3,00 kg G"}) //  aadd(aQuant ,{"45100",30,"4,00 kg G"})
+		aadd(aQuant ,{"45100",40,"4,00 kg G"}) //  aadd(aQuant ,{"45100",40,"5,00 kg G"})
+		aadd(aQuant ,{"45100",50,"5,00 kg G"}) //  aadd(aQuant ,{"45100",50,"6,00 kg G"})
+		aadd(aQuant ,{"45100",60,"6,00 kg G"}) //  aadd(aQuant ,{"45100",60,"7,00 kg G"})
+		aadd(aQuant ,{"45100",70,"7,00 kg G"}) //  aadd(aQuant ,{"45100",70,"8,00 kg G"})
+		aadd(aQuant ,{"45100",80,"8,00 kg G"}) //  aadd(aQuant ,{"45100",80,"9,00 kg G"})
+		aadd(aQuant ,{"45100",90,"9,00 kg G"}) //  aadd(aQuant ,{"45100",90,"10,00 kg G"})
+		aadd(aQuant ,{"45100",100,"9,800 kg G"})// aadd(aQuant ,{"45100",100,"9,800 kg G"})
 
 	//VARIÁVEL
 	nTotqtd := 0
