@@ -9,7 +9,7 @@
 
 
 User Function MCETIQ01()
-	Local aArea := FwGetArea()
+	// Local aArea := FwGetArea()
 	Local aRet := {}
 	Local aPergs := {}
 	Local cProd := ''
@@ -26,14 +26,14 @@ User Function MCETIQ01()
 	aAdd(aPergs, {2, "Impressora",cPrinter, {"ZT410","ZM400"},     122, ".T.", .F.})
 	// aAdd(aPergs, {2, "Modelo",cModelo,  {"2 QR CODE","1 QR CODE"},     122, ".T.", .F.})
 
-	If !ParamBox(aPergs ,"Etiquetas ...",@aRet)
+	If !ParamBox(aPergs ,"Etiquetas ...",@aRet,,,,,,,,.F.,.T.)
 		Return
 	Else
 		Processa( {|| xfImpPA() }, "Aguarde...","Imprimindo...",.F.)
 	Endif
 
 
-	FwRestArea(aArea)
+	// FwRestArea(aArea)
 
 Return
 
@@ -47,7 +47,7 @@ Static Function xfImpPA()
 	Local cFile   :=""
 	Local cLabel  := ""
 	Local cPrinterPath:= "" //compartilhamento da impressora na rede
-	Local cSeq := SB1->B1_SEQ //GETMV('MV_SEQETQ')
+	Local cSeq := SB1->B1_SEQ 
 	Local cNomePC := ComputerName()
 	Local cDirLocal := "C:\TEMP\"
 	Local cAno := GETMV('MV_ANOETQ')

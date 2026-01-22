@@ -65,20 +65,25 @@ WSMETHOD GET CODETI WSRECEIVE CODETI WSSERVICE wsEtiquetas
 			jResponse['solution'] := 'Código ID não encontrado na tabela ' + cAliasWS
 		Else
 			//Define o retorno
-			jResponse['etiqueta'] := (cAliasWS)->CB0_CODETI
-			jResponse['dtnasc'] := (cAliasWS)->CB0_DTNASC
-			jResponse['tipo'] := (cAliasWS)->CB0_TIPO
-			jResponse['produto'] := (cAliasWS)->CB0_CODPRO
-			jResponse['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
-			jResponse['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
-			jResponse['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
-			jResponse['qtd'] := (cAliasWS)->CB0_QTDE
-			jResponse['local'] := (cAliasWS)->CB0_LOCAL
-			jResponse['ender'] := (cAliasWS)->CB0_LOCALI
-			jResponse['valid'] := (cAliasWS)->CB0_DTVLD
-			jResponse['etiq2'] := (cAliasWS)->CB0_CODETI2
-			jResponse['fornec'] := (cAliasWS)->CB0_FORNEC
-			jResponse['lojafor'] := (cAliasWS)->CB0_LOJAFO
+			jResponse['etiqueta'] 	:= (cAliasWS)->CB0_CODETI
+			jResponse['dtnasc'] 	:= (cAliasWS)->CB0_DTNASC
+			jResponse['tipo'] 		:= (cAliasWS)->CB0_TIPO
+			jResponse['produto'] 	:= (cAliasWS)->CB0_CODPRO
+			jResponse['descprod'] 	:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
+			jResponse['um'] 		:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
+			jResponse['op'] 		:= (cAliasWS)->CB0_OP
+			jResponse['grupo'] 		:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
+			jResponse['qtd'] 		:= (cAliasWS)->CB0_QTDE
+			jResponse['local'] 		:= (cAliasWS)->CB0_LOCAL
+			jResponse['ender'] 		:= (cAliasWS)->CB0_LOCALI
+			jResponse['valid'] 		:= (cAliasWS)->CB0_DTVLD
+			jResponse['etiq2'] 		:= (cAliasWS)->CB0_CODETI2
+			jResponse['fornec'] 	:= (cAliasWS)->CB0_FORNEC
+			jResponse['lojafor'] 	:= (cAliasWS)->CB0_LOJAFO
+			jResponse['pedven'] 	:= (cAliasWS)->CB0_PEDVEN
+			jResponse['itempv'] 	:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV')
+			jResponse['cliente'] 	:= (cAliasWS)->CB0_CLI
+			jResponse['lojacli'] 	:= (cAliasWS)->CB0_LOJACL
 		EndIf
 	EndIf
 
@@ -208,6 +213,9 @@ WSMETHOD GET ETIQ_ALL WSRECEIVE limit, page WSSERVICE wsEtiquetas
 			oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
 			oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
 			oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
+			oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
+			oRegistro['cliente'] := (cAliasWS)->CB0_CLI
+			oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
 
 			aAdd(jResponse['objects'], oRegistro)
 
@@ -242,15 +250,15 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 	cQueryTab += "     " + RetSQLName(cAliasWS) + " TAB2 " + CRLF
 	cQueryTab += " WHERE " + CRLF
 	cQueryTab += "     TAB2.D_E_L_E_T_ = '' " + CRLF
- ///&DTFIM=20180218
+	///&DTFIM=20180218
 	If !Empty(::DTINICIO) .And. !Empty(::DTFIM) // SE PREECHER AS DUAS FAZ O BETEWEEN PRA PEGAR O RANGER
 		cQueryTab += "   AND TAB2.CB0_DTNASC BETWEEN '" + ::DTINICIO + "' AND '" + ::DTFIM + "'" + CRLF
 	ElseIf !Empty(::DTINICIO) // SE NÃO VERIFICA SE FOI INFORMADO DATA DE.
 		cQueryTab += "   AND TAB2.CB0_DTNASC = '" + ::DTINICIO + "'" + CRLF
 	ElseIf !Empty(::DTFIM)  // SE NÃO VERIFICA SE FOI INFORMADO DATA ATE.
 		cQueryTab += "   AND TAB2.CB0_DTNASC = '" + ::DTFIM + "'" + CRLF
-    else
-        // como o parametro não foi informado, forço a query com uma data futura pra não trazer nada.
+	else
+		// como o parametro não foi informado, forço a query com uma data futura pra não trazer nada.
 		cQueryTab += "   AND TAB2.CB0_DTNASC = '" + dtos(date()+365) + "'" + CRLF
 	EndIf
 
@@ -262,7 +270,7 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 	If QRYDATA->(EoF())
 		//SetRestFault(500, 'Falha ao consultar registros') //caso queira usar esse comando, você não poderá usar outros retornos, como os abaixo
 		Self:setStatus(500)
-        cError := iif(Empty(::DTINICIO) .And. Empty(::DTFIM),'Os parametros DTINICIO/DTFIM, nao foram informados','Registro(s) nao encontrado(s)')
+		cError := iif(Empty(::DTINICIO) .And. Empty(::DTFIM),'Os parametros DTINICIO/DTFIM, nao foram informados','Registro(s) nao encontrado(s)')
 		jResponse['errorId']  := 'DTINICIO/DTFIM'
 		jResponse['error']    := cError
 		jResponse['solution'] := 'A consulta de registros nao retornou nenhuma informacao'
@@ -334,6 +342,9 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 			oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
 			oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
 			oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
+			oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
+			oRegistro['cliente'] := (cAliasWS)->CB0_CLI
+			oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
 
 			aAdd(jResponse['objects'], oRegistro)
 

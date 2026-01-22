@@ -25,7 +25,7 @@ Transferencia de materiais almoxarifado
 
 User Function TRANSF()
 
-	Local lAmb := RPCSetEnv('01','01')
+	// Local lAmb := RPCSetEnv('01','01')
 	Local aRotAuto := {}
 	Local _aItem := {}
 	Local _atotitem:={}
@@ -57,15 +57,8 @@ Return
 //------------------------------------------------------------------------------------------------------------------
 Static Function ModGbj(cTitulo,cAlias1,cAlias2,aMyEncho,cLinOk,cTudoOk,nOpcE,nOpcG,cFieldOk,lVirtual,nLinhas,aAltEnchoice,lBaixa)
 
-	Local cSaveMenuh,nReg:=(cAlias1)->(Recno()),aButtons
-	Local oDlgA
-	Local oGetProd, oGetQtd
-	Local cProd     := Space(15)
-	Local cDescPro  := Space(60)
-	Local nQtd      := 0
-	Local cLote     := ""
-	Local nOpca     := 0
-	Local lRet      := .F.
+	Local lRet, nOpca := 0,cSaveMenuh,nReg:=(cAlias1)->(Recno()),aButtons
+	Local oFontGbj
 
 	Private Altera:=.t.,Inclui:=.t.,lRefresh:=.t.,aTELA:=Array(0,0),aGets:=Array(0),;
 		bCampo:={|nCPO|Field(nCPO)},nPosAnt:=9999,nColAnt:=9999
@@ -89,52 +82,45 @@ Static Function ModGbj(cTitulo,cAlias1,cAlias2,aMyEncho,cLinOk,cTudoOk,nOpcE,nOp
 		cDescPro := Space(01)
 		cLocal   := "01"
 
+		// DEFINE MSDIALOG oDlg TITLE cTitulo FROM 000, 000  TO 200, 800 OF oMainWnd COLORS 0, 16777215 PIXEL
+			// oSay:= TSay():Create(oDlg,{||'Produto'},040,10,,oFont,,,,.T.,CLR_RED,CLR_WHITE,060,20)
+			// oGet1 := TGet():New( 040, 060, { | u | If( PCount() == 0, cProduto, cProduto := u ) },oDlg, 0040, 010,  "!@" ,{|| VldPro() }, 0, 16777215,,.F.,,.T.,,.F.,,.F.,.F.,,.F./*edite*/,.F. ,,"cProduto",,,,/*lHasButton*/.F.  )
+			// oGet2 := TGet():New( 040, 0120, { | u | If( PCount() == 0, cDescPro, cDescPro := u ) },oDlg, 0250, 010, "!@" ,              , 0, 16777215,,.F.,,.T.,,.F.,,.F.,.F.,,.T./*edite*/,.F. ,,"cGet3",,,,/*lHa2Button*/.F.  )
+			// oSay:= TSay():Create(oDlg,{||'Quantidade'},060,10,,oFont,,,,.T.,CLR_RED,CLR_WHITE,0100,20)
+			// oGet3 := TGet():New( 060, 060, { | u | If( PCount() == 0, nQtd, nQtd := u ) },oDlg, 0100, 010, "@E 999.99"   ,              , 0, 16777215,,.F.,,.T.,,.F.,,.F.,.F.,,.F./*edite*/,.F. ,,"nQtd",,,,/*lHasButton*/.T.  )
 
-		DEFINE MSDIALOG oDlgA TITLE cTitulo ;
-			FROM 9,0 TO 25,100 OF oMainWnd
+			// OSAY:= TSAY():NEW(018,140,{||"TRANSFERENCIA ALMOXARIFADO"},oDlg,,OFONT2,,,,.T.,CLR_BLUE,CLR_WHITE,300,10)
+			// ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg,{||nOpca:=1,If(.T.,nOpca:=1,nOpca := 0),oDlg:End()},{||nOpca := 0,oDlg:End()},,aButtons) Centered
 
-		@ 45,10 SAY "Produto"
+		DEFINE MSDIALOG oDlgA TITLE cTitulo From 9,0 to 25,100  of oMainWnd
 
-		oGetProd := TGet():New( 45,50,{|u| If(PCount()>0, cProd := u, cProd)},oDlgA, 50,10, "@!",,0,,,.T.,,.T. )
+		@ 45,10 Say "Produto"
+		@ 45,50 Get cProd F3 "SB1" Size 50,10 Valid VldPro() When .T.
+		//  @ 45,130 Get cProduto Size 50,10 When .F.
+		@ 45,110 Get cDescPro Size 200,10 When .F.
+		@ 75,010 Say "Quantidade"
+		@ 75,050 Get nQtd  Picture "@E 999,999.99999"  Size 70,10 When .T.
 
-		oGetProd:bValid := {|| VldPro(@cProd, @cDescPro, oGetQtd)}
-		oGetProd:cF3 := 'SB1'
+		// @ 75,110 Say "Lote"
+		// @ 75,130 Get cLote Size 70,10 When .t.
 
-		@ 45,110 GET cDescPro SIZE 200,10 WHEN .F.
+		OSAY:= TSAY():NEW(018,140,{||"TRANSFERENCIA ALMOXARIFADO"},ODLGA,,OFONT2,,,,.T.,CLR_BLUE,CLR_WHITE,300,10)
+		ACTIVATE MSDIALOG oDlgA ON INIT EnchoiceBar(oDlgA,{||nOpca:=1,If(.T.,nOpca:=1,nOpca := 0),oDlgA:End()},{||nOpca := 0,oDlgA:End()},,aButtons) Centered
 
-		@ 75,010 SAY "Quantidade"
+		lRet:=(nOpca==1)
+		if nOpca == 1
+			GERA_TRANS(cProd,cLote,nQtd)
+		else
 
-		oGetQtd := TGet():New( 75,50,;
-			{|u| If(PCount()>0, nQtd := u, nQtd)},;
-			oDlgA, 70,10, "@E 999,999.99999",,0,,,.T.,,.T. )
+		endif
 
-		TSay():New( 018,140,{|| "TRANSFERENCIA ALMOXARIFADO"},;
-			oDlgA,,oFont2,,,,.T.,CLR_BLUE,CLR_WHITE,300,10 )
-
-		ACTIVATE MSDIALOG oDlgA ;
-			ON INIT EnchoiceBar( oDlgA,;
-			{|| nOpca := 1, oDlgA:End()},;
-			{|| nOpca := 0, oDlgA:End()},, aButtons ) ;
-			CENTERED
-
-		lRet := ( nOpca == 1 )
-
-		If lRet
-			// GERA_TRANS( cProd, cLote, nQtd )
-		EndIf
-	Enddo
+	End
 
 Return lRet
 
-
-Static Function VldPro( cProd, cDescPro, oGetQtd )
+Static Function VldPro()
 
 	lRet := .T.
-
-	If Empty(cProd)
-		MsgStop("Informe o produto")
-		Return .F.
-	EndIf
 
 	dbSelectArea("SB1")
 	dbSetOrder(01)
@@ -148,8 +134,6 @@ Static Function VldPro( cProd, cDescPro, oGetQtd )
 		cDescPro := SB1->B1_DESC
 		cLocal   := SB1->B1_LOCPAD
 
-		//  APÓS BIPAR ? FOCO NA QUANTIDADE
-		oGetQtd:SetFocus()
 	Else
 
 		lRet := .F.
@@ -193,7 +177,5 @@ Static Function GERA_TRANS(cProd,cLote,nQtd)
 	EndIf
 
 Return(!lMsErroAuto)
-
-
 
 

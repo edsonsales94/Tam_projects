@@ -76,7 +76,9 @@ Static Function EtqPel01c(cSeq)
 	// Local cCodBarExp
 	// Local  cSeqB1
 	Local nX
-	Local cMaxCOD,_cCodBar,cOPE
+	Local cMaxCOD
+	// Local _cCodBar
+	Local cOPE
 	Local nAtual := 0
     Local nTotal := 0
 	// Local cLinha   := Array(16)

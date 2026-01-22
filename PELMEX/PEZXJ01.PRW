@@ -1,180 +1,191 @@
+/*---------------------------------------------------------------------------*
+ | Data       : 18/12/2023                                                   |
+ | Rotina     : PEZXJ01                                                      |
+ | Responsável: Edson Pedro                                                  |
+ | Descrição  : Rotina de Cadastro de Ordem de Serviço Amazonaves            |
+ *---------------------------------------------------------------------------*/
+
 //Bibliotecas
 #Include 'Protheus.ch'
 #Include 'FWMVCDef.ch'
+#Include "Protheus.ch"
 
-//Variáveis Estáticas
-Static cTitulo := "Monitor Ordens de Produção"
-
+Static cTitulo := "Monitor Integracao RFID x PROTHEUS"
+ 
 /*/{Protheus.doc} PEZXJ01
-Função para cadastros de Monitor Ordens de Produção
-@author Edson
-@since 31/12/2025
-@version 1.0
-    @return Nil, Função não tem retorno
-    @example
-    u_PEZXJ01()
-    @obs Os campos chave usado entre cabeçalho e grid são: ZXJ_NUM (Código Sequencial), ZXJ_DOCAPO (Nota Fiscal), ZXJ_OP (Valor)
 /*/
-
+ 
 User Function PEZXJ01()
-	Local aArea   := GetArea()
-	Local oBrowse
-
-	//Cria um browse para a ZXJ
-    // Garante o índice correto
-	DbSelectArea("ZXJ")
-	DbSetOrder(1)
+    Local aArea   := GetArea()
+    Local oBrowse
+    Local cFunBkp := FunName()
      
-	oBrowse := FWMBrowse():New()
-	oBrowse:SetAlias("ZXJ")
-	oBrowse:SetDescription(cTitulo)
-	oBrowse:AddLegend( "ZXJ_STATUS=='1'", "GREEN"   , "Aguard. Apontamento" )
-	oBrowse:AddLegend( "ZXJ_STATUS=='2'", "RED"     , "Apontado" )
-	oBrowse:AddLegend( "ZXJ_STATUS=='3'", "BLUE"    , "Encerrada" )
-
-	oBrowse:Activate()
-
-	RestArea(aArea)
+    SetFunName("PEZXJ01")
+     
+    //Instânciando FWMBrowse - Somente com dicionário de dados
+    oBrowse := FWMBrowse():New()
+     
+    //Setando a tabela de Cadastro de Ordem de Serviços Amazonaves
+    oBrowse:SetAlias("ZZJ")
+ 
+    //Setando a descrição da rotina
+    oBrowse:SetDescription(cTitulo)
+     
+    //Legendas
+    oBrowse:AddLegend( "ZZJ->Z4_XSTATUS == 'A'", "GREEN",  "Em Aberto" )
+    oBrowse:AddLegend( "ZZJ->Z4_XSTATUS == 'E'", "RED",    "Fechado" )
+    oBrowse:AddLegend( "ZZJ->Z4_XSTATUS == 'P'", "BLUE",    "Fechado" )
+     
+    //Filtrando
+    //oBrowse:SetFilterDefault("ZZJ->ZZJ_COD >= '000000' .And. ZZJ->ZZJ_COD <= 'ZZZZZZ'")
+     
+    //Ativa a Browse
+    oBrowse:Activate()
+     
+    SetFunName(cFunBkp)
+    RestArea(aArea)
 Return Nil
-
+ 
+/*---------------------------------------------------------------------*
+ | Func:  MenuDef                                                      |
+ | Autor: eDSON SALES                                                  |
+ | Data:  31/07/2016                                                   |
+ | Desc:  Criação do menu MVC                                          |
+ *---------------------------------------------------------------------*/
+ 
 Static Function MenuDef()
-	Local aRot := {}
-
-	//Adicionando opções
-	ADD OPTION aRot TITLE 'Visualizar' ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 1
-	ADD OPTION aRot TITLE 'Incluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
-	// ADD OPTION aRot TITLE 'Alterar'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_UPDATE ACCESS 0 //OPERATION 4
+    Local aRot := {}
+     
+    //Adicionando opções
+    ADD OPTION aRot TITLE 'Visualizar' ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 1
     ADD OPTION aRot TITLE 'Legenda'    ACTION 'u_xLegend'       OPERATION 6                      ACCESS 0 //OPERATION X
-	ADD OPTION aRot TITLE 'Excluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_DELETE ACCESS 0 //OPERATION 5
+    ADD OPTION aRot TITLE 'Incluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
+    ADD OPTION aRot TITLE 'Alterar'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_UPDATE ACCESS 0 //OPERATION 4
+    ADD OPTION aRot TITLE 'Excluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_DELETE ACCESS 0 //OPERATION 5
+ 
 Return aRot
-
+ 
+/*---------------------------------------------------------------------*
+ | Func:  ModelDef                                                     |
+ | Autor: Daniel Atilio                                                |
+ | Data:  31/07/2016                                                   |
+ | Desc:  Criação do modelo de dados MVC                               |
+ *---------------------------------------------------------------------*/
+ 
 Static Function ModelDef()
-	//Na montagem da estrutura do Modelo de dados, o cabeçalho filtrará e exibirá somente 3 campos, já a grid irá carregar a estrutura inteira conforme função fModStruct
-	Local oModel      := NIL
-	Local oStruCab     := FWFormStruct(1, 'ZXJ', {|cCampo| AllTRim(cCampo) $ "ZXJ_OP;"})
-	Local oStruGrid := fModStruct()
+    //Criação do objeto do modelo de dados
+    Local oModel := Nil
+     
+    //Criação da estrutura de dados utilizada na interface
+    Local oStZZJ := FWFormStruct(1, "ZZJ")
+     
+    //Editando características do dicionário
+    // oStZZJ:SetProperty('ZZJ_COD',   MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.F.'))                                 //Modo de Edição
+    // oStZZJ:SetProperty('ZZJ_COD',   MODEL_FIELD_INIT,    FwBuildFeature(STRUCT_FEATURE_INIPAD,  'GetSXENum("ZZJ", "ZZJ_COD")'))         //Ini Padrão
+    // oStZZJ:SetProperty('ZZJ_DESC',  MODEL_FIELD_VALID,   FwBuildFeature(STRUCT_FEATURE_VALID,   'Iif(Empty(M->ZZJ_DESC), .F., .T.)'))   //Validação de Campo
+    // oStZZJ:SetProperty('ZZJ_DESC',  MODEL_FIELD_OBRIGAT, Iif(RetCodUsr()!='000000', .T., .F.) )                                         //Campo Obrigatório
+     
+    //Instanciando o modelo, não é recomendado colocar nome da user function (por causa do u_), respeitando 10 caracteres
+    oModel := MPFormModel():New("PEZXJ01M",, /*bPos*/,/*bCommit*/,/*bCancel*/) 
+     
+    //Atribuindo formulários para o modelo
+    oModel:AddFields("FORMZZJ",/*cOwner*/,oStZZJ)
+     
+    //Setando a chave primária da rotina
+    oModel:SetPrimaryKey({'Z4_FILIAL','Z4_COD'})
+     
+    //Adicionando descrição ao modelo
+    oModel:SetDescription("Modelo de Dados do Cadastro "+cTitulo)
 
-	//Monta o modelo de dados, e na Pós Validação, informa a função fValidGrid
-	oModel := MPFormModel():New('PEZXJ01M', {|oModel| fValidGrid(oModel,1)}, {|oModel| fValidGrid(oModel,2)}, {|oModel| fValidGrid(oModel,3)}/*bCommit*/, /*bCancel*/ )
-
-	//Agora, define no modelo de dados, que terá um Cabeçalho e uma Grid apontando para estruturas acima
-	oModel:AddFields('MdFieldZXJ', NIL, oStruCab)
-	oModel:AddGrid('MdGridZXJ', 'MdFieldZXJ', oStruGrid, , )
-
-	//Monta o relacionamento entre Grid e Cabeçalho, as expressões da Esquerda representam o campo da Grid e da direita do Cabeçalho
-	oModel:SetRelation('MdGridZXJ', {;
-		{'ZXJ_FILIAL', 'xFilial("ZXJ")'},;
-		{"ZXJ_OP",  "ZXJ_OP"};
-		}, ZXJ->(IndexKey(1)))
-
-	//Definindo outras informações do Modelo e da Grid
-	oModel:GetModel("MdGridZXJ"):SetMaxLine(9999)
-	oModel:SetDescription("Atualização Controle de Combustível")
-	oModel:SetPrimaryKey({"ZXJ_FILIAL","ZXJ_OP"})
+    //Validação para não alterar OS Fechadas
+    // oModel:SetVldActivate({ |oModel| fPreVld(oModel) })
+     
+    //Setando a descrição do formulário
+    oModel:GetModel("FORMZZJ"):SetDescription("Formulário do Cadastro "+cTitulo)
 
 Return oModel
-
+ 
+/*---------------------------------------------------------------------*
+ | Func:  ViewDef                                                      |
+ | Autor: Daniel Atilio                                                |
+ | Data:  31/07/2016                                                   |
+ | Desc:  Criação da visão MVC                                         |
+ *---------------------------------------------------------------------*/
+ 
 Static Function ViewDef()
-	//Na montagem da estrutura da visualização de dados, vamos chamar o modelo criado anteriormente, no cabeçalho vamos mostrar somente 3 campos, e na grid vamos carregar conforme a função fViewStruct
-	Local oView        := NIL
-	Local oModel    := FWLoadModel('PEZXJ01')
-	Local oStruCab  := FWFormStruct(2, "ZXJ", {|cCampo| AllTRim(cCampo) $ "ZXJ_OP;"})
-	Local oStruGRID := fViewStruct()
-
-	//Define que no cabeçalho não terá separação de abas (SXA)
-	oStruCab:SetNoFolder()
-
-	//Cria o View
-	oView:= FWFormView():New()
-	oView:SetModel(oModel)
-
-	//Cria uma área de Field vinculando a estrutura do cabeçalho com MDFieldZXJ, e uma Grid vinculando com MdGridZXJ
-	oView:AddField('VIEW_ZXJ', oStruCab, 'MdFieldZXJ')
-	oView:AddGrid ('GRID_ZXJ', oStruGRID, 'MdGridZXJ' )
-
-	//O cabeçalho (MAIN) terá 25% de tamanho, e o restante de 75% irá para a GRID
-	oView:CreateHorizontalBox("MAIN", 25)
-	oView:CreateHorizontalBox("GRID", 75)
-
-	//Vincula o MAIN com a VIEW_ZXJ e a GRID com a GRID_ZXJ
-	oView:SetOwnerView('VIEW_ZXJ', 'MAIN')
-	oView:SetOwnerView('GRID_ZXJ', 'GRID')
-	oView:EnableControlBar(.T.)
-
-	//Define o campo incremental da grid como o ZXJ_ITEM
-	oView:AddIncrementField('GRID_ZXJ', 'ZXJ_SEQUEN')
+    Local aStruZZJ    := ZZJ->(DbStruct())
+     
+    //Criação do objeto do modelo de dados da Interface do Cadastro de Autor/Interprete
+    Local oModel := FWLoadModel("PEZXJ01")
+     
+    //Criação da estrutura de dados utilizada na interface do cadastro de Autor
+    Local oStZZJ := FWFormStruct(2, "ZZJ")  //pode se usar um terceiro parâmetro para filtrar os campos exibidos { |cCampo| cCampo $ 'SZZJ_NOME|SZZJ_DTAFAL|'}
+     
+    //Criando oView como nulo
+    Local oView := Nil
+ 
+    //Criando a view que será o retorno da função e setando o modelo da rotina
+    oView := FWFormView():New()
+    oView:SetModel(oModel)
+     
+    //Atribuindo formulários para interface
+    oView:AddField("VIEW_ZZJ", oStZZJ, "FORMZZJ")
+     
+    //Criando um container com nome tela com 100%
+    oView:CreateHorizontalBox("TELA",100)
+     
+    //Colocando título do formulário
+    oView:EnableTitleView('VIEW_ZZJ', 'Dados - '+cTitulo )  
+     
+    //Força o fechamento da janela na confirmação
+    oView:SetCloseOnOk({||.T.})
+     
+    //O formulário da interface será colocado dentro do container
+    oView:SetOwnerView("VIEW_ZZJ","TELA")
+     
+    /*
+    //Tratativa para remover campos da visualização
+    For nAtual := 1 To Len(aStruZZJ)
+        cCampoAux := Alltrim(aStruZZJ[nAtual][01])
+         
+        //Se o campo atual não estiver nos que forem considerados
+        If Alltrim(cCampoAux) $ "ZZJ_COD;"
+            oStZZJ:RemoveField(cCampoAux)
+        EndIf
+    Next
+    */
 Return oView
-
-//Função chamada para montar o modelo de dados da Grid
-Static Function fModStruct()
-	Local oStruct
-	oStruct := FWFormStruct(1, 'ZXJ')
-Return oStruct
-
-//Função chamada para montar a visualização de dados da Grid
-Static Function fViewStruct()
-	Local cCampoCom := "ZXJ_OP;"
-	Local oStruct
-
-	//Irá filtrar, e trazer todos os campos, menos os que tiverem na variável cCampoCom
-	oStruct := FWFormStruct(2, "ZXJ", {|cCampo| !(Alltrim(cCampo) $ cCampoCom)})
-Return oStruct
-
-//Função que faz a validação da grid
-Static Function fValidGrid(oModel,NOPC)
-	Local lRet     := .T.
-	Local nDeletados := 0
-	Local nLinAtual :=0
-	Local oModelGRID := oModel:GetModel('MdGridZXJ')
-	Local oModelMain := oModel:GetModel('MdFieldZXJ')
-	Local nValorMain := oModelMain:GetValue("ZXJ_OP")
-	Local nValorGrid := 0
-	Local cPictVlr   := PesqPict('ZXJ', 'ZXJ_OP')
-
-	// if NOPC == 1
-	//     ALERT('PREVALIDAÇÃO')
-	// elseif NOPC==2
-	//     ALERT('POSVALIDAÇÃO')
-	// Else
-	//     ALERT('BCOMIT')
-	// endif
-
-	// //Percorrendo todos os itens da grid
-	// For nLinAtual := 1 To oModelGRID:Length()
-	//     //Posiciona na linha
-	//     oModelGRID:GoLine(nLinAtual)
-
-	//     //Se a linha for excluida, incrementa a variável de deletados, senão irá incrementar o valor digitado em um campo na grid
-	//     If oModelGRID:IsDeleted()
-	//         nDeletados++
-	//     Else
-	//         nValorGrid += NoRound(oModelGRID:GetValue("ZXJ_TCOMB"), 4)
-	//     EndIf
-	// Next nLinAtual
-
-	// //Se o tamanho da Grid for igual ao número de itens deletados, acusa uma falha
-	// If oModelGRID:Length()==nDeletados
-	//     lRet :=.F.
-	//     Help( , , 'Dados Inválidos' , , 'A grid precisa ter pelo menos 1 linha sem ser excluida!', 1, 0, , , , , , {"Inclua uma linha válida!"})
-	// EndIf
-
-	// If lRet
-	//     //Se o valor digitado no cabeçalho (valor da NF), não bater com o valor de todos os Monitor Ordens de Produção digitados (valor dos itens da Grid), irá mostrar uma mensagem alertando, porém irá permitir salvar (do contrário, seria necessário alterar lRet para falso)
-	//     If nValorMain != nValorGrid
-	//         //lRet := .F.
-	//         MsgAlert("O valor do cabeçalho (" + Alltrim(Transform(nValorMain, cPictVlr)) + ") tem que ser igual o valor dos itens (" + Alltrim(Transform(nValorGrid, cPictVlr)) + ")!", "Atenção")
-	//     EndIf
-	// EndIf
-
-Return lRet
-
+ 
+/*/{Protheus.doc} xLegend
+Função para mostrar a legenda
+@author Atilio
+@since 31/07/2016
+@version 1.0
+    @example
+    u_xLegend()
+/*/
+ 
 User Function xLegend()
     Local aLegenda := {}
      
     //Monta as cores
-    AADD(aLegenda,{"BR_VERDE",     "Aguard. Apontamento"   })
-    AADD(aLegenda,{"BR_VERMELHO",  "Apontado"      })
-    AADD(aLegenda,{"BR_AZUL",      "Encerrado"      })
+    AADD(aLegenda,{"BR_VERDE",       "Em Aberto"    })
+    AADD(aLegenda,{"BR_VERMELHO",    "Fechado"      })
+    AADD(aLegenda,{"BR_AZUL"    ,    "Fechado"      })
      
-    BrwLegenda('Monitor Apontamento', "Status", aLegenda)
+    BrwLegenda('Status Apontamento', "Status", aLegenda)
 Return
+
+Static Function fPreVld(oModel)
+Local lRet         := .T.
+Local nOpc        := oModel:GetOperation()  
+
+    If(nOpc == MODEL_OPERATION_UPDATE .and. ZZJ->Z4_XSTATUS == '2')
+
+        lRet := .F.
+
+        Help(,,'O.S Fechada','Não é permitida a alteração de O.S Fechada',,1,0,,,,,,{'Não Altera'})
+
+    EndIf
+
+Return(lRet)

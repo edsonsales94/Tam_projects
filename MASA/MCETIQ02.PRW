@@ -17,7 +17,7 @@ Etiqueta
 */
 
 User Function MCETIQ02()
-	Local aArea := FwGetArea()
+	// Local aArea := FwGetArea()
 	Local aReturn := {}
 	Local aParambox := {}
 	Local cPrinter := ''
@@ -43,7 +43,7 @@ User Function MCETIQ02()
 		Processa( {|| xfImpPA() }, "Aguarde...","Imprimindo...",.F.)
 	Endif
 
-	FwRestArea(aArea)
+	// FwRestArea(aArea)
 
 Return
 
@@ -61,6 +61,7 @@ Static Function xfImpPA()
 	local cAliasSZA := GETNEXTALIAS()
 	local aDadosBRW := {}
 	local aForn := {}
+	Local cPrinter := ALLTRIM(MV_PAR04)
 
 	cAlias    := "SZA"
 	cArquivo  := RETSQLNAME('SZA')
@@ -174,7 +175,7 @@ Static Function xfImpPA()
 	ProcRegua(val(MV_PAR02))
 	for nX := 1 to val(MV_PAR02)
 		// nWait:= WaitRun(cExec,1)
-		impriRaw(cLabel,cPrinter,cSeq)  
+		impriRaw(cLabel,cPrinter)  
 		*
 	Next
 	// if nWait == 0
@@ -321,7 +322,7 @@ Return
 
 
 // Exemplo de impressão RAW usando FWMSPrinter
-Static Function impriRaw(cZPL,cPrinter,cSeq)
+Static Function impriRaw(cZPL,cPrinter)
 
 	Local oPrinter   := Nil
 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
@@ -342,5 +343,4 @@ Static Function impriRaw(cZPL,cPrinter,cSeq)
 
 	oPrinter:Print()
 
-	PUTMV("MV_SEQETQ",cSeq)
 Return

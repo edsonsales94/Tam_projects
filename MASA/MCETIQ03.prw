@@ -9,7 +9,7 @@
 
 
 User Function MCETIQ03()
-	Local aArea := FwGetArea()
+	// Local aArea := FwGetArea()
 	Local aRet := {}
 	Local aPergs := {}
 	Local cProd := ''
@@ -21,19 +21,19 @@ User Function MCETIQ03()
 	Aadd(aPergs,{1,"Produto: ",cProd,"@!","u_tValProd()",'SB1',".T.",120,.T.})
 	aAdd(aPergs,{1,"Qtd etiqueta: " ,Space(4),"","","","",0 ,.F.})
 	// aAdd(aPergs,{1,"Ano: " ,space(1),"","","","",0 ,.F.})
-	aAdd(aPergs,{1,"Densidade: " ,'12',"","","","",0 ,.F.})
+	aAdd(aPergs,{1,"Densidade: " ,'22',"","","","",0 ,.F.})
 	// aAdd(aPergs,{1,"Impressora: " ,space(10),"","","","",0 ,.F.})
 	aAdd(aPergs, {2, "Impressora",cPrinter, {"ZT410","ZM400"},     122, ".T.", .F.})
 	// aAdd(aPergs, {2, "Modelo",cModelo,  {"2 QR CODE","1 QR CODE"},     122, ".T.", .F.})
 
-	If !ParamBox(aPergs ,"Etiquetas ...",@aRet)
+	If !ParamBox(aPergs ,"Etiquetas ...",@aRet,,,,,,,,.F.,.T.)
 		Return
 	Else
 		Processa( {|| xfImpPA() }, "Aguarde...","Imprimindo...",.F.)
 	Endif
 
 
-	FwRestArea(aArea)
+	// FwRestArea(aArea)
 
 Return
 
@@ -49,7 +49,7 @@ Static Function xfImpPA()
 	Local cFile   :=""
 	Local cLabel  := ""
 	Local cPrinterPath:= "" //compartilhamento da impressora na rede
-	Local cSeq := SB1->B1_SEQ //GETMV('MV_SEQETQ')
+	Local cSeq := SB1->B1_SEQ
 	Local cNomePC := ComputerName()
 	Local cDirLocal := "C:\TEMP\"
 	Local cAno := GETMV('MV_ANOETQ')
@@ -204,35 +204,61 @@ Static Function xfImpPA()
 			// cLabel+= (" ^XZ ")
 		endif                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ÿÿ    
 
-		cPrinterPath:= "\\"+cNomePC+"\ZEBRA"
+		// cPrinterPath:= "\\"+cNomePC+"\ZEBRA"
 
-		cFile:= "etq_"+strtran('etiqueta_1QR'+"-"+cvaltochar(nx),"/","-")+".txt"
-		MemoWrite(cDir+cFile,cLabel )
+		// cFile:= "etq_"+strtran('etiqueta_1QR'+"-"+cvaltochar(nx),"/","-")+".txt"
+		// MemoWrite(cDir+cFile,cLabel )
 
-		// se não existir o diretorio cria
-		if !file(cDirLocal)
-			MakeDir(cDirLocal)
-		endif
+		// // se não existir o diretorio cria
+		// if !file(cDirLocal)
+		// 	MakeDir(cDirLocal)
+		// endif
 
-		// se não existir o diretorio cria
-		if !ExistDIr(cDir)
-			MakeDir(cDir)
-		endif
+		// // se não existir o diretorio cria
+		// if !ExistDIr(cDir)
+		// 	MakeDir(cDir)
+		// endif
 
-		CpyS2T(cDir+cFile, cDirLocal, .T. )
-		cExec:= 'cmd /c "COPY '+cDirLocal+cFile +' '+ cPrinterPath+'" '
-		nWait:= WaitRun(cExec,1)
-		if nWait == 0
-			// PUTMV("MV_SEQETQ",cSeq)
-			RECLOCK('SB1',.F.)
-			SB1->B1_SEQ := cSeq
-			SB1->(MSUNLOCK())
-			fErase(cDirLocal+cFile)
-			fErase(cDir+cFile)
-		endif
+		// CpyS2T(cDir+cFile, cDirLocal, .T. )
+		// cExec:= 'cmd /c "COPY '+cDirLocal+cFile +' '+ cPrinterPath+'" '
+		// nWait:= WaitRun(cExec,1)
+		// if nWait == 0
+
+		impriRaw(cLabel,cPrinter)
+		
+		RECLOCK('SB1',.F.)
+		SB1->B1_SEQ := cSeq
+		SB1->(MSUNLOCK())
+		// 	fErase(cDirLocal+cFile)
+		// 	fErase(cDir+cFile)
+		// endif
 	Next
 	// Encerra local de impressao
 	// MSCBCLOSEPRINTER()
+Return
+
+	// Exemplo de impressão RAW usando FWMSPrinter
+Static Function impriRaw(cZPL,cPrinter)
+
+	Local oPrinter   := Nil
+	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+	Local oPrintSetupParam := Nil
+	Local lAdjustToLegacy   := .F.
+	Local lDisableSetup     := .T.
+	// Local oPrinter
+	Local cLocal            := "c:\temp"
+	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
+	Local aDevice           := {}
+	Local cSession          := GetPrinterSession()
+
+	// Criar objeto FWMSPrinter em modo RAW
+	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+
+	// Aqui é só usar SAY, que em RAW escreve direto
+	oPrinter:Say(0, 0, cZPL)
+
+	oPrinter:Print()
+
 Return
 
 
