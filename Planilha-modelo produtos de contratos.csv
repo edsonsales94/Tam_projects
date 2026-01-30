@@ -1,0 +1,6 @@
+﻿LAYOUT  - Observação  (***Todas as colunas dessa talela são obrigatorias, não é permtido colunas vazias,  na ausencia de alguma informação preecher com N/A, não antere no nome das colunas ***);;;;;;;;;;;;;;;;;;;
+B1_COD;B1_GRUPO;B1_DESC;B1_TIPO;B1_UM;B1_LOCPAD;B1_POSIPI;B1_ORIGEM;B1_CODISS;B1_IRRF;B1_INSS;B1_REDINSS;B1_PIS;B1_COFINS;B1_CSLL;B1_TRIBMUN;B1_APROPRI;B1_RASTRO;B1_LOCALIZ;B1_CC
+N/A;1000;teste de importação 1  alterar;SV;UN;1;0;0;709;S;S;N/A;S;S;S;07.09;D;N;N;1238
+N/A;1000;teste de importação 2 altera;SV;UN;1;0;0;709;S;S;N/A;S;S;S;07.09;D;N;N;1238
+N/A;1000;teste de importação 3 alterar;SV;UN;1;0;0;709;S;S;N/A;S;S;S;07.09;D;N;N;1238
+N/A;1000;teste de importação 4  alterar;SV;UN;1;0;0;709;S;S;N/A;S;S;S;07.09;D;N;N;1238

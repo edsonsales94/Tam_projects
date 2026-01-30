@@ -539,13 +539,17 @@ Static Function telaAgenda(cOper)
 			ZP9->(DbSkip())
 		EndDo
 
-		ASort(aContatos,,, {|a,b| ;
-			IIf( a[2] == b[2], ;    // Mesmo GRUPO?
-		a[1] < b[1], ;         // Ordena pela ORDEM
-		a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
+		// ASort(aContatos,,, {|a,b| ;
+		// 	IIf( a[2] == b[2], ;    // Mesmo GRUPO?
+		// a[1] < b[1], ;         // Ordena pela ORDEM
+		// a[2] < b[2] ) })       // Senão, ordena pelo GRUPO
 
-		oContatos:SetArray(aContatos)
-		oContatos:Refresh()
+		// é um objeto
+		// If ValType( oContatos ) == "O"
+		// 	oContatos:SetArray(aContatos)
+		// 	oContatos:Refresh()
+		// EndIf
+
 	EndIf
 
 	DEFINE MSDIALOG oDlg TITLE cTitulo  From 5,15 To 40,135 OF oMainWnd

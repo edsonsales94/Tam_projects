@@ -61,7 +61,7 @@ Static Function EtqPel01b
 
 	//cQry := "SELECT SC2.C2_NUM+SC2.C2_ITEM+SC2.C2_SEQUEN AS C2_OP,C2_XNOME, SC2.C2_PRODUTO, SC2.C2_EMISSAO,SB1.B1_DESC, SB1.B1_COD,SB1.B1_CODBAR, SB1.B1_CHASSIS,SB1.B1_COR, CASE WHEN SB1.B1_XJUNCAO = 'S' THEN SC2.C2_QUANT*2 ELSE SC2.C2_QUANT END C2_QUANT, SC2.C2_YSLDIMP,SB1.B1_X_DTOP,SB1.B1_XENROLL,"
 	cQry := "SELECT SC2.C2_NUM+SC2.C2_ITEM+SC2.C2_SEQUEN AS C2_OP,C2_XNOME, SC2.C2_PRODUTO, SC2.C2_EMISSAO,SB1.B1_DESC, SB1.B1_COD,SB1.B1_CODBAR, SB1.B1_CHASSIS,SB1.B1_COR, SC2.C2_QUANT, SC2.C2_YSLDIMP,SB1.B1_X_DTOP,SB1.B1_XENROLL,"
-	cQry += " CASE WHEN SB1.B1_XENROLL = '1' THEN 'SIM' ELSE 'NAO' END ENROLADO, SC2.C2_NUM, C2_PEDIDO,C2_ITEMPV,C5_CLIENTE,C5_LOJA,"
+	cQry += " CASE WHEN SB1.B1_XENROLL = '1' THEN 'SIM' ELSE 'NAO' END ENROLADO, SC2.C2_NUM, C2_PEDIDO,C2_ITEMPV,C5_CLIENTE,C5_LOJACLI,"
 	cQry += " SC2.C2_DATRF,ISNULL(CONVERT(VARCHAR(2047),CONVERT(VARBINARY(2047),SB1.B1_XETIQUE)),'')B1_XETIQUE,ISNULL(CONVERT(VARCHAR(2047),CONVERT(VARBINARY(2047),SB1.B1_AVISO)),'')B1_AVISO,SB1.B1_XACL,SB1.B1_XMODELO,SB1.B1_XCOMPRI,SB1.B1_XALTURA,"
 	cQry += " SB1.B1_XLARGUR,SB1.B1_XEMPRES,SB1.B1_XJUNCAO,SB1.B1_XINMETR,SC2.C2_XCARGA,SB1.B1_XURL,SB1.B1_XEMP,ISNULL(CONVERT(VARCHAR(2047),CONVERT(VARBINARY(2047),SB1.B1_XGRUPO)),'')B1_XGRUPO,SB1.B1_XSETOR, "
 	cQry += " CASE WHEN SB1.B1_XEMP = '1' THEN 'PROBEL'  "
@@ -76,7 +76,7 @@ Static Function EtqPel01b
 	cQry += " ELSE 'SEM FABRICANTE'	END EMPRESA "
 	cQry += " FROM " + RetSQLName("SC2") + " SC2"
 	cQry += " INNER JOIN " + RetSQLName("SB1") + " SB1 ON SB1.D_E_L_E_T_ = ' ' AND SB1.B1_COD = SC2.C2_PRODUTO"
-	cQry += " INNER JOIN " + RetSQLName("SC5") + " SC5 ON SC5.D_E_L_E_T_ = ' ' AND SC2->C2_PEDIDO = SC5.C5_NUM"
+	cQry += " LEFT JOIN " + RetSQLName("SC5") + " SC5 ON SC5.D_E_L_E_T_ = ' ' AND SC2.C2_PEDIDO = SC5.C5_NUM"
 	cQry += " WHERE SC2.D_E_L_E_T_ = ' '"
 	cQry += " AND SC2.C2_QUANT >= SC2.C2_YSLDIMP "
 	cQry += " AND SC2.C2_FILIAL = '" + SC2->(xFilial("SC2")) + "'"
@@ -151,22 +151,26 @@ Static Function EtqPel01c(cSeq)
 	Etq->(dbGotop())
 
 	// SZ4->(dbSetOrder(1))
+	If Etq->(Eof())
+		Aviso("Atenção","Ordem de Produção informada não existe "+Trim(mv_par01)+"!", {"Ok"})
+		lOk := .F.
+		Return lOk
+	EndIf
 
 	//If Etq->B1_XJUNCAO == 'S'
 		//nQuant := (Etq->C2_QUANT / 2) - Etq->C2_YSLDIMP
 	//else
-		nQuant   := Etq->C2_QUANT - Etq->C2_YSLDIMP
+		// nQuant   := Etq->C2_QUANT - Etq->C2_YSLDIMP
 	//EndIf
+	
+	nQuant   := Etq->C2_QUANT - Etq->C2_YSLDIMP
 
 	If nQuant = 0
 		Aviso("Atenção","As etiquetas referentes a esta OP já foram impressas!", {"Ok"})
 		lOk := .F.
+		Return lOk
 	EndIf
 
-	If Etq->(Eof())
-		Aviso("Atenção","Ordem de Produção informada não existe "+Trim(mv_par01)+"!", {"Ok"})
-		lOk := .F.
-	EndIf
 	
 	// If cSeq == Nil   // Se sequência não foi informada
 	// 	If !Empty(Etq->C2_DATRF)
@@ -3391,7 +3395,7 @@ Static Function fGravaCB0(_cCodBarProd,cCodProd,_cCodBar,nQtd,cOPE)
 				CB0_OP		With cOPE,;
 				CB0_PEDVEN	With SC2->C2_PEDIDO,;
 				CB0_CLI		With SC5->C5_CLIENTE,;
-				CB0_LOJACL	With SC5->C5_LOJA
+				CB0_LOJACL	With SC5->C5_LOJACLI
 		CB0->(MsUnLock())
 				// CB0_STSTF 	With '',;  
 				// CB0_ZHORA	With TIME(),;

@@ -5,29 +5,9 @@
 #Include "Totvs.ch"
 #Include "FWMVCDef.ch"
 
-// User Function MCETIQ05()
-// 	Local aArea := FWGetArea()
-// 	// Local aPergs   := {}
-// 	Local aEtiq:= {}
-// 	// Local xPar0 := Space(15)
-// 	// Local xPar1 := Space(15)
-// 	Private oDlgMark
-// 	Private oPanGrid
-// 	Private oMarkBrowse
-
-// 	//Adicionando os parametros do ParamBox
-// 	// aAdd(aPergs, {1, "Produto De", xPar0,  "", ".T.", "SZ7", ".T.", 80,  .F.})
-// 	//Se a pergunta for confirma, chama a tela
-// 	// If ParamBox(aPergs, "Informe os parametros")
-// 	Processa({|| aEtiq := fPopula()}, 'Processando...')
-// 	if Empty(aEtiq[1,2])
-// 		aadd(aEtiq,{.F.,'','','','','','',''})
-// 	endif
-// 	MCETIQ05(aEtiq)
-// 	// EndIf
-
-// 	RestArea(aArea)
-// Return
+/*
+impressão de etiqueta COALI
+*/
 
 User Function MCETIQ05()
 	// Local nLargBtn      := 50
@@ -60,7 +40,10 @@ User Function MCETIQ05()
 	// CheckFile(cAlias, cArquivo)
 
 	//Cria a janela
-	DEFINE MSDIALOG oDlg TITLE "Notas fiscais da CTE de Origem"  FROM 200, 200 TO nJanAltu, nJanLarg PIXEL
+	cAno := cvaltochar(year(date()))
+
+	//Cria a janela
+	DEFINE MSDIALOG oDlg TITLE "Etiqueta COALI  - MASA DA AMAZONIA / "+cAno+" - v1.0.0.1"  FROM 200, 200 TO nJanAltu, nJanLarg PIXEL
 
 	//Criando a camada
 	oFwLayer := FwLayer():New()
@@ -91,29 +74,29 @@ User Function MCETIQ05()
 	cTGet2 := '      '//space(tamsx3('Z7_ETIQMAE')[1])
 	oTGet2 := TGet():New( 014,280,{|u| if( Pcount( )>0, cTGet2 := u, cTGet2) },oDlg,80,20,"@!",,0,,,.F.,,.T.,,.F.,{|| IIF(Empty(cTGet2),{|| Alert('Informe o RE'),.F.},.T.)},.F.,.F.,,.F.,.F.,,cTGet2,,,, )
 
-	oBtnSair := TButton():New(014, 200, "Gerar coali",  oPanBut, {|| GeraCoal()}, 30, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSair := TButton():New(014, 200, "Gerar coali",  oPanBut, {|| GeraCoal()}, 50, 012, , oFontBtn, , .T., , , , , , )
 
 	//dialog com browse para defir as notas fiscais
-	oBrowseLotes := fwBrowse():New()
-	oBrowseLotes:lHeaderClick:=.F.
-	oBrowseLotes:setDataArray()
+	oBrowse := fwBrowse():New()
+	oBrowse:lHeaderClick:=.F.
+	oBrowse:setDataArray()
 
-	oBrowseLotes:disableConfig()
-	oBrowseLotes:disableReport() //DTC_NFEID,DTC_CODPRO,DTC_PESO,DTC_PESOM3,DTC_METRO3,DTC_VALOR,DTC_QTDVOL
-	oBrowseLotes:setOwner( oPanGrid )
-	oBrowseLotes:AddMarkColumns( {||IIF(aBrowse[oBrowseLotes:nAt,01],'LBOK','LBNO')}, {|| INVERT() /*,aBrowse[oBrowseLotes:nAt,01]:= !aBrowse[oBrowseLotes:nAt,01]*/ }/*[ bLDblClick]*/, /*[ bHeaderClick]*/ )
-	oBrowseLotes:addColumn({"Cod. Etiqueta" ,  	{||aBrowse[oBrowseLotes:nAt,02]}, "C", "@!"	, 1, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xVolume"    })
-	oBrowseLotes:addColumn({"Cod. Masa    " , 	{||aBrowse[oBrowseLotes:nAt,03]}, "C", "@!"	, 2, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xQtdLote"    })
-	oBrowseLotes:addColumn({"Cod. Cliente " ,  	{||aBrowse[oBrowseLotes:nAt,04]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
-	oBrowseLotes:addColumn({"Descrição    " , 	{||aBrowse[oBrowseLotes:nAt,05]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
-	oBrowseLotes:addColumn({"Quantidade   " , 	{||aBrowse[oBrowseLotes:nAt,06]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
-	oBrowseLotes:addColumn({"Ord. Produção" , 	{||aBrowse[oBrowseLotes:nAt,07]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
-	oBrowseLotes:addColumn({"Armazém      " , 	{||aBrowse[oBrowseLotes:nAt,08]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrowse:disableConfig()
+	oBrowse:disableReport() //DTC_NFEID,DTC_CODPRO,DTC_PESO,DTC_PESOM3,DTC_METRO3,DTC_VALOR,DTC_QTDVOL
+	oBrowse:setOwner( oPanGrid )
+	oBrowse:AddMarkColumns( {||IIF(aBrowse[oBrowse:nAt,01],'LBOK','LBNO')}, {|| INVERT() /*,aBrowse[oBrowse:nAt,01]:= !aBrowse[oBrowse:nAt,01]*/ }/*[ bLDblClick]*/, /*[ bHeaderClick]*/ )
+	oBrowse:addColumn({"Cod. Etiqueta" ,  	{||aBrowse[oBrowse:nAt,02]}, "C", "@!"	, 1, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xVolume"    })
+	oBrowse:addColumn({"Cod. Masa    " , 	{||aBrowse[oBrowse:nAt,03]}, "C", "@!"	, 2, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xQtdLote"    })
+	oBrowse:addColumn({"Cod. Cliente " ,  	{||aBrowse[oBrowse:nAt,04]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrowse:addColumn({"Descrição    " , 	{||aBrowse[oBrowse:nAt,05]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrowse:addColumn({"Quantidade   " , 	{||aBrowse[oBrowse:nAt,06]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrowse:addColumn({"Ord. Produção" , 	{||aBrowse[oBrowse:nAt,07]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrowse:addColumn({"Armazém      " , 	{||aBrowse[oBrowse:nAt,08]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
 
-	oBrowseLotes:setArray( aBrowse )
-	oBrowseLotes:SetLocate() // Habilita a LocalizaÃ§Ã£o de registros
+	oBrowse:setArray( aBrowse )
+	oBrowse:SetLocate() // Habilita a LocalizaÃ§Ã£o de registros
 
-	oBrowseLotes:activate( )
+	oBrowse:activate( )
 
 	Activate MsDialog oDlg Centered
 
@@ -153,29 +136,29 @@ Static Function fPopula(_cetiq)
 	DbSelectArea('QRYDADTMP')
 	Count to nTotal
 	ProcRegua(nTotal)
-	QRYDADTMP->(DbGoTop())
+	('QRYDADTMP')->(DbGoTop())
 
 	cUsuario := cTGet2 + ' - ' + UsrRetName(__cUserId)
 
 	//Enquanto houver registros, adiciona na temporária
-	While ! QRYDADTMP->(EoF())
+	While ! ('QRYDADTMP')->(EoF())
 		nAtual++
 		IncProc('Analisando registro ' + cValToChar(nAtual) + ' de ' + cValToChar(nTotal) + '...')
 		aadd(aDadosEtq,{.T.,;
-			QRYDADTMP->Z7_ETIQMAE,;
-			QRYDADTMP->Z7_PAMASA,;
-			QRYDADTMP->Z7_CODCLI,;
-			QRYDADTMP->Z7_DESCRI,;
-			QRYDADTMP->Z7_QUANT,;
-			QRYDADTMP->Z7_OP,;
-			QRYDADTMP->Z7_LOCAL,;
-			QRYDADTMP->Z7_MOLDE,;
-			QRYDADTMP->Z7_CLIENTE,;
+			('QRYDADTMP')->Z7_ETIQMAE,;
+			('QRYDADTMP')->Z7_PAMASA,;
+			('QRYDADTMP')->Z7_CODCLI,;
+			('QRYDADTMP')->Z7_DESCRI,;
+			('QRYDADTMP')->Z7_QUANT,;
+			('QRYDADTMP')->Z7_OP,;
+			('QRYDADTMP')->Z7_LOCAL,;
+			('QRYDADTMP')->Z7_MOLDE,;
+			('QRYDADTMP')->Z7_CLIENTE,;
 			cUsuario})
 
-		QRYDADTMP->(DbSkip())
+		('QRYDADTMP')->(DbSkip())
 	EndDo
-	QRYDADTMP->(DbCloseArea())
+	('QRYDADTMP')->(DbCloseArea())
 
 Return aDadosEtq
 
@@ -201,8 +184,8 @@ Static Function x_load(cTGet1)
 	if SZ7->(MSSEEK(XFILIAL('SZ7')+cTGet1)) .AND.!Empty(cTGet1)
 		Processa({|| aEtiq := fPopula(cTGet1)}, 'Processando...')
 		aBrowse := aEtiq
-		oBrowseLotes:SetLocate()
-		oBrowseLotes:refresh()
+		oBrowse:SetLocate()
+		oBrowse:refresh()
 	elseif !Empty(cTGet1)
 		FWAlertInfo('A Etiqueta informada não foi encontrada...', 'Atencao !')
 	endif
@@ -226,22 +209,32 @@ Static Function GeraCoal()
 	Local aArea := FWGetArea()
 	Local aPergs   := {}
 	Local cPrinter := ''
-	// Local oSay1
-	// Local oTGetQtd
-	// Local oBtnOk
-	// Local oBtnCancel
-	// Local lConfirm := .F.
-	// Local aEtiq:= {}
-	// Local xPar0 := Space(15)
-	// Local xPar1 := Space(15)
-	// Private oDlgMark
-	// Private oPanGrid
-	// Private oMarkBrowse
+	Local aImp := {}
+	Local nx
+	Local lBrowMark := .F.
 
+	dbselectarea('CB5')
+	while !CB5->(EOF())
+		if 'MCETIQ05' $ CB5->CB5_ROTINA  // fonte setado no cadastro de impressoras
+			AADD(aImp, alltrim(CB5->CB5_PRINTR))
+		endif
+		CB5->(dbskip())
+	EndDo
 
-	aAdd(aPergs,{1,"Quant. qQuebra: ",Space(4),"","!Empty(MV_PAR02)","","",0 ,.F.})
+	for NX := 1 to LEN(aBrowse)
+		if aBrowse[nx,1]
+			lBrowMark := .T.
+		endif
+		if !lBrowMark
+			msgStop('Nenhuma OP Foi Selecionada')
+			return
+		endif
+	next nx
+
+	aAdd(aPergs,{1,"Quantidade: ",Space(4),"","!Empty(MV_PAR01)","","",0 ,.F.})
 	aAdd(aPergs,{1,"Densidade: " ,'22',"","","","",0 ,.F.})
-	aAdd(aPergs,{2,"Impressora",cPrinter, {"ZT411","ZT410","ZM400"},     122, ".T.", .F.})
+	// aAdd(aPergs,{2, "Impressora",cPrinter, {"ZT410","ZT411","ZM400"},     122, ".T.", .F.})
+	aAdd(aPergs,{2,"Impressora",cPrinter, aImp,     122, ".T.", .F.})
 	//Se a pergunta for confirma, chama a tela
 	If ParamBox(aPergs, "Informe os parametros")
 		xQtdQuebra := VAL(MV_PAR01)
@@ -298,8 +291,8 @@ Return Nil
 Static Function INVERT()
 
 	LOCAL NX := 0
-	LOCAL lMark:=aBrowse[oBrowseLotes:nAt,01]
-	LOCAL nPos := oBrowseLotes:nAt
+	LOCAL lMark:=aBrowse[oBrowse:nAt,01]
+	LOCAL nPos := oBrowse:nAt
 
 	if lMark // SE TA MARCADO DESMARCA E OS OUTROS PERMANECEM DESMARCADOS
 		for NX := 1 to LEN(aBrowse)
@@ -314,8 +307,8 @@ Static Function INVERT()
 			endif
 		next
 	endif
-	oBrowseLotes:GoTo( oBrowseLotes:nAt, .T. )
-	// oBrowseLotes:refresh()
+	oBrowse:GoTo( oBrowse:nAt, .T. )
+	// oBrowse:refresh()
 Return
 
 
@@ -365,22 +358,33 @@ Static Function SaveCoaL(_xQtdQuebra)
 	cLabel:= ""
 
 	cLabel+= (" CT~~CD,~CC^~CT~  ")
-	cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR2,2~SD15^JUS^LRN^CI0^XZ  ")
+	cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR2,2")
+	cLabel+= (" ~SD"+alltrim(MV_PAR02))
+	cLabel+= ("^JUS^LRN^CI0^XZ  ")
 	cLabel+= (" ^XA  ")
 	cLabel+= (" ^MMT  ")
 	cLabel+= (" ^PW945  ")
 	cLabel+= (" ^LL0685  ")
 	cLabel+= (" ^LS0  ")
 	cLabel+= (" ^FT714,114^A0N,42,40^FH\^FD"+DTOC(ddatabase)+"^FS  ")
-	cLabel+= (" ^FT43,354^A0N,29,26^FH\^FD"+alltrim(SZ7->Z7_USUARIO)+"^FS  ")
+	// OP
+	cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDOP: ^FS  ")
+	cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(SZ7->Z7_OP)+"^FS  ")
+	// QUANT
+	cLabel+= (" ^FT45,312^A0N,42,40^FH\^FDQUANT: ^FS  ")
+	cLabel+= (" ^FT206,312^A0N,42,40^FH\^FD"+;
+		ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999.999'))+"^FS  ")
+	// USUÁRIO
+	cLabel+= (" ^FT45,362^A0N,29,26^FH\^FD"+AllTrim(SZ7->Z7_USUARIO)+"^FS  ")
+	// cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDQUANT: ^FS  ")
+	// cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999.999'))+"^FS  ")
+	// cLabel+= (" ^FT43,354^A0N,29,26^FH\^FD"+alltrim(SZ7->Z7_USUARIO)+"^FS  ")
 	if len(alltrim(SZ7->Z7_DESCRI)) <= 48
 		cLabel+= (" ^FT44,487^A0N,33,33^FH\^FD"+AllTRim(SZ7->Z7_DESCRI)+"^FS  ")
 	else
 		cLabel+= (" ^FT44,487^A0N,33,33^FH\^FD"+left(alltrim(SZ7->Z7_DESCRI),48)+"^FS  ")
 		cLabel+= (" ^FT44,588^A0N,33,33^FH\^FD"+substr(alltrim(SZ7->Z7_DESCRI),49)+"^FS  ")
 	endif
-	cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999.999'))+"^FS  ")
-	cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDQUANT: ^FS  ")
 	cLabel+= (" ^FT346,200^A0N,42,40^FH\^FD"+SZ7->Z7_CODCLI+"^FS  ")
 	cLabel+= (" ^FT45,434^A0N,33,28^FH\^FDNRO. ETIQUETA NORMAL^FS  ")
 	cLabel+= (" ^FT369,433^A0N,33,50^FH\^FD"+AllTRim(SZ7->Z7_ETIQMAE)+"^FS  ")
@@ -403,24 +407,51 @@ Static Function AbatSald(_nQuant)
 	SZ7->(MsUnlock())
 Return
 
+// Exemplo de impressão RAW usando FWMSPrinter
 Static Function impriRaw(cZPL,cPrinter)
 
 	Local oPrinter   := Nil
 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
+	Local aPrint          := GetImpWindows(.F.)
 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
+	Local oPrintSetupParam := Nil
+	Local aDevice           := {}
+	Local cSession          := GetPrinterSession()
+	// Local oPrinter
+	// Local cLocal            := "c:\temp"
 
 	// Criar objeto FWMSPrinter em modo RAW
 	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+	// oPrinter:setup()
 
 	// Aqui é só usar SAY, que em RAW escreve direto
 	oPrinter:Say(0, 0, cZPL)
 
 	oPrinter:Print()
 
-	// PUTMV("MV_SEQETQ",cSeqEtiq1)
-Return
+Return .T.
+
+// Static Function impriRaw(cZPL,cPrinter)
+
+
+// 	Local oPrinter   := Nil
+// 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+// 	Local lAdjustToLegacy   := .F.
+// 	Local lDisableSetup     := .T.
+// 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
+
+// 	// Criar objeto FWMSPrinter em modo RAW
+// 	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+
+// 	// Aqui é só usar SAY, que em RAW escreve direto
+// 	oPrinter:Say(0, 0, cZPL)
+
+// 	oPrinter:Print()
+
+// 	// PUTMV("MV_SEQETQ",cSeqEtiq1)
+// Return
 
 
 

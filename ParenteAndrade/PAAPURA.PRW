@@ -61,7 +61,8 @@ Static Function ModelDef()
 	Local oStruGrid := fModStruct()
 
 	//Monta o modelo de dados, e na Pós Validação, informa a função fValidGrid
-	oModel := MPFormModel():New('PAAPURAM', /*bPreValidacao*/, /*POSVALIDAÇÃO*/, {|oModel| fValidGrid(oModel)}/*bCommit*/, /*bCancel*/ )
+	oModel := MPFormModel():New('PAAPURAM', nil, nil, nil, nil )
+	// oModel := MPFormModel():New('PAAPURAM', nil, nil, {|oModel| fValidGrid(oModel)}, nil )
 
 	//Agora, define no modelo de dados, que terá um Cabeçalho e uma Grid apontando para estruturas acima
 	oModel:AddFields('MdFieldZZ2', NIL, oStruCab)
@@ -79,7 +80,7 @@ Static Function ModelDef()
 	//Definindo outras informações do Modelo e da Grid
 	oModel:GetModel("MdGridZZ2"):SetMaxLine(9999)
 	oModel:SetDescription("Apuracao dos beneficios")
-	oModel:SetPrimaryKey({"ZZ2_FILIAL","ZZ2_CC","ZZ2_DATADE","ZZ2_DATATE"})
+	oModel:SetPrimaryKey({"ZZ2_FILIAL","ZZ2_CC","ZZ2_CODIGO","ZZ2_DATADE","ZZ2_DATATE"})
 
 Return oModel
 
@@ -135,48 +136,85 @@ Return oStruct
 
 //Função que faz a validação da grid
 Static Function fValidGrid(oModel)
+	Local nLinAtual := 0
+	Local nDeletados := 0
 	Local lRet     := .T.
 	local lDel0001 := .F.
 	Local oModelGRID := oModel:GetModel('MdGridZZ2')
 	// Local oModelMain := oModel:GetModel('MdFieldZZ2')
-	// Local cCodAusencia := oModelMain:GetValue("ZZ2_CODAUS")
-	// Local cPictVlr   := PesqPict('ZZ2', 'ZZ2_CODAUS')
-	Local nLinAtual := 0
+	Local cCC 	  := oModelGRID:GetValue("ZZ2_CC")
+	Local cDTin   := oModelGRID:GetValue('ZZ2_DATADE')
+	Local cDTFi   := oModelGRID:GetValue('ZZ2_DATATE')
+	// Local cDTLC   := oModelGRID:GetValue('ZZ2_DTLANC')
 
-	// //Percorrendo todos os itens da grid
+	// Local oGrid := oModel:GetModel("MdGridZZ2")
+    // Local n
+    // Local l0001Deleted := .F.
+    // Local nNewLine := 0
+
+    // // 1. Descobre se o 0001 foi excluído
+    // For n := 1 To oGrid:Length()
+    //     oGrid:GoLine(n)
+
+    //     If oGrid:IsDeleted() .AND. oGrid:GetValue("ZZ2_CODIGO") == "0001"
+    //         l0001Deleted := .T.
+    //         Exit
+    //     EndIf
+    // Next
+
+    // // 2. Se 0001 foi excluído, promove outro registro
+    // If l0001Deleted
+    //     For n := 1 To oGrid:Length()
+    //         oGrid:GoLine(n)
+
+    //         If !oGrid:IsDeleted() .AND. oGrid:GetValue("ZZ2_CODIGO") != "0001"
+    //             oGrid:SetValue("ZZ2_CODIGO", "0001")
+    //             Exit
+    //         EndIf
+    //     Next
+    // EndIf
+
+	
+	//Percorrendo todos os itens da grid
 	For nLinAtual := 1 To oModelGRID:Length()
 		//Posiciona na linha
 		oModelGRID:GoLine(nLinAtual)
-		dbselectarea('SR8')
-		SR8->(dbSetOrder(1))
-		POSICIONE("SR8",1,XFILIAL("SR8")+ZZ2->ZZ2_CODAUS,"RCM_DESCRI")
 
 		//Se a linha for excluida for a do codigo 0001, vou substituir o codigo do proximo item
 		If oModelGRID:IsDeleted()
+			nDeletados++
 			if oModelGRID:GetValue("ZZ2_CODIGO") == '0001'
 				lDel0001 := .T.
 			EndIf
 		EndIf
 		if lDel0001 .AND. oModelGRID:GetValue("ZZ2_CODIGO") != '0001'
-			oModel:SetValue("ZZ2_CODIGO", '0001')
-			lDel0001 := .F.
+			// oModelGRID:SetValue("ZZ2_CODIGO", '0001')
+			// lDel0001 := .F.
+			DbSelectArea('ZZ2')
+			ZZ2->(dbSetOrder(1))
+			***********
+			// caso nesse mesmo periodo tenha mais de uma ocorrecia de ausencia, para aglutinar a ja existente
+			If ZZ2->(MsSeek(XFILIAL('ZZ2')+alltrim(cCC)+oModelGRID:GetValue('ZZ2_MAT')+dtos(cDTin)+dtos(cDTFi)))
+			while !ZZ2->(EOF())
+				if ZZ2->ZZ2_CODIGO != '0001'
+					RecLock('ZZ2',.F.)
+					ZZ2->ZZ2_CODIGO := '0001'
+					ZZ2->(MsUnLock())
+					Return lRet
+				endif
+				ZZ2->(DbSkip())
+			EndDo
+			endif
+			exit
 		endif
 
 	Next nLinAtual
 
-	// //Se o tamanho da Grid for igual ao número de itens deletados, acusa uma falha
-	// If oModelGRID:Length()==nDeletados
-	//     lRet :=.F.
-	//     Help( , , 'Dados Inválidos' , , 'A grid precisa ter pelo menos 1 linha sem ser excluida!', 1, 0, , , , , , {"Inclua uma linha válida!"})
-	// EndIf
-
-	// If lRet
-	//     //Se o valor digitado no cabeçalho (valor da NF), não bater com o valor de todos os abastecimentos digitados (valor dos itens da Grid), irá mostrar uma mensagem alertando, porém irá permitir salvar (do contrário, seria necessário alterar lRet para falso)
-	//     If nValorMain != nValorGrid
-	//         //lRet := .F.
-	//         MsgAlert("O valor do cabeçalho (" + Alltrim(Transform(nValorMain, cPictVlr)) + ") tem que ser igual o valor dos itens (" + Alltrim(Transform(nValorGrid, cPictVlr)) + ")!", "Atenção")
-	//     EndIf
-	// EndIf
+	//Se o tamanho da Grid for igual ao número de itens deletados, acusa uma falha
+	If oModelGRID:Length()==nDeletados
+		lRet :=.F.
+		Help( , , 'Dados Inválidos' , , 'A grid precisa ter pelo menos 1 linha sem ser excluida!', 1, 0, , , , , , {"Inclua uma linha válida!"})
+	EndIf
 
 Return lRet
 

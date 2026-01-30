@@ -7,6 +7,7 @@
 // NOME IMPRESSORA COMPARTILHADA ZD220-203
 // CONFIGURAÇÃO LPT1 : net use LPT1: \\PA-ALMOX01\ZD220-203 senha /USER:usuario /PERSISTENT:YES
 
+// Etiqueta de Produção 
 
 User Function MCETIQ04()
 	// Local aArea := FwGetArea()
@@ -14,18 +15,28 @@ User Function MCETIQ04()
 	Local aPergs := {}
 	Local cProd := ''
 	Local cPrinter := ''
+	Local aImp := {}
 
 	// RpcSetEnv('01','01')
 	// cAlias    := "SZ7"
 	// cArquivo  := RETSQLNAME('SZ7')
 	// CheckFile(cAlias, cArquivo)
 
+	dbselectarea('CB5')
+	while !CB5->(EOF())
+		if 'MCETIQ04' $ CB5->CB5_ROTINA  // fonte setado no cadastro de impressoras
+			AADD(aImp, alltrim(CB5->CB5_PRINTR))
+		endif
+			CB5->(dbskip())
+	EndDo
+
 	cProd := space(tamsx3("C2_NUM")[1])
 	Aadd(aPergs,{1,"Ordem Producao: ",cProd,"@!","u_ValidOp()",'SC2',".T.",120,.T.})
 	aAdd(aPergs,{1,"Quant. Produto: ",Space(8),"","!Empty(MV_PAR02)","","",0 ,.F.})
 	aAdd(aPergs,{1,"Densidade: " ,'22',"","","","",0 ,.F.})
 	aAdd(aPergs,{1,"Quant Etiqueta: " ,Space(4),"","!Empty(MV_PAR04)","","",0 ,.F.})
-	aAdd(aPergs,{2, "Impressora",cPrinter, {"ZT411","ZT410","ZM400"},     122, ".T.", .F.})
+	// aAdd(aPergs,{2, "Impressora",cPrinter, {"ZT411","ZT410","ZM400"},     122, ".T.", .F.})
+	aAdd(aPergs,{2, "Impressora",cPrinter, aImp,     122, ".T.", .F.})
 
 	If !ParamBox(aPergs ,"Etiquetas ...",@aRet,,,,,,,,.F.,.T.)
 		Return
@@ -70,7 +81,7 @@ Static Function xfImpPA()
 	// 	cSeqEtiq1 := '00000000'
 	// endif
 
-	cCliente:='SAMSUMG'
+	cCliente:=''
 
 	dbselectarea('SB1')
 	dbSetOrder(1)
@@ -100,14 +111,14 @@ Static Function xfImpPA()
 	EndSQL
 
 	cSeqEtiq1 := AllTRim((cAliasSZ7)->ULT_ETIQ) // sequencial da etiqueta MAE
-  	
+
 	ProcRegua(nTotal)
 	//Incrementa a mensagem na régua
 	for nx := 1 to nTotal
 
 		cSeqEtiq1 := SOMA1(space(2)+cSeqEtiq1)
 		cSeqEtiq1 := cvaltochar(val(cSeqEtiq1))
-	
+
 		// verificar se ainda existe saldo para imprimir
 		// se o saldo já impresso + a quantidade sendo imprimida fo maior que a quantidade da OP aborta a impressão.
 		if (val(MV_PAR02) + SC2->C2_QTDETIQ) > SC2->C2_QUANT .or. val(MV_PAR02) > SC2->C2_QUANT
@@ -118,30 +129,14 @@ Static Function xfImpPA()
 
 		IncProc("Imprindo etiquetas " + cValToChar(nX) + " de " + cValToChar(nTotal) + "...")
 		// BR30BN6108855AMASAC9D0301
-		
+
 		cQR := 	SB1->B1_COD+space(1)+;  // CODIGO PRODUTO
 		AllTRim(cSeqEtiq1)+;                 // SEQUENCIA
 		STRZERO(VAL(MV_PAR02),5)+;	    // QUANTIDADE
 		STRZERO(VAL(SC2->C2_NUM),8)     // OP
 
-		dbselectarea('SZ7')
-		dbsetorder(1)
-
-		RECLOCK('SZ7', .T.)
-			SZ7->Z7_ETIQMAE := cSeqEtiq1
-			SZ7->Z7_PAMASA 	:= SB1->B1_COD
-			SZ7->Z7_CODCLI 	:= cProdCli
-			SZ7->Z7_DESCRI 	:= alltrim(SB1->B1_DESC)
-			SZ7->Z7_OP 		:= SC2->C2_NUM
-			SZ7->Z7_MOLDE 	:= SC2->C2_XMOLDE
-			SZ7->Z7_QUANT 	:= VAL(MV_PAR02)
-			SZ7->Z7_LOCAL 	:= SC2->C2_LOCAL
-			SZ7->Z7_QRCODE1 := cQR
-			SZ7->Z7_CLIENTE := cCliente
-		SZ7->(MsUnlock())
-
 		// FGRAVETIQ(cQR,cSeqEtiq1,cProdCli,MV_PAR02,SC2->C2_XMAQ,ddatabase,SC2->C2_NUM,SC2->C2_LOCAL,SC2->C2_XMOLDE,cCliente,;
-		// alltrim(SB1->B1_DESC),SB1->B1_COD)
+			// alltrim(SB1->B1_DESC),SB1->B1_COD)
 
 		cLabel:= ""
 		cLabel+= ("CT~~CD,~CC^~CT~ ")
@@ -181,14 +176,30 @@ Static Function xfImpPA()
 		cLabel+= (" ^FDLA,"+cQR+"^FS ")
 		cLabel+= (" ^PQ1,0,1,Y^XZ ")
 
-		impriRaw(cLabel,cPrinter,cSeqEtiq1)
+		if impriRaw(cLabel,cPrinter,cSeqEtiq1)
+			dbselectarea('SZ7')
+			dbsetorder(1)
 
-		// atualizar a quantida ja impressa
-		// para limitar a impressao ate fecha a quantidade da OP.
-		nQtdAtu := SC2->C2_QTDETIQ + val(MV_PAR02)
-		Reclock('SC2' , .F.)
-		SC2->C2_QTDETIQ := nQtdAtu
-		SC2->(msUnLock())
+			RECLOCK('SZ7', .T.)
+			SZ7->Z7_ETIQMAE := cSeqEtiq1
+			SZ7->Z7_PAMASA 	:= SB1->B1_COD
+			SZ7->Z7_CODCLI 	:= cProdCli
+			SZ7->Z7_DESCRI 	:= alltrim(SB1->B1_DESC)
+			SZ7->Z7_OP 		:= SC2->C2_NUM
+			SZ7->Z7_MOLDE 	:= SC2->C2_XMOLDE
+			SZ7->Z7_QUANT 	:= VAL(MV_PAR02)
+			SZ7->Z7_LOCAL 	:= SC2->C2_LOCAL
+			SZ7->Z7_QRCODE1 := cQR
+			SZ7->Z7_CLIENTE := cCliente
+			SZ7->(MsUnlock())
+
+			// atualizar a quantida ja impressa
+			// para limitar a impressao ate fecha a quantidade da OP.
+			nQtdAtu := SC2->C2_QTDETIQ + val(MV_PAR02)
+			Reclock('SC2' , .F.)
+			SC2->C2_QTDETIQ := nQtdAtu
+			SC2->(msUnLock())
+		endif
 	next nX
 Return
 
@@ -205,16 +216,14 @@ User function ValidOp()
 
 return lret
 
-// Static function FGRAVETIQ(_cQR,_cSeqEtiq1,_cProdCli,_nQuantid,_cXMAQ,_ddatabase,_numOP,_cArmaz,_cXMOLDE,_cCliente,_cDesc,_cCod)
-// Return
-
 // Exemplo de impressão RAW usando FWMSPrinter
-Static Function impriRaw(cZPL,cPrinter,cSeqEtiq1)
+Static Function impriRaw(cZPL,cPrinter)
 
 	Local oPrinter   := Nil
 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
+	Local aPrint          := GetImpWindows(.F.)
 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
 	// Local oPrintSetupParam := Nil
 	// Local oPrinter
@@ -222,13 +231,19 @@ Static Function impriRaw(cZPL,cPrinter,cSeqEtiq1)
 	// Local aDevice           := {}
 	// Local cSession          := GetPrinterSession()
 
-	// Criar objeto FWMSPrinter em modo RAW
-	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+	nPos := aScan(aPrint,{|x| Alltrim(x) == cPrinter})
 
-	// Aqui é só usar SAY, que em RAW escreve direto
-	oPrinter:Say(0, 0, cZPL)
+	if nPOS > 0 // IMPRESSORA ENCONTRADA
+		// Criar objeto FWMSPrinter em modo RAW
+		oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,/*verificar se melhora a velocidade*/.T. ,.T., .T. /*LRAW*/)
+		// oPrinter:setup()
 
-	oPrinter:Print()
+		// Aqui é só usar SAY, que em RAW escreve direto
+		oPrinter:Say(0, 0, cZPL)
 
-	// PUTMV("MV_SEQETQ",cSeqEtiq1)
+		oPrinter:Print()
+	Else
+		Alert('Impressora não instalada no comuputador local.', 'Atençao')
+	endif
+
 Return

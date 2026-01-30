@@ -67,6 +67,20 @@
 		{
 			"args": [],
 			"label": "u_TRANSF"
+		},
+		{
+			"args": [],
+			"label": "U_MCETIQ01"
+		},
+		{
+			"args": [],
+			"label": "U_mcetiq06"
+		},
+		{
+			"label": "SIGACFG"
+		},
+		{
+			"label": "U_PAIMPSB1"
 		}
 	],
 	"lastProgramExecuted": "SIGAMDI",

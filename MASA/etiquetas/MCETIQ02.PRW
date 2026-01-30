@@ -21,6 +21,16 @@ User Function MCETIQ02()
 	Local aReturn := {}
 	Local aParambox := {}
 	Local cPrinter := ''
+	Local aImp := {}
+
+	dbselectarea('CB5')
+	CB5->(DbGoTop())
+	while !CB5->(EOF())
+		if 'MCETIQ02' $ CB5->CB5_ROTINA  // fonte setado no cadastro de impressoras
+			AADD(aImp, alltrim(CB5->CB5_PRINTR))
+		endif
+		CB5->(dbskip())
+	EndDo
 
 	// RpcSetEnv('01','01')
 
@@ -30,11 +40,10 @@ User Function MCETIQ02()
 	cGrade := space(10)
 
 	Aadd(aParambox,{1,"Produto.: ",cProd,"@!","u_fValProd()",'SB1',,120,.T.})
-	// Aadd(aParambox,{1,"Lote.: ",cLote,"@!",'!EMPTY(MV_PAR02)','',,120,.T.})
-	// Aadd(aParambox,{1,"Fornecedor.: ",cFornece,"@!",'!EMPTY(MV_PAR03)','SA1',,120,.T.})
 	aAdd(aParambox,{1,"Qtd etiqueta: " ,Space(4),"",'!EMPTY(MV_PAR02)',"",,0 ,.F.})
 	aAdd(aParambox,{1,"Maquina: " ,Space(12),"",'!EMPTY(MV_PAR03)',"",,0 ,.T.})
-	aAdd(aParambox, {2, "Impressora",cPrinter, {"ZT410","ZM400"},     122, ".T.", .F.})
+	// aAdd(aPergs,{2, "Impressora",cPrinter, {"ZT410","ZT411","ZM400"},     122, ".T.", .F.})
+	aAdd(aParambox, {2, "Impressora",cPrinter, aImp,     122, ".T.", .F.})
 	aAdd(aParambox,{1,"Densidade: " ,Space(2),"",'!EMPTY(MV_PAR05)',"",,0 ,.F.})
 
 	If !ParamBox(aParambox ,"Etiquetas ...",@aReturn,,,,,,,,.F.,.T.)
@@ -91,20 +100,20 @@ Static Function xfImpPA()
 	PLSQuery(cQryDados, 'QRYDADTMP')
 
 	DbSelectArea('QRYDADTMP')
-	QRYDADTMP->(DbGoTop())
+	('QRYDADTMP')->(DbGoTop())
 
-	if EMPTY(AllTRim(QRYDADTMP->(HALB))) .AND. !QRYDADTMP->(Eof())
-		fWALERTWARNING('O Produto '+AllTRim(QRYDADTMP->(PA))+' não possui o codigo HALB no cadastro, cantate a engenharia.', 'Não imprime!!!')
+	if EMPTY(AllTRim(('QRYDADTMP')->(HALB))) .AND. !('QRYDADTMP')->(Eof())
+		fWALERTWARNING('O Produto '+AllTRim(('QRYDADTMP')->(PA))+' não possui o codigo HALB no cadastro, cantate a engenharia.', 'Não imprime!!!')
 		Return
 	endif
 
-	if EMPTY(AllTRim(QRYDADTMP->(GRADE))) .AND. !QRYDADTMP->(Eof())
-		fWALERTWARNING('O Produto '+AllTRim(QRYDADTMP->(PA))+' não possui o codigo GRADE no cadastro, cantate a engenharia.', 'Não imprime!!!')
+	if EMPTY(AllTRim(('QRYDADTMP')->(GRADE))) .AND. !('QRYDADTMP')->(Eof())
+		fWALERTWARNING('O Produto '+AllTRim(('QRYDADTMP')->(PA))+' não possui o codigo GRADE no cadastro, cantate a engenharia.', 'Não imprime!!!')
 		Return
 	endif
 
 	cData := LEFT(DTOS(DDATABASE),4)+'.'+SUBSTR(DTOS(DDATABASE),5,2)+'.'+RIGHT(DTOS(DDATABASE),2)
-	cDescMP := StrTran(AllTRim(QRYDADTMP->(DESC_MP)), "SAMSUNG", " ")
+	cDescMP := StrTran(AllTRim(('QRYDADTMP')->(DESC_MP)), "SAMSUNG", " ")
 	cDescMP := StrTran(AllTRim(cDescMP), " - ", " ")
 	cDescMP := StrTran(AllTRim(cDescMP), "  ", " ")
 
@@ -113,7 +122,7 @@ Static Function xfImpPA()
 
 	BeginSQL ALIAS cAliasSZA
 			SELECT ZA_CODFOR,ZA_DESCFOR,ZA_UL,ZA_FLAME FROM SZA010
-			WHERE D_E_L_E_T_='' AND ZA_COD= %exp:QRYDADTMP->(MP)%
+			WHERE D_E_L_E_T_='' AND ZA_COD= %exp:('QRYDADTMP')->(MP)%
 	EndSQL
 
 	(cAliasSZA)->(dbGotop())
@@ -129,62 +138,49 @@ Static Function xfImpPA()
 	endif
 
 	******
+	cLabel+= (" CT~~CD,~CC^~CT~")
+	cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA ")
+	cLabel+= (" ^PR10,10 ")
+	cLabel+= (" ^~SD"+ALLTRIM(MV_PAR05)+"^JUS^LRN^CI0^XZ")
+	cLabel+= (" ^XA")
+	cLabel+= (" ^MMT")
+	cLabel+= (" ^PW485")
+	cLabel+= (" ^LL0150")
+	cLabel+= (" ^LS0")
+	cLabel+= (" ^FT66,60^A0N,17,16^FH\^FDE1L4^FS") // FT67
+	cLabel+= (" ^FT398,60^A0N,17,16^FH\^FD"+ AllTRim(('QRYDADTMP')->(GRADE)) +"^FS") // grade
+	cLabel+= (" ^FT148,60^A0N,17,16^FH\^FD"+AllTRim(('QRYDADTMP')->(PA))+"^FS")
+	cLabel+= (" ^FT294,60^A0N,17,16^FH\^FD"+AllTRim(aForn[1,5])+"^FS")
+	cLabel+= (" ^FT393,105^A0N,17,16^FH\^FD"+ cData +"^FS")   // data
+	cLabel+= (" ^FT66,105^A0N,17,16^FH\^FD"+AllTRim(('QRYDADTMP')->(HALB))+"^FS")
+	cLabel+= (" ^FT195,105^A0N,17,16^FH\^FD"+AllTRim(cTurno)+"^FS")
+	cLabel+= (" ^FT253,105^A0N,17,16^FH\^FD"+'MAQ:.'+ AllTRim(MV_PAR03)+"^FS")
+	cLabel+= (" ^FT398,40^A0N,17,16^FH\^FD"+aForn[1,4]+"^FS") // lote
+	cLabel+= (" ^FT66,40^A0N,17,16^FH\^FD"+aForn[1,3]+"^FS") // fronecedor
+	cLabel+= (" ^FT66,82^A0N,17,16^FH\^FD"+cDescMP+"^FS") // descrição materia prima
+	cLabel+= (" ^PQ1,0,1,Y^XZ")
 
-	if MV_PAR04 == 'ZT410'
-		cLabel+= (" CT~~CD,~CC^~CT~")
-		cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA ")
-		cLabel+= (" ^PR10,10 ")
-		cLabel+= (" ^~SD"+ALLTRIM(MV_PAR05)+"^JUS^LRN^CI0^XZ")
-		cLabel+= (" ^XA")
-		cLabel+= (" ^MMT")
-		cLabel+= (" ^PW485")
-		cLabel+= (" ^LL0150")
-		cLabel+= (" ^LS0")
-		cLabel+= (" ^FT66,60^A0N,17,16^FH\^FDE1L4^FS") // FT67
-		cLabel+= (" ^FT398,60^A0N,17,16^FH\^FD"+ AllTRim(QRYDADTMP->(GRADE)) +"^FS") // grade
-		cLabel+= (" ^FT148,60^A0N,17,16^FH\^FD"+AllTRim(QRYDADTMP->(PA))+"^FS")
-		cLabel+= (" ^FT294,60^A0N,17,16^FH\^FD"+AllTRim(aForn[1,5])+"^FS")
-		cLabel+= (" ^FT393,105^A0N,17,16^FH\^FD"+ cData +"^FS")   // data
-		cLabel+= (" ^FT66,105^A0N,17,16^FH\^FD"+AllTRim(QRYDADTMP->(HALB))+"^FS")
-		cLabel+= (" ^FT195,105^A0N,17,16^FH\^FD"+AllTRim(cTurno)+"^FS")
-		cLabel+= (" ^FT253,105^A0N,17,16^FH\^FD"+'MAQ:.'+ AllTRim(MV_PAR03)+"^FS")
-		cLabel+= (" ^FT398,40^A0N,17,16^FH\^FD"+aForn[1,4]+"^FS") // lote
-		cLabel+= (" ^FT66,40^A0N,17,16^FH\^FD"+aForn[1,3]+"^FS") // fronecedor
-		cLabel+= (" ^FT66,82^A0N,17,16^FH\^FD"+cDescMP+"^FS") // descrição materia prima
-		cLabel+= (" ^PQ1,0,1,Y^XZ")
-	endif
+	// cPrinterPath:= "\\"+cNomePC+"\ZEBRA"
 
-	cPrinterPath:= "\\"+cNomePC+"\ZEBRA"
+	// cFile:= "etq_"+strtran('etiqueta_masa_mp',"/","-")+".txt"
+	// // cFile:= "etq_"+strtran('etiqueta_masa'+"-"+cvaltochar(nx),"/","-")+".txt"
+	// MemoWrite(cDir+cFile,cLabel )
 
-	cFile:= "etq_"+strtran('etiqueta_masa_mp',"/","-")+".txt"
-	// cFile:= "etq_"+strtran('etiqueta_masa'+"-"+cvaltochar(nx),"/","-")+".txt"
-	MemoWrite(cDir+cFile,cLabel )
+	// // se não existir o diretorio cria
+	// if !file(cDirLocal)
+	// 	MakeDir(cDirLocal)
+	// endif
 
-	// se não existir o diretorio cria
-	if !file(cDirLocal)
-		MakeDir(cDirLocal)
-	endif
+	// // se não existir o diretorio cria
+	// if !ExistDIr(cDir)
+	// 	MakeDir(cDir)
+	// endif
 
-	// se não existir o diretorio cria
-	if !ExistDIr(cDir)
-		MakeDir(cDir)
-	endif
-
-	// cExec:= 'cmd /c "COPY '+cDirLocal+cFile +' '+ cPrinterPath+'" '
-	// CpyS2T(cDir+cFile, cDirLocal, .T. )
 	ProcRegua(val(MV_PAR02))
 	for nX := 1 to val(MV_PAR02)
-		// nWait:= WaitRun(cExec,1)
-		impriRaw(cLabel,cPrinter)  
-		*
+		impriRaw(cLabel,cPrinter)
 	Next
-	// if nWait == 0
-	// 	// PUTMV("MV_SEQETQ",cSeq)
-	// 	fErase(cDirLocal+cFile)
-	// 	fErase(cDir+cFile)
-	// endif
-	// Encerra local de impressao
-	// MSCBCLOSEPRINTER()
+
 
 Return
 
@@ -319,28 +315,52 @@ Static Function INVERT()
 	// oBrowseLotes:refresh()
 Return
 
-
-
-// Exemplo de impressão RAW usando FWMSPrinter
+// Exemplo de impressão RAW usando FWMSPrinterStatic Function impriRaw(cZPL,cPrinter)
 Static Function impriRaw(cZPL,cPrinter)
-
 	Local oPrinter   := Nil
 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
-	Local oPrintSetupParam := Nil
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
-	// Local oPrinter
-	Local cLocal            := "c:\temp"
+	Local aPrint          := GetImpWindows(.F.)
 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
+	Local oPrintSetupParam := Nil
 	Local aDevice           := {}
 	Local cSession          := GetPrinterSession()
+	// Local oPrinter
+	// Local cLocal            := "c:\temp"
 
-	// Criar objeto FWMSPrinter em modo RAW
-	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+		// Criar objeto FWMSPrinter em modo RAW
+		oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+		// oPrinter:setup()
 
-	// Aqui é só usar SAY, que em RAW escreve direto
-	oPrinter:Say(0, 0, cZPL)
+		// Aqui é só usar SAY, que em RAW escreve direto
+		oPrinter:Say(0, 0, cZPL)
 
-	oPrinter:Print()
+		oPrinter:Print()
 
-Return
+Return .T.
+
+
+// // Exemplo de impressão RAW usando FWMSPrinter
+// Static Function impriRaw(cZPL,cPrinter)
+
+// 	Local oPrinter   := Nil
+// 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+// 	Local oPrintSetupParam := Nil
+// 	Local lAdjustToLegacy   := .F.
+// 	Local lDisableSetup     := .T.
+// 	// Local oPrinter
+// 	Local cLocal            := "c:\temp"
+// 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
+// 	Local aDevice           := {}
+// 	Local cSession          := GetPrinterSession()
+
+// 	// Criar objeto FWMSPrinter em modo RAW
+// 	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+
+// 	// Aqui é só usar SAY, que em RAW escreve direto
+// 	oPrinter:Say(0, 0, cZPL)
+
+// 	oPrinter:Print()
+
+// Return

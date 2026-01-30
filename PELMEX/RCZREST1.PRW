@@ -22,12 +22,16 @@ WSRESTFUL wsEtiquetas DESCRIPTION 'WebService Cadastro de Produtos'
 	WSDATA limit    AS INTEGER
 	WSDATA page     AS INTEGER
 
-	//MÈtodos
+	//M√©todos
+	// GET'S
 	WSMETHOD GET  CODETI    DESCRIPTION 'Retorna o registro pesquisado' WSSYNTAX '/wsEtiquetas/GET_ETIQ?{CODETI}' PATH 'GET_ETIQ'  PRODUCES APPLICATION_JSON
 	WSMETHOD GET  ETIQ_ALL  DESCRIPTION 'Retorna todos os registros'    WSSYNTAX '/wsEtiquetas/GET_ETIQ_ALL?{limit, page}' PATH 'GET_ETIQ_ALL' PRODUCES APPLICATION_JSON
 	WSMETHOD GET  DTINICIO    DESCRIPTION 'Retorna todos os registros por data'    WSSYNTAX '/wsEtiquetas/GET_ETIQ_DATA?{DTINICIO,DTFIM,limit, page}' PATH 'GET_ETIQ_DATA' PRODUCES APPLICATION_JSON
+
 	// WSMETHOD GET  ETIQ_ALL DESCRIPTION 'Retorna todos os registros'     WSSYNTAX '/wsEtiquetas/GET_ETIQ_ALL?{updated_at, limit, page}' PATH 'GET_ETIQ_ALL' PRODUCES APPLICATION_JSON
-	// WSMETHOD POST NEW DESCRIPTION 'Inclus„o de registro'          WSSYNTAX '/wsEtiquetas/new'                               PATH 'new'           PRODUCES APPLICATION_JSON
+	// POST
+	WSMETHOD POST NEW_APONT	DESCRIPTION 'Insere apontamento'	WSSYNTAX '/wsEtiquetas/new'	PATH 'new'	CONSUMES APPLICATION_JSON	PRODUCES APPLICATION_JSON
+	// WSMETHOD POST NEW DESCRIPTION 'Inclus√£o de registro'          WSSYNTAX '/wsEtiquetas/new'                               PATH 'new'           PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
 /*/{Protheus.doc} WSMETHOD GET ID
@@ -35,7 +39,7 @@ Busca registro via ID
 @author Atilio
 @since 07/04/2022
 @version 1.0
-@param id, Caractere, String que ser· pesquisada atravÈs do MsSeek
+@param id, Caractere, String que ser√° pesquisada atrav√©s do MsSeek
 @obs Codigo gerado automaticamente pelo Autumn Code Maker
 @see http://autumncodemaker.com
 /*/
@@ -47,7 +51,7 @@ WSMETHOD GET CODETI WSRECEIVE CODETI WSSERVICE wsEtiquetas
 
 	//Se o CODETI estiver vazio
 	If Empty(::CODETI)
-		//SetRestFault(500, 'Falha ao consultar o registro') //caso queira usar esse comando, vocÍ n„o poder· usar outros retornos, como os abaixo
+		//SetRestFault(500, 'Falha ao consultar o registro') //caso queira usar esse comando, voc√™ n√£o poder√° usar outros retornos, como os abaixo
 		Self:setStatus(500)
 		jResponse['errorCodEti']  := 'CODETI'
 		jResponse['error']    := 'CODETI vazio'
@@ -56,13 +60,13 @@ WSMETHOD GET CODETI WSRECEIVE CODETI WSSERVICE wsEtiquetas
 		DbSelectArea(cAliasWS)
 		(cAliasWS)->(DbSetOrder(1))
 
-		//Se n„o encontrar o registro
+		//Se n√£o encontrar o registro
 		If ! (cAliasWS)->(MsSeek(FWxFilial(cAliasWS) + ::CODETI))
-			//SetRestFault(500, 'Falha ao consultar ID') //caso queira usar esse comando, vocÍ n„o poder· usar outros retornos, como os abaixo
+			//SetRestFault(500, 'Falha ao consultar ID') //caso queira usar esse comando, voc√™ n√£o poder√° usar outros retornos, como os abaixo
 			Self:setStatus(500)
 			jResponse['errorId']  := 'ID002'
-			jResponse['error']    := 'ID n„o encontrado'
-			jResponse['solution'] := 'CÛdigo ID n„o encontrado na tabela ' + cAliasWS
+			jResponse['error']    := 'ID n√£o encontrado'
+			jResponse['solution'] := 'C√≥digo ID n√£o encontrado na tabela ' + cAliasWS
 		Else
 			//Define o retorno
 			jResponse['etiqueta'] 	:= (cAliasWS)->CB0_CODETI
@@ -93,17 +97,17 @@ WSMETHOD GET CODETI WSRECEIVE CODETI WSSERVICE wsEtiquetas
 Return lRet
 
 /*/{Protheus.doc} WSMETHOD GET ALL
-Busca todos os registros atravÈs de paginaÁ„o
+Busca todos os registros atrav√©s de pagina√ß√£o
 @author Atilio
 @since 07/04/2022
 @version 1.0
-@param updated_at, Caractere, Data de alteraÁ„o no formato string 'YYYY-MM-DD' (somente se tiver o campo USERLGA / USERGA na tabela)
-@param limit, NumÈrico, Limite de registros que ir· vir (por exemplo trazer apenas 100 registros)
-@param page, NumÈrico, N˙mero da p·gina que ir· buscar (se existir 1000 registros dividido por 100 ter· 10 p·ginas de pesquisa)
+@param updated_at, Caractere, Data de altera√ß√£o no formato string 'YYYY-MM-DD' (somente se tiver o campo USERLGA / USERGA na tabela)
+@param limit, Num√©rico, Limite de registros que ir√° vir (por exemplo trazer apenas 100 registros)
+@param page, Num√©rico, N√∫mero da p√°gina que ir√° buscar (se existir 1000 registros dividido por 100 ter√° 10 p√°ginas de pesquisa)
 @obs Codigo gerado automaticamente pelo Autumn Code Maker
  
-    Poderia ser usado o FWAdapterBaseV2(), mas em algumas versıes antigas n„o existe essa funcionalidade
-    ent„o a paginaÁ„o foi feita manualmente
+    Poderia ser usado o FWAdapterBaseV2(), mas em algumas vers√µes antigas n√£o existe essa funcionalidade
+    ent√£o a pagina√ß√£o foi feita manualmente
  
 @see http://autumncodemaker.com
 /*/
@@ -138,9 +142,9 @@ WSMETHOD GET ETIQ_ALL WSRECEIVE limit, page WSSERVICE wsEtiquetas
 	cQueryTab += "     TABREC " + CRLF
 	TCQuery cQueryTab New Alias 'QRYALL'
 
-	//Se n„o encontrar registros
+	//Se n√£o encontrar registros
 	If QRYALL->(EoF())
-		//SetRestFault(500, 'Falha ao consultar registros') //caso queira usar esse comando, vocÍ n„o poder· usar outros retornos, como os abaixo
+		//SetRestFault(500, 'Falha ao consultar registros') //caso queira usar esse comando, voc√™ n√£o poder√° usar outros retornos, como os abaixo
 		Self:setStatus(500)
 		jResponse['errorId']  := 'ETIQ_ALL'
 		jResponse['error']    := 'Registro(s) nao encontrado(s)'
@@ -152,26 +156,26 @@ WSMETHOD GET ETIQ_ALL WSRECEIVE limit, page WSSERVICE wsEtiquetas
 		Count To nTotal
 		QRYALL->(DbGoTop())
 
-		//O tamanho do retorno, ser· o limit, se ele estiver definido
+		//O tamanho do retorno, ser√° o limit, se ele estiver definido
 		If ! Empty(::limit)
 			nTamanho := ::limit
 		EndIf
 
-		//Pegando total de p·ginas
+		//Pegando total de p√°ginas
 		nPags := NoRound(nTotal / nTamanho, 0)
 		nPags += Iif(nTotal % nTamanho != 0, 1, 0)
 
-		//Se vier p·gina
+		//Se vier p√°gina
 		If ! Empty(::page)
 			nPagina := ::page
 		EndIf
 
-		//Se a p·gina vier zerada ou negativa ou for maior que o m·ximo, ser· 1
+		//Se a p√°gina vier zerada ou negativa ou for maior que o m√°ximo, ser√° 1
 		If nPagina <= 0 .Or. nPagina > nPags
 			nPagina := 1
 		EndIf
 
-		//Se a p·gina for diferente de 1, pula os registros
+		//Se a p√°gina for diferente de 1, pula os registros
 		If nPagina != 1
 			QRYALL->(DbSkip((nPagina-1) * nTamanho))
 		EndIf
@@ -188,7 +192,7 @@ WSMETHOD GET ETIQ_ALL WSRECEIVE limit, page WSSERVICE wsEtiquetas
 		While ! QRYALL->(EoF())
 			nAtual++
 
-			//Se ultrapassar o limite, encerra o laÁo
+			//Se ultrapassar o limite, encerra o la√ßo
 			If nAtual > nTamanho
 				Exit
 			EndIf
@@ -253,12 +257,12 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 	///&DTFIM=20180218
 	If !Empty(::DTINICIO) .And. !Empty(::DTFIM) // SE PREECHER AS DUAS FAZ O BETEWEEN PRA PEGAR O RANGER
 		cQueryTab += "   AND TAB2.CB0_DTNASC BETWEEN '" + ::DTINICIO + "' AND '" + ::DTFIM + "'" + CRLF
-	ElseIf !Empty(::DTINICIO) // SE N√O VERIFICA SE FOI INFORMADO DATA DE.
+	ElseIf !Empty(::DTINICIO) // SE N√ÉO VERIFICA SE FOI INFORMADO DATA DE.
 		cQueryTab += "   AND TAB2.CB0_DTNASC = '" + ::DTINICIO + "'" + CRLF
-	ElseIf !Empty(::DTFIM)  // SE N√O VERIFICA SE FOI INFORMADO DATA ATE.
+	ElseIf !Empty(::DTFIM)  // SE N√ÉO VERIFICA SE FOI INFORMADO DATA ATE.
 		cQueryTab += "   AND TAB2.CB0_DTNASC = '" + ::DTFIM + "'" + CRLF
 	else
-		// como o parametro n„o foi informado, forÁo a query com uma data futura pra n„o trazer nada.
+		// como o parametro n√£o foi informado, for√ßo a query com uma data futura pra n√£o trazer nada.
 		cQueryTab += "   AND TAB2.CB0_DTNASC = '" + dtos(date()+365) + "'" + CRLF
 	EndIf
 
@@ -266,9 +270,9 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 	cQueryTab += "     TABREC " + CRLF
 	TCQuery cQueryTab New Alias 'QRYDATA'
 
-	//Se n„o encontrar registros
+	//Se n√£o encontrar registros
 	If QRYDATA->(EoF())
-		//SetRestFault(500, 'Falha ao consultar registros') //caso queira usar esse comando, vocÍ n„o poder· usar outros retornos, como os abaixo
+		//SetRestFault(500, 'Falha ao consultar registros') //caso queira usar esse comando, voc√™ n√£o poder√° usar outros retornos, como os abaixo
 		Self:setStatus(500)
 		cError := iif(Empty(::DTINICIO) .And. Empty(::DTFIM),'Os parametros DTINICIO/DTFIM, nao foram informados','Registro(s) nao encontrado(s)')
 		jResponse['errorId']  := 'DTINICIO/DTFIM'
@@ -281,26 +285,26 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 		Count To nTotal
 		QRYDATA->(DbGoTop())
 
-		//O tamanho do retorno, ser· o limit, se ele estiver definido
+		//O tamanho do retorno, ser√° o limit, se ele estiver definido
 		If ! Empty(::limit)
 			nTamanho := ::limit
 		EndIf
 
-		//Pegando total de p·ginas
+		//Pegando total de p√°ginas
 		nPags := NoRound(nTotal / nTamanho, 0)
 		nPags += Iif(nTotal % nTamanho != 0, 1, 0)
 
-		//Se vier p·gina
+		//Se vier p√°gina
 		If ! Empty(::page)
 			nPagina := ::page
 		EndIf
 
-		//Se a p·gina vier zerada ou negativa ou for maior que o m·ximo, ser· 1
+		//Se a p√°gina vier zerada ou negativa ou for maior que o m√°ximo, ser√° 1
 		If nPagina <= 0 .Or. nPagina > nPags
 			nPagina := 1
 		EndIf
 
-		//Se a p·gina for diferente de 1, pula os registros
+		//Se a p√°gina for diferente de 1, pula os registros
 		If nPagina != 1
 			QRYDATA->(DbSkip((nPagina-1) * nTamanho))
 		EndIf
@@ -317,7 +321,7 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 		While ! QRYDATA->(EoF())
 			nAtual++
 
-			//Se ultrapassar o limite, encerra o laÁo
+			//Se ultrapassar o limite, encerra o la√ßo
 			If nAtual > nTamanho
 				Exit
 			EndIf
@@ -356,5 +360,77 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 	//Define o retorno
 	Self:SetContentType('application/json')
 	Self:SetResponse(jResponse:toJSON())
+
+Return lRet
+
+// rota post
+WSMETHOD POST NEW_APONT WSSERVICE wsEtiquetas
+
+	Local lRet      := .T.
+	Local oJsonIn   := Nil
+	Local oJsonOut  := JsonObject():New()
+	Local cBody     := Self:GetContent()
+	Local cAliasWS  := 'ZZJ'
+
+	// Valida Body
+	If Empty(cBody)
+		Self:SetStatus(400)
+		oJsonOut['error'] := 'Body vazio'
+		Self:SetResponse(oJsonOut:ToJson())
+		Return lRet
+	EndIf
+
+	// Converte JSON
+	oJsonIn := JsonObject():New()
+	oJsonIn:FromJson(cBody)
+
+	// Valida√ß√£o b√°sica
+	If !oJsonIn:HasProperty('etiqueta') .or.!oJsonIn:HasProperty('operador')
+		Self:SetStatus(400)
+		oJsonOut['error'] := 'Campo etiqueta ou operador n√£o informado.'
+		Self:SetResponse(oJsonOut:ToJson())
+		Return lRet
+	EndIf
+
+	DbSelectArea(cAliasWS)
+	DbSetOrder(1)
+
+	// Evita duplicidade
+	If (cAliasWS)->(MsSeek(FWxFilial(cAliasWS) + oJsonIn['etiqueta']))
+		Self:SetStatus(409)
+		oJsonOut['error'] := 'Etiqueta j√° existe'
+		Self:SetResponse(oJsonOut:ToJson())
+		Return lRet
+	Else
+		DbSelectArea('CB0')
+		DbSetOrder(1)
+		IF CB0->(MSEEK(xFilial('CB0')+oJsonIn['etiqueta']))
+			RecLock(cAliasWS, .T.)
+			(cAliasWS)->ZZJ_FILIAL := CB0_FILIAL
+			(cAliasWS)->ZZ7_CODETI := CB0_CODETI
+			(cAliasWS)->ZZ7_PRODUT := CB0_CODPRO
+			(cAliasWS)->ZZ7_DESC   := POSICIONE('SB1',1,XFILIAL('SB1')+CB0->CB0_CODPRO,'B1_DESC')
+			(cAliasWS)->ZZ7_OP     := CB0_OP
+			(cAliasWS)->ZZ7_QUANT   := CB0_QTDE
+			(cAliasWS)->ZZ7_DATA:=  CB0_DTNASC
+			(cAliasWS)->ZZ7_HORA :=  LEFT(TIME(),5)
+			(cAliasWS)->ZZ7_STATUS:=  'I'
+			(cAliasWS)->ZZ7_CODOPE:=  oJsonIn['operador']
+			MsUnlock()
+		else
+			Self:SetStatus(409)
+			oJsonOut['error'] := 'Etiqueta n√£o existe na CB0'
+			Self:SetResponse(oJsonOut:ToJson())
+			Return lRet
+		EndIf
+	EndIf
+
+
+	oJsonOut['success'] := .T.
+	oJsonOut['message'] := 'Etiqueta criada com sucesso'
+
+	Self:SetStatus(201)
+	Self:SetContentType('application/json')
+	Self:SetResponse(oJsonOut:ToJson())
 
 Return lRet
