@@ -6,34 +6,49 @@
 @since 27/01/2026
 /*/
 User Function INTRFID1()
-	Local aOpAberta := {}
 	Local aArea         := FWGetArea()
 	Local aHeader       := {}
-	Local oRestClient   := FWRest():New("https://192.168.1.2:8000/rest/chip/producao/")
-	Local cAuth := 'YWRtaW46c2VuaGExMjM='
-	Local nX
-	aOpAberta := buscaOp()
+	Local oRestClient   := FWRest():New("http://192.168.1.2:8000")
+	Local cPath := 	'/api/webhook'
+	// Local cAuth := 'TUlDUk9TSUdBOkFETUlOUEVM'
+	Local cBody       := ""
+	Local cUser := "MICROSIGA"
+	Local cPass := "ADMINPEL"
+	Local cAuth := ""
+
+	cAuth := Encode64(cUser + ":" + cPass)
+	// aOpAberta := buscaOp()
 
 	//Adiciona os headers que serão enviados via WS
 	aAdd(aHeader,'User-Agent: Mozilla/4.0 (compatible; Protheus '+GetBuild()+')')
 	aAdd(aHeader,'Content-Type: application/json; charset=utf-8')
 	aAdd(aHeader, "Authorization: Basic " + cAuth)
 
+	// Payload JSON
+	cBody := ;
+		'{' + ;
+		'  "evento": "rfid",' + ;
+		'  "origem": "protheus",' + ;
+		'  "dataHora": "' + DToS(Date()) + ' ' + Time() + '"' + ;
+		'}'
+
 	//Define a url conforme o CEP e aciona o método GET
-	for nX := 1 to LEN(aOpAberta)
-		oRestClient:setPath(aOpAberta[nX])
-		If oRestClient:Get(aHeader)
 
-			//Exibe o resultado que veio do WS
-			ShowLog(oRestClient:cResult)
+	oRestClient:SetPath(cPath)
+	oRestClient:SetTimeOut(30)
+	oRestClient:SetPostParams(cBody)
 
-			//Senão, pega os erros, e exibe em um Alert
-		Else
-			cLastError := oRestClient:GetLastError()
-			cErrorDetail := oRestClient:GetResult()
-			Alert(cErrorDetail)
-		Endif
-	next nX
+	If oRestClient:Post(aHeader)
+
+	// 	ShowLog("Retorno OK:")
+	// 	ShowLog(oRestClient:GetResult())
+
+	// Else
+
+	// 	Alert("Erro REST: " + oRestClient:GetLastError())
+	// 	ShowLog(oRestClient:GetResult())
+
+	EndIf
 
 	FWRestArea(aArea)
 Return

@@ -407,6 +407,7 @@ Static Function fGravaCB0(_cCodEtiqueta,cCodProd,_cCodBar,nQtd,cOPE)
 				// CB0_STSTF 	With IIF(SM0->M0_CODIGO=="01".AND.SB1->B1_TIPO="PI".AND.SB1->B1_GRUPO<>"3001","0"," "),;
 
 		// aAdd(aRecCB0,CB0->(RecNo()))
+		U_INTRFID1()
 	EndIf
 Return()
 

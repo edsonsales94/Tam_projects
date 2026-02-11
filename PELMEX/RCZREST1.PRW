@@ -69,25 +69,32 @@ WSMETHOD GET CODETI WSRECEIVE CODETI WSSERVICE wsEtiquetas
 			jResponse['solution'] := 'Código ID não encontrado na tabela ' + cAliasWS
 		Else
 			//Define o retorno
-			jResponse['etiqueta'] 	:= (cAliasWS)->CB0_CODETI
-			jResponse['dtnasc'] 	:= (cAliasWS)->CB0_DTNASC
-			jResponse['tipo'] 		:= (cAliasWS)->CB0_TIPO
-			jResponse['produto'] 	:= (cAliasWS)->CB0_CODPRO
-			jResponse['descprod'] 	:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
-			jResponse['um'] 		:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
-			jResponse['op'] 		:= (cAliasWS)->CB0_OP
-			jResponse['grupo'] 		:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
-			jResponse['qtd'] 		:= (cAliasWS)->CB0_QTDE
-			jResponse['local'] 		:= (cAliasWS)->CB0_LOCAL
-			jResponse['ender'] 		:= (cAliasWS)->CB0_LOCALI
-			jResponse['valid'] 		:= (cAliasWS)->CB0_DTVLD
-			jResponse['etiq2'] 		:= (cAliasWS)->CB0_CODETI2
-			jResponse['fornec'] 	:= (cAliasWS)->CB0_FORNEC
-			jResponse['lojafor'] 	:= (cAliasWS)->CB0_LOJAFO
-			jResponse['pedven'] 	:= (cAliasWS)->CB0_PEDVEN
-			jResponse['itempv'] 	:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV')
-			jResponse['cliente'] 	:= (cAliasWS)->CB0_CLI
-			jResponse['lojacli'] 	:= (cAliasWS)->CB0_LOJACL
+			jResponse['filial'] 		:= (cAliasWS)->CB0_FILIAL
+			jResponse['pedido'] 		:= (cAliasWS)->CB0_PEDVEN
+			jResponse['itemPedido'] 	:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV')
+			jResponse['emissaoPedido'] 	:= Posicione('SC5',1, xFilial('SC5')+(cAliasWS)->CB0_PEDVEN,'C5_EMISSAO')
+			jResponse['dataEntrega'] 	:= Posicione('SC6',1, xFilial('SC6')+(cAliasWS)->CB0_PEDVEN+POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV'),'C6_ENTREG')
+
+			jResponse['codigoCliente']	:= (cAliasWS)->CB0_CLI
+			jResponse['nomeCliente'] 	:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_NOME')
+			jResponse['lojacli'] 		:= (cAliasWS)->CB0_LOJACL
+			jResponse['endereco']		:= (cAliasWS)->CB0_LOCALI
+			jResponse['ufCliente'] 		:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_EST')
+			jResponse['cidadeCliente'] 	:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_MUN')
+
+			jResponse['etiqueta'] 		:= (cAliasWS)->CB0_CODETI
+			jResponse['tipo'] 			:= (cAliasWS)->CB0_TIPO
+			jResponse['dataEtiqueta']	:= (cAliasWS)->CB0_DTNASC
+			jResponse['op'] 			:= (cAliasWS)->CB0_OP
+			jResponse['emissoOp'] 		:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_EMISSAO')
+			jResponse['produto'] 		:= (cAliasWS)->CB0_CODPRO
+			jResponse['descricaoProduto']:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
+			jResponse['unidadeMedida']	:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
+			jResponse['grupo'] 			:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
+			jResponse['quantidade']		:= (cAliasWS)->CB0_QTDE
+			jResponse['armazemPedido']	:= (cAliasWS)->CB0_LOCAL
+			// jResponse['valid'] 			:= (cAliasWS)->CB0_DTVLD
+			// jResponse['etiq2'] 			:= (cAliasWS)->CB0_CODETI2
 		EndIf
 	EndIf
 
@@ -203,23 +210,51 @@ WSMETHOD GET ETIQ_ALL WSRECEIVE limit, page WSSERVICE wsEtiquetas
 
 			oRegistro := JsonObject():New()
 			//Define o retorno
-			oRegistro['etiqueta'] := (cAliasWS)->CB0_CODETI
-			oRegistro['dtnasc'] := (cAliasWS)->CB0_DTNASC
-			oRegistro['tipo'] := (cAliasWS)->CB0_TIPO
-			oRegistro['produto'] := (cAliasWS)->CB0_CODPRO
-			oRegistro['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
-			oRegistro['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
-			oRegistro['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
-			oRegistro['qtd'] := (cAliasWS)->CB0_QTDE
-			oRegistro['local'] := (cAliasWS)->CB0_LOCAL
-			oRegistro['ender'] := (cAliasWS)->CB0_LOCALI
-			oRegistro['valid'] := (cAliasWS)->CB0_DTVLD
-			oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
-			oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
-			oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
-			oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
-			oRegistro['cliente'] := (cAliasWS)->CB0_CLI
-			oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
+			//Define o retorno
+			oRegistro['filial'] 		:= (cAliasWS)->CB0_FILIAL
+			oRegistro['pedido'] 		:= (cAliasWS)->CB0_PEDVEN
+			oRegistro['itemPedido'] 	:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV')
+			oRegistro['emissaoPedido'] 	:= Posicione('SC5',1, xFilial('SC5')+(cAliasWS)->CB0_PEDVEN,'C5_EMISSAO')
+			oRegistro['dataEntrega'] 	:= Posicione('SC6',1, xFilial('SC6')+(cAliasWS)->CB0_PEDVEN+POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV'),'C6_ENTREG')
+
+			oRegistro['codigoCliente']	:= (cAliasWS)->CB0_CLI
+			oRegistro['nomeCliente'] 	:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_NOME')
+			oRegistro['lojacli'] 		:= (cAliasWS)->CB0_LOJACL
+			oRegistro['endereco']		:= (cAliasWS)->CB0_LOCALI
+			oRegistro['ufCliente'] 		:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_EST')
+			oRegistro['cidadeCliente'] 	:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_MUN')
+
+			oRegistro['etiqueta'] 		:= (cAliasWS)->CB0_CODETI
+			oRegistro['tipo'] 			:= (cAliasWS)->CB0_TIPO
+			oRegistro['dataEtiqueta']	:= (cAliasWS)->CB0_DTNASC
+			oRegistro['op'] 			:= (cAliasWS)->CB0_OP
+			oRegistro['emissoOp'] 		:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_EMISSAO')
+			oRegistro['produto'] 		:= (cAliasWS)->CB0_CODPRO
+			oRegistro['descricaoProduto']:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
+			oRegistro['unidadeMedida']	:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
+			oRegistro['grupo'] 			:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
+			oRegistro['quantidade']		:= (cAliasWS)->CB0_QTDE
+			oRegistro['armazemPedido']	:= (cAliasWS)->CB0_LOCAL
+			// oRegistro['valid'] 			:= (cAliasWS)->CB0_DTVLD
+			// oRegistro['etiq2'] 			:= (cAliasWS)->CB0_CODETI2
+
+			// oRegistro['etiqueta'] := (cAliasWS)->CB0_CODETI
+			// oRegistro['dtnasc'] := (cAliasWS)->CB0_DTNASC
+			// oRegistro['tipo'] := (cAliasWS)->CB0_TIPO
+			// oRegistro['produto'] := (cAliasWS)->CB0_CODPRO
+			// oRegistro['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
+			// oRegistro['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
+			// oRegistro['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
+			// oRegistro['qtd'] := (cAliasWS)->CB0_QTDE
+			// oRegistro['local'] := (cAliasWS)->CB0_LOCAL
+			// oRegistro['ender'] := (cAliasWS)->CB0_LOCALI
+			// oRegistro['valid'] := (cAliasWS)->CB0_DTVLD
+			// oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
+			// oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
+			// oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
+			// oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
+			// oRegistro['cliente'] := (cAliasWS)->CB0_CLI
+			// oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
 
 			aAdd(jResponse['objects'], oRegistro)
 
@@ -332,23 +367,51 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 
 			oRegistro := JsonObject():New()
 			//Define o retorno
-			oRegistro['etiqueta'] := (cAliasWS)->CB0_CODETI
-			oRegistro['dtnasc'] := (cAliasWS)->CB0_DTNASC
-			oRegistro['tipo'] := (cAliasWS)->CB0_TIPO
-			oRegistro['produto'] := (cAliasWS)->CB0_CODPRO
-			oRegistro['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
-			oRegistro['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
-			oRegistro['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
-			oRegistro['qtd'] := (cAliasWS)->CB0_QTDE
-			oRegistro['local'] := (cAliasWS)->CB0_LOCAL
-			oRegistro['ender'] := (cAliasWS)->CB0_LOCALI
-			oRegistro['valid'] := (cAliasWS)->CB0_DTVLD
-			oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
-			oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
-			oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
-			oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
-			oRegistro['cliente'] := (cAliasWS)->CB0_CLI
-			oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
+
+			oRegistro['filial'] 		:= (cAliasWS)->CB0_FILIAL
+			oRegistro['pedido'] 		:= (cAliasWS)->CB0_PEDVEN
+			oRegistro['itemPedido'] 	:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV')
+			oRegistro['emissaoPedido'] 	:= Posicione('SC5',1, xFilial('SC5')+(cAliasWS)->CB0_PEDVEN,'C5_EMISSAO')
+			oRegistro['dataEntrega'] 	:= Posicione('SC6',1, xFilial('SC6')+(cAliasWS)->CB0_PEDVEN+POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_ITEMPV'),'C6_ENTREG')
+
+			oRegistro['codigoCliente']	:= (cAliasWS)->CB0_CLI
+			oRegistro['nomeCliente'] 	:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_NOME')
+			oRegistro['lojacli'] 		:= (cAliasWS)->CB0_LOJACL
+			oRegistro['endereco']		:= (cAliasWS)->CB0_LOCALI
+			oRegistro['ufCliente'] 		:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_EST')
+			oRegistro['cidadeCliente'] 	:= posicione('SA1',1, xFilial('SA1')+(cAliasWS)->CB0_CLI+(cAliasWS)->CB0_LOJACL,'A1_MUN')
+
+			oRegistro['etiqueta'] 		:= (cAliasWS)->CB0_CODETI
+			oRegistro['tipo'] 			:= (cAliasWS)->CB0_TIPO
+			oRegistro['dataEtiqueta']	:= (cAliasWS)->CB0_DTNASC
+			oRegistro['op'] 			:= (cAliasWS)->CB0_OP
+			oRegistro['emissoOp'] 		:= POSICIONE('SC2',1,XFILIAL('SC2')+(cAliasWS)->CB0_OP,'C2_EMISSAO')
+			oRegistro['produto'] 		:= (cAliasWS)->CB0_CODPRO
+			oRegistro['descricaoProduto']:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
+			oRegistro['unidadeMedida']	:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
+			oRegistro['grupo'] 			:= POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
+			oRegistro['quantidade']		:= (cAliasWS)->CB0_QTDE
+			oRegistro['armazemPedido']	:= (cAliasWS)->CB0_LOCAL
+			// oRegistro['valid'] 			:= (cAliasWS)->CB0_DTVLD
+			// oRegistro['etiq2'] 			:= (cAliasWS)->CB0_CODETI2
+
+			// oRegistro['etiqueta'] := (cAliasWS)->CB0_CODETI
+			// oRegistro['dtnasc'] := (cAliasWS)->CB0_DTNASC
+			// oRegistro['tipo'] := (cAliasWS)->CB0_TIPO
+			// oRegistro['produto'] := (cAliasWS)->CB0_CODPRO
+			// oRegistro['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
+			// oRegistro['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
+			// oRegistro['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
+			// oRegistro['qtd'] := (cAliasWS)->CB0_QTDE
+			// oRegistro['local'] := (cAliasWS)->CB0_LOCAL
+			// oRegistro['ender'] := (cAliasWS)->CB0_LOCALI
+			// oRegistro['valid'] := (cAliasWS)->CB0_DTVLD
+			// oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
+			// oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
+			// oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
+			// oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
+			// oRegistro['cliente'] := (cAliasWS)->CB0_CLI
+			// oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
 
 			aAdd(jResponse['objects'], oRegistro)
 
@@ -427,7 +490,7 @@ WSMETHOD POST NEW_APONT WSSERVICE wsEtiquetas
 
 
 	oJsonOut['success'] := .T.
-	oJsonOut['message'] := 'Etiqueta criada com sucesso'
+	oJsonOut['message'] := 'Etiqueta apontada com sucesso'
 
 	Self:SetStatus(201)
 	Self:SetContentType('application/json')

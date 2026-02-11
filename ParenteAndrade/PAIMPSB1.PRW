@@ -210,22 +210,26 @@ Static Function F_SaveSb1()
                             cCOFINS    := iif(cCOFINS=='S','1','2')
                             cCSLL    := iif(cIRRF=='S','1','2')
 
-                            fGravProd(cCodigo,cGrupo,cDescri,cTipo,cUniMed,cLocPad,cPosIpi,cOrigem,cCODISS,ciRRF,cINSS,nREDINSS,cPIS,cCOFINS,cCSLL,cTRIBMUN,cApropri,cRastro,cLocaliz,cCCusto,nOper)
+                            if fGravProd(cCodigo,cGrupo,cDescri,cTipo,cUniMed,cLocPad,cPosIpi,cOrigem,cCODISS,ciRRF,cINSS,nREDINSS,cPIS,cCOFINS,cCSLL,cTRIBMUN,cApropri,cRastro,cLocaliz,cCCusto,nOper)
+                                if Empty(cLog)
+                                    cLog := '***   Relaca de produtos Gravados  ***'
+                                endif
+                                cLog += "Produto: "+cCodigo+" - "+cDescri+ ", Gravado;" + CRLF
+                            endif
                         endif
                         
                     Else
-                        // cLog += "- Lin" + cValToChar(nLinhaAtu) + ", linha não processada - cabeçalho;" + CRLF
                     EndIf
                     
                 endif
             EndDo
   
-            //Se tiver log, mostra ele
-            // If ! Empty(cLog)
-            //     cLog := "Processamento finalizado, abaixo as mensagens de log: " + CRLF + cLog
-            //     MemoWrite(cDirLog + cArqLog, cLog)
-            //     ShellExecute("OPEN", cArqLog, "", cDirLog, 1)
-            // EndIf
+            // Se tiver log, mostra ele
+            If ! Empty(cLog)
+                cLog := "Processamento finalizado, abaixo as mensagens de log: " + CRLF + cLog
+                MemoWrite(cDirLog + cArqLog, cLog)
+                ShellExecute("OPEN", cArqLog, "", cDirLog, 1)
+            EndIf
   
         Else
             MsgStop("Arquivo não tem conteúdo!", "Atenção")
@@ -313,14 +317,14 @@ Static Function fGravProd(_cCodigo,_cGrupo,_cDescri,_cTipo,_cUniMed,_cLocPad,_cP
             
         Else
             lRet := .T.
-            ConOut("Produto excluido")
+            ConOut("Produto Gravado")
         EndIf
     EndIf
     
     //Desativa o modelo de dados
     oModel:DeActivate()
 
-Return 
+Return lRet
 
 /*/{Protheus.doc} x_IncCod()/*/
 Static Function x_IncCod(xGrp)

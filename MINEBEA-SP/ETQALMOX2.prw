@@ -599,8 +599,9 @@ Static Function ImpEtq(_nQtdEtq,_nSeq,_cLote,_nL,_nC,xGrpOld,xCorOld)
 		EndIf
 	
 		//deslocamento - margens
-		_LI += 35
+		_LI += 100
 		_CO += 50
+		_LIMSBAR += 0.7
 		
 		oPrint:Box(_LI + 18, _CO + 18, _LI + 1033, _CO + 1113)
 		oPrint:Box(_LI + 23, _CO + 23, _LI + 1028, _CO + 1108)

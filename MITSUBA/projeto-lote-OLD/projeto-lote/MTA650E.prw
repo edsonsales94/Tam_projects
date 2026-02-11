@@ -57,7 +57,7 @@ Static Function fDelSA()
 		BeginSql ALIAS cAliasSCP
 			SELECT CP_STATSA,CP_QUJE,CP_NUM,CP_SOLICIT,CP_EMISSAO,CP_PRODUTO,CP_UM,CP_QUANT
 			 FROM %table:SCP%
-			WHERE D_E_L_E_T_='' AND CP_X_OP = %Exp:(cAliasNew)->D4_OP%
+			WHERE D_E_L_E_T_='' AND CP_OP = %Exp:(cAliasNew)->D4_OP%
 		EndSql
 
 		(cAliasSCP)->(dbgotop())
@@ -87,11 +87,10 @@ Static Function fDelSA()
 			(cAliasSCP)->(dbSkip())
 		EndDo
 
+		/* EXCLUIR PRE-REQUISIÇÃO*/
+		ExPreReq(cAliasSCP)
 
 		if !Empty(aAuto)
-			/* EXCLUIR PRE-REQUISIÇÃO*/
-			ExPreReq(cAliasSCP)
-			
 			nOpcAuto :=5
 			MSExecAuto({|x,y,z,a| mata105(x,y,z,a)},aCab,aAuto,nOpcAuto) //aRateio //// 3 - Inclusao, 4 - Alteração, 5 - Exclusão
 			
@@ -112,6 +111,34 @@ Static Function fDelSA()
 
 		SCQ->(DBCloseArea())
 
+		// // deletar a S.A
+		// dbSelectArea( 'SCP' )
+		// SCP->( dbSetOrder( 1 ) )
+		// (cAliasSCP)->(dbgotop())
+		// if SCP->(MsSeek(xFilial('SCP')+(cAliasSCP)->CP_NUM))
+		// 	Begin Transaction
+		// 		cQryUpd := " UPDATE " + RetSqlName("SCP") + " "
+		// 		cQryUpd += "     SET D_E_L_E_T_='*'  "
+		// 		cQryUpd += " WHERE "
+		// 		cQryUpd += "    CP_FILIAL = '" + FWxFilial('SCP') + "' "
+		// 		cQryUpd += "    AND CP_NUM = '" + SCP->CP_NUM + "' "
+		// 		cQryUpd += "     AND D_E_L_E_T_ = ' ' "
+
+		// 		//Tenta executar o update
+		// 		nErro := TcSqlExec(cQryUpd)
+
+		// 		//Se houve erro, mostra a mensagem e cancela a transação
+		// 		If nErro != 0
+		// 			MsgStop("Erro ao tentar deletar S.A: "+TcSqlError(), "Atenção")
+		// 			DisarmTransaction()
+		// 			Return .F.
+		// 		Else
+		// 			FWAlertSuccess('S.A Nro: ' +SCP->CP_NUM + ' deletado com sucesso.', 'Atenção!!!')
+		// 		endif
+		// End Transaction
+	else
+		FWAlertWarning("Erro ao tentar excluir a OP:  "+(cAliasNew)->C2_NUM, "Atenção")
+		Return .F.
 	EndIf
 
 Return .T.

@@ -14,12 +14,9 @@ User Function MCETIQ05()
 	local nx :=0
 	local aForn := {}
 	Private aBrowse:= {{.F.,'','','','','','','',''}}
-	//Private aDadosBRW:= {{space(20),0}}
-	Private aColunas:= {"Volume","Quantidade","NÂº do Lote"}
 	//Objetos e componentes
 	Private oDlg
 	Private oFwLayer
-	Private oPanTitulo
 	Private oPanGrid
 	//CabeÃ§alho
 	Private oSayTitulo, cSayTitulo := 'Selecione'
@@ -75,6 +72,7 @@ User Function MCETIQ05()
 	oTGet2 := TGet():New( 014,280,{|u| if( Pcount( )>0, cTGet2 := u, cTGet2) },oDlg,80,20,"@!",,0,,,.F.,,.T.,,.F.,{|| IIF(Empty(cTGet2),{|| Alert('Informe o RE'),.F.},.T.)},.F.,.F.,,.F.,.F.,,cTGet2,,,, )
 
 	oBtnSair := TButton():New(014, 200, "Gerar coali",  oPanBut, {|| GeraCoal()}, 50, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSair := TButton():New(014, 260, "Ver Coali"  ,  oPanBut, {|| VerCoali(cTGet1)}, 50, 012, , oFontBtn, , .T., , , , , , )
 
 	//dialog com browse para defir as notas fiscais
 	oBrowse := fwBrowse():New()
@@ -192,18 +190,7 @@ Static Function x_load(cTGet1)
 
 Return .T.
 
-/*/{Protheus.doc} GeraCoal
-	(long_description)
-	@type  Static Function
-	@author user
-	@since 17/01/2026
-	@version version
-	@param param_name, param_type, param_descr
-	@return return_var, return_type, return_description
-	@example
-	(examples)
-	@see (links_or_references)
-/*/
+/*/{Protheus.doc} GeraCoal/*/
 Static Function GeraCoal()
 	Local xQtdQuebra := '      '
 	Local aArea := FWGetArea()
@@ -243,50 +230,10 @@ Static Function GeraCoal()
 
 	RestArea(aArea)
 
-	// // Diálogo
-	// oDlgQtd := TDialog():New(180,180,350,650,'Informe a quebra',,,,,CLR_BLACK,CLR_WHITE,,,.T.)
-
-	// // TSay
-	// oSay1 := TSay():New( 10, 05, {|| 'Qtd. Quebra:'}, oDlgQtd, "",oFontSub, , , , .T., RGB(031,073,125) )
-
-	// // TGet
-	// oTGetQtd := TGet():New( 10,120,{|u| If(PCount() > 0, xQtdQuebra := u, xQtdQuebra)},oDlgQtd,060,012,"@!",,0,,,.F.,,.T.,,.F.,,.F.,.F.,,.F.,.F.,,xQtdQuebra,,,, )
-
-	// // Botão OK
-	// nPOS := 60
-	// nCOl := 100
-	// oTButton1 := TButton():New( nPos, nCOl, "Confirmar",oDlgQtd,{||If(val(xQtdQuebra) <= 0,.F.,(lConfirm := .T., oDlgQtd:End()))}, 40,10,,,.F.,.T.,.F.,,.F.,,,.F. )
-	// // oBtnOk := TButton():New( nPOS, nCOl, 'Confirmar', oDlgQtd, {||If(val(xQtdQuebra) <= 0,.F.,(lConfirm := .T., oDlgQtd:End()))} )
-
-	// // Botão Cancelar
-	// nPOS := 60
-	// nCOl := 160
-	// oTButton1 := TButton():New( nPos, nCOl, "Cancelar",oDlgQtd,{|| oDlgQtd:End() }, 40,10,,,.F.,.T.,.F.,,.F.,,,.F. )
-
-	// // Ativa diálogo
-	// oDlgQtd:Activate()
-
-	// Retorno somente se confirmou
-	// If lConfirm
-	// 	xQtdQuebra := VAL(xQtdQuebra)
-	// 	SaveCoaL(xQtdQuebra)
-	// EndIf
-
 Return Nil
 
 
-/*/{Protheus.doc} aBrowse
-	(long_description)
-	@type  Static Function
-	@author user
-	@since 15/07/2025
-	@version version
-	@param param_name, param_type, param_descr
-	@return return_var, return_type, return_description
-	@example
-	(examples)
-	@see (links_or_references)
-/*/
+/*/{Protheus.doc} aBrowsec/*/
 
 Static Function INVERT()
 
@@ -308,6 +255,29 @@ Static Function INVERT()
 		next
 	endif
 	oBrowse:GoTo( oBrowse:nAt, .T. )
+	// oBrowse:refresh()
+Return
+
+Static Function INVERT2()
+
+	LOCAL NX := 0
+	LOCAL lMark:=aBrw[oBrwCoali:nAt,01]
+	LOCAL nPos := oBrwCoali:nAt
+
+	if lMark // SE TA MARCADO DESMARCA E OS OUTROS PERMANECEM DESMARCADOS
+		for NX := 1 to LEN(aBrw)
+			aBrw[NX,1] := .F.
+		next
+	Else // SE NÃO TA MARCADO MARCA O OQUE FOI CLICADO, OS OUTROS PERMANECEM DESMARCADOS
+		for NX := 1 to LEN(aBrw)
+			if NX == nPos
+				aBrw[NX,1] := .T.
+			Else
+				aBrw[NX,1] := .F.
+			endif
+		next
+	endif
+	oBrwCoali:GoTo( oBrwCoali:nAt, .T. )
 	// oBrowse:refresh()
 Return
 
@@ -400,6 +370,190 @@ Static Function SaveCoaL(_xQtdQuebra)
 
 Return
 
+/*/{Protheus.doc} VerCoali /*/
+Static Function VerCoali(_cEtiqueta)
+	Local oBrw
+	Local aDados := {}
+	// Local nLargBtn      := 50
+	Private aBrw:= {{.F.,'','','','','','','',''}}
+	//Objetos e componentes
+	Private oDlgCoali
+	Private oFwCol 
+	Private oPGridCoali
+	//CabeÃ§alho
+	Private oSayTit, cSayTitulo := 'Selecione'
+	//Tamanho da janela
+	Private aSize := MsAdvSize(.F.)
+	Private nJanLarg := aSize[5]
+	Private nJanAltu := aSize[6]
+	//Fontes
+	Private cFontUti    := "Tahoma"
+	Private oFontMod    := TFont():New(cFontUti, , -38)
+	Private oFontSub    := TFont():New(cFontUti, , -12)
+	Private oFontSubN   := TFont():New(cFontUti, , -12, , .T.)
+	Private oFontBtn    := TFont():New(cFontUti, , -12)
+	Private oFontSay    := TFont():New(cFontUti, , -10)
+
+	fCarregar(_cEtiqueta)
+
+	//Cria a janela
+	cAno := cvaltochar(year(date()))
+
+	nAlt := (nJanAltu + 350) / 2
+	nLarg := (nJanLarg + 600) / 2
+	//Cria a janela
+	DEFINE MSDIALOG oDlgCoali TITLE "COALI / "+cAno+" - v1.0.0.1"  FROM 200, 200 TO nAlt, nLarg PIXEL
+
+	//Criando a camada
+	oFwCol  := FwLayer():New()
+	oFwCol :init(oDlgCoali,.F.)
+
+	//Adicionando 3 linhas, a de tÃ­tulo, a superior e a do calendÃ¡rio
+	oFWCol :addLine("TIT", 20, .F.)
+	oFWCol :addLine("COR", 80, .F.)
+
+	//Adicionando as colunas das linhas
+	oFWCol :addCollumn("HEADERTEXT",   050, .T., "TIT")
+	oFWCol :addCollumn("BLANKBTN",     050, .T., "TIT")
+
+	oFWCol :addCollumn("COLGRID",      100, .T., "COR")
+
+	//Criando os paineis
+	oPanHeader 	:= oFWCol :GetColPanel("HEADERTEXT",  "TIT")
+	oPButCoali	:= oFWCol :GetColPanel("BLANKBTN",    "TIT")
+	oPGridCoali	:= oFWCol :GetColPanel("COLGRID",     "COR")
+
+	//TÃ­tulos e SubTÃ­tulos
+	oSayTit := TSay():New(004, 005, {|| cSayTitulo}, oPanHeader, "", oFontSub,  , , , .T., RGB(031, 073, 125), , 100, 30, , , , , , .F., , )
+	oSayTit := TSay():New(014, 005, {|| 'Etiquetas Coali - Geradas'}, oPanHeader, "", oFontSub,  , , , .T., RGB(031, 073, 125), , 100, 30, , , , , , .F., , )
+	
+	oBtnSair1 := TButton():New(004, 100, "Excluir"  ,  oPButCoali, {|| fExclCol() }, 50, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSair1 := TButton():New(004, 160, "Sair"     ,  oPButCoali, {|| oDlgCoali:end() }, 50, 012, , oFontBtn, , .T., , , , , , )
+	// oBtnSair := TButton():New(024, 005, "Imprimir",  oPButCoali, {|| Alert('imprimindo selecionado')}, 50, 012, , oFontBtn, , .T., , , , , , )
+
+	//dialog com browse para defir as notas fiscais
+	oBrwCoali := fwBrowse():New()
+	oBrwCoali:lHeaderClick:=.F.
+	oBrwCoali:setDataArray()
+
+	oBrwCoali:disableConfig()
+	oBrwCoali:disableReport() //DTC_NFEID,DTC_CODPRO,DTC_PESO,DTC_PESOM3,DTC_METRO3,DTC_VALOR,DTC_QTDVOL
+	oBrwCoali:setOwner( oPGridCoali )
+	oBrwCoali:AddMarkColumns( {||IIF(aBrw[oBrwCoali:nAt,01],'LBOK','LBNO')}, {|| INVERT2() /*,aBrw[oBrwCoali:nAt,01]:= !aBrw[oBrwCoali:nAt,01]*/ }/*[ bLDblClick]*/, /*[ bHeaderClick]*/ )
+	oBrwCoali:addColumn({"Cod. Etiqueta" ,	{||aBrw[oBrwCoali:nAt,02]}, "C", "@!"	, 1, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xVolume"    })
+	oBrwCoali:addColumn({"Etiqueta Coali",	{||aBrw[oBrwCoali:nAt,03]}, "C", "@!"	, 1, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xVolume"    })
+	oBrwCoali:addColumn({"Cod. Masa    " , 	{||aBrw[oBrwCoali:nAt,04]}, "C", "@!"	, 2, 10 ,     , .F. , , .F.,, ,, .F., .T., , "xQtdLote"    })
+	oBrwCoali:addColumn({"Cod. Cliente " ,	{||aBrw[oBrwCoali:nAt,05]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrwCoali:addColumn({"Descrição    " , 	{||aBrw[oBrwCoali:nAt,06]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrwCoali:addColumn({"Quantidade   " , 	{||aBrw[oBrwCoali:nAt,07]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	// oBrwCoali:addColumn({"Ord. Produção" , 	{||aBrw[oBrwCoali:nAt,07]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	// oBrwCoali:addColumn({"Armazém      " , 	{||aBrw[oBrwCoali:nAt,08]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+
+	oBrwCoali:setArray( aBrw )
+	oBrwCoali:SetLocate() // Habilita a LocalizaÃ§Ã£o de registros
+
+	oBrwCoali:activate( )
+
+	Activate MsDialog oDlgCoali Centered
+
+Return
+
+
+static function fCarregar(_cEtiMae)
+	DbSelectArea('SZ7')
+	dbsetorder(1)
+
+	if SZ7->(MSSEEK(XFILIAL('SZ7')+_cEtiMae))
+		aBrw := {}
+		while !SZ7->(EOF()) .AND. AllTrim(_cEtiMae) == AllTrim(SZ7->Z7_ETIQMAE)
+			if !Empty(SZ7->Z7_COALI)
+				aAdd(aBrw,{.F.,;
+							SZ7->Z7_ETIQMAE,;
+							SZ7->Z7_COALI,;				
+							SZ7->Z7_PAMASA,;				
+							SZ7->Z7_CODCLI,;				
+							SZ7->Z7_DESCRI,;				
+							SZ7->Z7_QUANT,;				
+				})	
+			endif
+			SZ7->(dbskip())
+		endDo
+		if Empty(aBrw)
+			FwAlertWarning('Nenhuma etiqueta coali encontrada.','Atencao !!!')
+			return
+		endif
+	else
+		FwAlertWarning('Nenhuma etiqueta coali encontrada.','Atencao !!!')
+		return
+	endif
+return
+/*/{Protheus.doc} GeraCoal/*/
+Static Function fExclCol()
+
+	Local aArea := FWGetArea()
+	Local aImp := {}
+	Local nx
+	Local xEti := ''
+	Local lBrowMark := .F.
+	
+	dbselectarea('CB5')
+	while !CB5->(EOF())
+		if 'MCETIQ05' $ CB5->CB5_ROTINA  // fonte setado no cadastro de impressoras
+			AADD(aImp, alltrim(CB5->CB5_PRINTR))
+		endif
+		CB5->(dbskip())
+	EndDo
+	
+	//Z7_FILIAL+Z7_ETIQMAE+Z7_COALI
+	DbSelectArea('SZ7')
+	SZ7->(dbsetorder(2))
+	for NX := 1 to LEN(aBrw)
+		if aBrw[nx,1]
+			xEti := aBrw[nx,2]
+			if SZ7->(MSSEEK(XFILIAL('SZ7')+aBrw[nx,2]+aBrw[nx,3]))
+				//Exclui o registro
+				xQtdDel := aBrw[nx,7]
+				RecLock('SZ7', .F.)
+					DbDelete()  // SE DELETAR O COALI					
+				SZ7->(MsUnlock())
+				
+			endif
+			
+			// ATUALIZA O SALDO DA ETIQUETA MAE			
+			SZ7->(DbGoTop())
+			SZ7->(dbsetorder(2))
+			
+			if SZ7->(MSSEEK(XFILIAL('SZ7')+aBrw[nx,2]))
+				while !SZ7->(eof()) .AND. ALLTRIM(SZ7->Z7_ETIQMAE) == ALLTRIM(aBrw[nx,2])
+					if Empty(SZ7->Z7_COALI)
+						RECLOCK('SZ7' , .F.)
+							SZ7->Z7_QUANT += xQtdDel
+						SZ7->(MsUnlock())
+						exit
+					endif
+					SZ7->(dbskip())
+				EndDo
+			endif	
+
+			lBrowMark:= .T.
+		endif
+	next nx
+
+	if !lBrowMark
+		msgStop('Nenhuma etiqueta foi Selecionada')
+		return
+	endif
+
+	fCarregar(xEti)
+	oBrwCoali:setArray(aBrw)
+	oBrwCoali:SetLocate()
+	oBrwCoali:refresh()
+
+	RestArea(aArea)
+
+Return Nil
+
+
 Static Function AbatSald(_nQuant)
 	nsld := SZ7->Z7_QUANT-_nQuant
 	RECLOCK('SZ7', .F.)
@@ -433,25 +587,6 @@ Static Function impriRaw(cZPL,cPrinter)
 
 Return .T.
 
-// Static Function impriRaw(cZPL,cPrinter)
-
-
-// 	Local oPrinter   := Nil
-// 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
-// 	Local lAdjustToLegacy   := .F.
-// 	Local lDisableSetup     := .T.
-// 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
-
-// 	// Criar objeto FWMSPrinter em modo RAW
-// 	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
-
-// 	// Aqui é só usar SAY, que em RAW escreve direto
-// 	oPrinter:Say(0, 0, cZPL)
-
-// 	oPrinter:Print()
-
-// 	// PUTMV("MV_SEQETQ",cSeqEtiq1)
-// Return
 
 
 

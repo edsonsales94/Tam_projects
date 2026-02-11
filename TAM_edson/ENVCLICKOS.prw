@@ -24,8 +24,15 @@
 #Define CKS_TEST_EMAIL   "pedro.henriques@kodigos.com.br"        // <<<e-mail teste 
 #Define _MAX_LOG_LEN  800
 
+
+
 // ------------------------------- SERVICE ------------------------------------
 WSRESTFUL OSCLICKENV DESCRIPTION "Envio de OS apontadas para Clicksign – pré-seleção"
+
+    WSMETHOD GET TESTE DESCRIPTION 'Teste'
+    Self:SetResponse("OK")
+    Self:SetStatus(200)
+
 
     // GET sem parâmetros: últimos 15 dias, agrupado por TECNICO+PROJETO+CONTATO
     WSMETHOD GET listCandidatas DESCRIPTION ;
@@ -394,104 +401,104 @@ Return .T.
    }
 */
 Static Function FT_SelectGroupSZ1_ComContato(dIni, dFim)
-    Local aGroups     := {}
-    Local cSZ1        := RetSqlName("SZ1")
-    Local cDtI        := DToS(dIni)
-    Local cDtF        := DToS(dFim)
-    Local cSQL        := ""
-    Local cAliasQ     := ""
-    Local nCount      := 0
-    Local cTec        := ""
-    Local cPrj        := ""
-    Local cCli        := ""
-    Local cLoja       := ""
-    Local cAgdId      := ""
-    Local aContatos   := {}   // { {id,nome,email}, ... }
-    Local nCont       := 0
-    Local cContId     := ""
-    Local cContNome   := ""
-    Local cContEmail  := ""
-    Local oRow        := NIL
+	Local aGroups     := {}
+	Local cSZ1        := RetSqlName("SZ1")
+	Local cDtI        := DToS(dIni)
+	Local cDtF        := DToS(dFim)
+	Local cSQL        := ""
+	Local cAliasQ     := ""
+	Local nCount      := 0
+	Local cTec        := ""
+	Local cPrj        := ""
+	Local cCli        := ""
+	Local cLoja       := ""
+	Local cAgdId      := ""
+	Local aContatos   := {}   // { {id,nome,email}, ... }
+	Local nCont       := 0
+	Local cContId     := ""
+	Local cContNome   := ""
+	Local cContEmail  := ""
+	Local oRow        := NIL
 
-    ConOut(LOG_TAG + "FT_SelectGroupSZ1_ComContato – INÍCIO. dtini=" + cDtI + ", dtfim=" + cDtF)
+	ConOut(LOG_TAG + "FT_SelectGroupSZ1_ComContato – INÍCIO. dtini=" + cDtI + ", dtfim=" + cDtF)
 
-    If Empty(cSZ1)
-        ConOut(LOG_TAG + "ERRO: RetSqlName('SZ1') vazio (tabela não encontrada)")
-        Return aGroups
-    EndIf
+	If Empty(cSZ1)
+		ConOut(LOG_TAG + "ERRO: RetSqlName('SZ1') vazio (tabela não encontrada)")
+		Return aGroups
+	EndIf
 
     /* Carrega SZ1: status L e dentro da janela */
-    cSQL  := "SELECT "
-    cSQL += "  Z1_TECNICO, Z1_PROJETO, Z1_FILIAL, Z1_CODIGO, "
-    cSQL += "  Z1_STATUS, Z1_APDATA, Z1_DATA, Z1_CLIENTE, Z1_LOJA, "
-    cSQL += "  Z1_APHRINI, Z1_APHRFIM, Z1_APHRALM, "   
-    cSQL += "  Z1_AGHRINI, Z1_AGHRFIM, "             
-    cSQL += "  Z1_APTRANS, "                         
-    cSQL += "  Z1_APTEXTO "                            
-    cSQL += "FROM " + cSZ1 + " WITH (NOLOCK) "
-    cSQL += "WHERE D_E_L_E_T_ = '' "
-    cSQL += "  AND Z1_STATUS  = '" + CKS_STATUS + "' "
-    cSQL += "  AND Z1_APDATA BETWEEN '" + cDtI + "' AND '" + cDtF + "' "
-    cSQL += "ORDER BY Z1_TECNICO, Z1_PROJETO, Z1_APDATA"
+	cSQL  := "SELECT "
+	cSQL += "  Z1_TECNICO, Z1_PROJETO, Z1_FILIAL, Z1_CODIGO, "
+	cSQL += "  Z1_STATUS, Z1_APDATA, Z1_DATA, Z1_CLIENTE, Z1_LOJA, "
+	cSQL += "  Z1_APHRINI, Z1_APHRFIM, Z1_APHRALM, "
+	cSQL += "  Z1_AGHRINI, Z1_AGHRFIM, "
+	cSQL += "  Z1_APTRANS, "
+	cSQL += "  Z1_APTEXTO "
+	cSQL += "FROM " + cSZ1 + " WITH (NOLOCK) "
+	cSQL += "WHERE D_E_L_E_T_ = '' "
+	cSQL += "  AND Z1_STATUS  = '" + CKS_STATUS + "' "
+	cSQL += "  AND Z1_APDATA BETWEEN '" + cDtI + "' AND '" + cDtF + "' "
+	cSQL += "ORDER BY Z1_TECNICO, Z1_PROJETO, Z1_APDATA"
 
-    ConOut(LOG_TAG + "SQL SZ1 => " + cSQL)
+	ConOut(LOG_TAG + "SQL SZ1 => " + cSQL)
 
-    cAliasQ := MpSysOpenQuery(cSQL)
-    If Empty(cAliasQ) .or. Select(cAliasQ) == 0
-        ConOut(LOG_TAG + "ERRO: MpSysOpenQuery não retornou alias válido (SZ1)")
-        Return aGroups
-    EndIf
+	cAliasQ := MpSysOpenQuery(cSQL)
+	If Empty(cAliasQ) .or. Select(cAliasQ) == 0
+		ConOut(LOG_TAG + "ERRO: MpSysOpenQuery não retornou alias válido (SZ1)")
+		Return aGroups
+	EndIf
 
-    (cAliasQ)->(DbGoTop())
-    While !( (cAliasQ)->(EoF()) )
-        cTec   := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_TECNICO")) )) )
-        cPrj   := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_PROJETO")) )) )
-        cCli   := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_CLIENTE")) )) )
-        cLoja  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_LOJA")) )) )
-        cAgdId := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_CODIGO")) )) )
+	(cAliasQ)->(DbGoTop())
+	While !( (cAliasQ)->(EoF()) )
+		cTec   := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_TECNICO")) )) )
+		cPrj   := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_PROJETO")) )) )
+		cCli   := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_CLIENTE")) )) )
+		cLoja  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_LOJA")) )) )
+		cAgdId := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_CODIGO")) )) )
 
-        aContatos := FT_GetContatosAgendaByCodigo(cAgdId)
-        For nCont := 1 To Len(aContatos)
-            cContId    := aContatos[nCont,1]
-            cContNome  := aContatos[nCont,2]
-            cContEmail := aContatos[nCont,3]
+		aContatos := FT_GetContatosAgendaByCodigo(cAgdId)
+		For nCont := 1 To Len(aContatos)
+			cContId    := aContatos[nCont,1]
+			cContNome  := aContatos[nCont,2]
+			cContEmail := aContatos[nCont,3]
 
-            oRow := JsonObject():New()
-            oRow["Z1_TECNICO"] := cTec
-            oRow["Z1_PROJETO"] := cPrj
-            oRow["Z1_FILIAL"]  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_FILIAL")) )) )
-            oRow["Z1_CODIGO"]  := cAgdId
-            oRow["Z1_STATUS"]  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_STATUS")) )) )
-            oRow["Z1_APDATA"]  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_APDATA")) )) )
-            oRow["Z1_DATA"]    := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_DATA")) )) )
-            oRow["Z1_CLIENTE"] := cCli
-            oRow["Z1_LOJA"]    := cLoja
-            oRow["Z1_APHRINI"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_APHRINI")) )) )
-            oRow["Z1_APHRFIM"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_APHRFIM")) )) )
-            oRow["Z1_AGHRINI"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_AGHRINI")) )) )
-            oRow["Z1_AGHRFIM"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_AGHRFIM")) )) )
-            oRow["CONT_ID"]    := cContId
-            oRow["CONT_NOME"]  := cContNome
-            oRow["CONT_EMAIL"] := cContEmail
-            oRow["Z1_APHRALM"] := AllTrim( (cAliasQ)->( FieldGet( (cAliasQ)->( FieldPos("Z1_APHRALM") ) ) ) )
-            oRow["Z1_APTRANS"] := AllTrim( (cAliasQ)->( FieldGet( (cAliasQ)->( FieldPos("Z1_APTRANS") ) ) ) )
-            oRow["Z1_APTEXTO"] := AllTrim( (cAliasQ)->( FieldGet( (cAliasQ)->( FieldPos("Z1_APTEXTO") ) ) ) )
+			oRow := JsonObject():New()
+			oRow["Z1_TECNICO"] := cTec
+			oRow["Z1_PROJETO"] := cPrj
+			oRow["Z1_FILIAL"]  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_FILIAL")) )) )
+			oRow["Z1_CODIGO"]  := cAgdId
+			oRow["Z1_STATUS"]  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_STATUS")) )) )
+			oRow["Z1_APDATA"]  := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_APDATA")) )) )
+			oRow["Z1_DATA"]    := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_DATA")) )) )
+			oRow["Z1_CLIENTE"] := cCli
+			oRow["Z1_LOJA"]    := cLoja
+			oRow["Z1_APHRINI"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_APHRINI")) )) )
+			oRow["Z1_APHRFIM"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_APHRFIM")) )) )
+			oRow["Z1_AGHRINI"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_AGHRINI")) )) )
+			oRow["Z1_AGHRFIM"] := AllTrim( (cAliasQ)->(FieldGet( (cAliasQ)->(FieldPos("Z1_AGHRFIM")) )) )
+			oRow["CONT_ID"]    := cContId
+			oRow["CONT_NOME"]  := cContNome
+			oRow["CONT_EMAIL"] := cContEmail
+			oRow["Z1_APHRALM"] := AllTrim( (cAliasQ)->( FieldGet( (cAliasQ)->( FieldPos("Z1_APHRALM") ) ) ) )
+			oRow["Z1_APTRANS"] := AllTrim( (cAliasQ)->( FieldGet( (cAliasQ)->( FieldPos("Z1_APTRANS") ) ) ) )
+			oRow["Z1_APTEXTO"] := AllTrim( (cAliasQ)->( FieldGet( (cAliasQ)->( FieldPos("Z1_APTEXTO") ) ) ) )
 
 
-            FT_GroupPush3(@aGroups, cTec, cPrj, cContId, cContNome, cContEmail, oRow)
-        Next
+			FT_GroupPush3(@aGroups, cTec, cPrj, cContId, cContNome, cContEmail, oRow)
+		Next
 
-        nCount++
-        If (nCount % 1000) == 0
-            ConOut(LOG_TAG + "Progresso SZ1: " + AllTrim(Str(nCount)) + " linhas...")
-        EndIf
+		nCount++
+		If (nCount % 1000) == 0
+			ConOut(LOG_TAG + "Progresso SZ1: " + AllTrim(Str(nCount)) + " linhas...")
+		EndIf
 
-        (cAliasQ)->(DbSkip())
-    EndDo
+		(cAliasQ)->(DbSkip())
+	EndDo
 
-    (cAliasQ)->(DbCloseArea())
-    ConOut(LOG_TAG + "FT_SelectGroupSZ1_ComContato – FIM. linhas=" + AllTrim(Str(nCount)) + ;
-           " grupos=" + AllTrim(Str(Len(aGroups))))
+	(cAliasQ)->(DbCloseArea())
+	ConOut(LOG_TAG + "FT_SelectGroupSZ1_ComContato – FIM. linhas=" + AllTrim(Str(nCount)) + ;
+		" grupos=" + AllTrim(Str(Len(aGroups))))
 Return aGroups
 
 /* Contatos ATIVOS (ZP9_STATUS='A') da agenda (ZP9_CODAGE = SZ1.Z1_CODIGO).

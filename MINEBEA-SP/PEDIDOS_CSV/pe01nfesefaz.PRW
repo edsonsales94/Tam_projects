@@ -134,13 +134,19 @@ User Function PE01NFESEFAZ()
 	_cLoja := SF2->F2_LOJA
 	// colocar a NF de Origem junto a descrição para o cliente 000099
 	if _cCliente == '000099' .and. aNota[4] == "1" // NF saida
+		xItem := '99'
+		cItem := ''
 		For nX := 1 to Len(aProd)
 			DbSelectArea('SD2') // D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA+D2_COD+D2_ITEM
 			DbSetOrder(3)
-			if nX == 99
-				alert('aqui')
+			if aProd[Nx][1] > 99
+				cItem := soma1(xItem)
+				xItem := cItem
+			Else
+				cItem := STRZERO(aProd[Nx][1],2)
 			endif
-			if SD2->(MsSeek(xFilial('SF2')+cDoc+cSerie+_cCliente+_cLoja+LEFT(aProd[nX][2],15)+STRZERO(aProd[Nx][1],2)))
+
+			if SD2->(MsSeek(xFilial('SF2')+cDoc+cSerie+_cCliente+_cLoja+LEFT(aProd[nX][2],15)+cItem))
 				DbSelectArea('SD1')
 				DbSetOrder(1)//D1_FILIAL+D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA+D1_COD+D1_ITEM
 				if SD1->(MsSeek(xFilial('SD2')+SD2->D2_NFORI+SD2->D2_SERIORI+_cCliente+_cLoja+LEFT(aProd[nX][2],15)+SD2->D2_ITEMORI))

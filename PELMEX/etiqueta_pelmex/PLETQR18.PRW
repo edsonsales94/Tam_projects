@@ -120,6 +120,8 @@ Static Function EtqPel01c(cSeq)
 	Enddo
 	Etq->(dbCloseArea())
 
+	U_INTRFID1()
+
 Return .T.
 
 

@@ -3,7 +3,7 @@
 #INCLUDE "TBICONN.CH"
 #INCLUDE "FWPrintSetup.ch"
 
-/*/{Protheus.doc} User Function ENVCLICKPDF
+/*/{Protheus.doc} User Function ITFATRGRP04
     Gera UM PDF contendo N OS (agrupamento ENVCLICKOS) usando o mesmo layout do ITFATR04.
     @param aRegs    Array de objetos/rows com ao menos: Z1_FILIAL, Z1_CODIGO, Z1_CLIENTE, Z1_LOJA, Z1_TECNICO
     @param cFileBase Nome base do arquivo (pode vir com ou sem .PDF)

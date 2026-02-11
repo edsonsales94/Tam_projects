@@ -30,16 +30,26 @@ Return lRet
 Static Function fSolicit(cMarca,lSelTudo)
 
 	Local cAliasNew := GetNextAlias()
-
 	Local lRet := .F.
-	Local cNumero := ''
+	Local cNumero := GetSx8Num( 'SCP', 'CP_NUM' )
 	Local cCodUsr    := RetCodUsr()
 	Local cNomUsr    := Alltrim( UsrRetName(cCodUsr)  )
+	Local  PARAMIXB1
+	Local  PARAMIXB2
+	Local  PARAMIXB3
+	Local  PARAMIXB4
+	Local  PARAMIXB5
+	Local  PARAMIXB6
+	Local  PARAMIXB7
+	Local  PARAMIXB8
+	Local  PARAMIXB9
+	Local  PARAMIXB10
+	Local  PARAMIXB11
+	Local  PARAMIXB12
+	Local  PARAMIXB13
 	Local  aAuto   := {}
-	Local  aProdSA := {}
 	Local  aCab    := {}
 	Local  aLinha  := {}
-	Local cOpAtual := ''
 	Private lMsErroAuto := .F.
 
 	BeginSql Alias cAliasNew
@@ -63,7 +73,6 @@ Static Function fSolicit(cMarca,lSelTudo)
             INNER JOIN %table:SB1% SB1 ON B1_COD = D4_COD AND LEFT(B1_FILIAL,LEN(B1_FILIAL)) = LEFT(D4_FILIAL,LEN(B1_FILIAL))
             WHERE SC2.D_E_L_E_T_ = '' AND SC2.C2_TPOP = 'P' AND SC2.C2_FILIAL= %Exp:xFilial("SC2")% AND SC2.C2_OK = %Exp:cMarca%
             GROUP BY  D4_FILIAL,D4_COD,D4_LOCAL,D4_LOTECTL,D4_DTVALID,D4_NUMLOTE,B1_DESC,B1_X_EMPAD,B1_UM,B1_LOCPAD,D4_OP,C2_DATPRF,C2_OK,B1_TIPO
-			ORDER BY D4_OP
 	EndSql
 
 	dbSelectArea( 'SB1' )
@@ -72,32 +81,13 @@ Static Function fSolicit(cMarca,lSelTudo)
 	dbSelectArea( 'SCP' )
 	SCP->( dbSetOrder( 1 ) )
 
+	cItem := '00'
+
+	aCab:= {	{"CP_NUM"		,cNumero		,NIL},;
+		{"CP_SOLICIT"	,cNomUsr		,NIL},;
+		{"CP_EMISSAO"	,dDataBase      	,NIL}}
+
 	While !(cAliasNew)->(Eof())
-		// // consultar a solicitaÁ„o gerada.
-		// BeginSql ALIAS cAliasSCP
-		// 	SELECT count(*) ntt
-		// 	 FROM %table:SCP%
-		// 	WHERE D_E_L_E_T_='' AND CP_X_OP = %Exp:(cAliasNew)->D4_OP%
-		// EndSql
-
-		// (cAliasSCP)->(dbgotop())
-		// if ntt > 0 // se existe SC gerada, para n„o duplicado.
-		// 	(cAliasNew)->(dbSkip()) // pula para o proximo.
-		// 	loop
-		// endif
-
-		if cOpAtual != (cAliasNew)->D4_OP
-
-			cOpAtual := (cAliasNew)->D4_OP
-			lRet := FazExec(aCab,aAuto,cNumero) // faz o exec-auto antes de mudar de OP
-
-			cNumero := GetSx8Num( 'SCP', 'CP_NUM' )
-			cItem := '00'
-			aAuto := {}
-			aCab:= {	{"CP_NUM"		,cNumero		,NIL},;
-				{"CP_SOLICIT"	,cNomUsr		,NIL},;
-				{"CP_EMISSAO"	,dDataBase      	,NIL}}
-		endif
 
 		// se existir embalagem padrao, pegar a quantidade da Emb.Padrao do SB1
 		if  (cAliasNew)->B1_X_EMPAD > 0
@@ -105,77 +95,41 @@ Static Function fSolicit(cMarca,lSelTudo)
 			If SB2->(MsSeek(FWxFilial("SB2") + (cAliasNew)->D4_COD + '10'))
 				//Busca o saldo atual
 				nSaldo := SaldoSB2(.F.,.T.,dDataBase,.F.)
+				// a DiferenÁa
+				nDif := (cAliasNew)->D4_QUANT - nSaldo
+				// nDif := iif((cAliasNew)->D4_QUANT > nSaldo,(cAliasNew)->D4_QUANT - nSaldo,nSaldo-(cAliasNew)->D4_QUANT)
 			EndIf
 			// quantidade Embalagem padr„o
 			nEmbPad := (cAliasNew)->B1_X_EMPAD
 
-			// caso o saldo disponivel esteja negativado.
-			IF nSaldo <= 0
-				xQuantid :=  (cAliasNew)->D4_QUANT  // quantidade do empenho.
-				IF xQuantid > nEmbPad
-					xEmb := nEmbPad
-					while xEmb < xQuantid
-						xEmb += xEmb
-					EndDo
-					xQuantid := xEmb
-				else
-					xQuantid := nEmbPad
-				EndIf
-			else
-				// verifivca se o item j· teve SA gerada durante o processamento.
-				nPos := AScan( aProdSA , {|x| Trim(x[1]) == Alltrim((cAliasNew)->D4_COD) } )
+			// Encremeta a quantidade atÈ suprir a necessidade da diferenÁa
+			nQtd := nEmbPad
 
-				// se encontrar.
-				if nPos > 0
-					// pega o saldo do item atual menos o item gerado anteriomente guqrda em xQtd.
-					nSaldo := nSaldo - aProdSA[nPos,2]
-					aProdSA[nPos,2] := aProdSA[nPos,2] + (cAliasNew)->D4_QUANT // agrega o valor atual
-				else
-					// incluir o item e quantidade.
-					aAdd(aProdSA,{(cAliasNew)->D4_COD , (cAliasNew)->D4_QUANT})
-				endif
+			while nEmbPad < nDif
+				nEmbPad += nQtd
+			EndDo
 
-				IF nSaldo <= 0 // saldo negativo.
-					xQuantid :=  (cAliasNew)->D4_QUANT  // quantidade do empenho.
-					IF xQuantid > nEmbPad
-						xEmb := nEmbPad
-						while xEmb < xQuantid
-							xEmb += xEmb
-						EndDo
-						xQuantid := xEmb
-					else
-						xQuantid := nEmbPad
-					EndIf
-				else
-					xQuantid := 0
-					xEmb := nEmbPad
-					if nSaldo < (cAliasNew)->D4_QUANT // se o saldo for maior n„o existe nececidade de SA.
-						if xEmb < (cAliasNew)->D4_QUANT  //  se a embalagem for menor que a quantidade do empenho.
-							while xQuantid < (cAliasNew)->D4_QUANT  // encrementar a quantidade.
-								xQuantid += xEmb
-							EndDo
-						else
-							xQuantid := nEmbPad  // se n„o, quantidade recebe embalagem.
-						EndIf
-					else
-						(cAliasNew)->(dbSkip())
-						loop
-					EndIf
-				EndIf
-			EndIf
+			nQuant := nEmbPad
+
+			// diferenÁa <= 0 È por que o saldo SB2 atende a necessidade, n„o precisa incluir o item na S.A
+			if (nDif <= 0)
+				(cAliasNew)->(dbSkip())
+				loop
+			endif
+
 		else
-			xQuantid :=  (cAliasNew)->D4_QUANT
+			nQuant :=  (cAliasNew)->D4_QUANT
 		endif
 
 		IF (cAliasNew)->B1_TIPO <> 'PI'
-
 			// GRAVA SOLICITA√á√ÉO
 			cItem := soma1(cItem)
 			aLinha := {}
 			aadd(aLinha,{"CP_ITEM"		,cItem	, Nil})
 			aadd(aLinha,{"CP_PRODUTO"	, (cAliasNew)->D4_COD		, Nil})
 			aadd(aLinha,{"CP_UM"		, (cAliasNew)->B1_UM		, Nil})
-			aadd(aLinha,{"CP_QUANT"		, xQuantid  				, Nil})
+			aadd(aLinha,{"CP_QUANT"		, nQuant					, Nil})
+
 
 			aadd(aLinha,{"CP_DATPRF"	, dDataBase 			, Nil})
 			// aadd(aLinha,{"CP_CC"		, cCC					, Nil})
@@ -190,33 +144,9 @@ Static Function fSolicit(cMarca,lSelTudo)
 		(cAliasNew)->(dbSkip())
 	EndDo
 
-	lRet := FazExec(aCab,aAuto,cNumero) // faz o exec-auto da ultima SA
-
-	a651Proces('SC2','',4,cMarca) // FIMAR ops
-	 lRet := .F.
-
-Return lRet
-
-
-Static Function FazExec(_aCab,_aAuto,cNumero)
-	Local lRet := .T.
-	Local  PARAMIXB1
-	Local  PARAMIXB2
-	Local  PARAMIXB3
-	Local  PARAMIXB4
-	Local  PARAMIXB5
-	Local  PARAMIXB6
-	Local  PARAMIXB7
-	Local  PARAMIXB8
-	Local  PARAMIXB9
-	Local  PARAMIXB10
-	Local  PARAMIXB11
-	Local  PARAMIXB12
-	Local  PARAMIXB13
-
-	if !Empty(_aAuto)
+	if !Empty(aAuto)
 		nOpcAuto :=3
-		MSExecAuto({|x,y,z,a| mata105(x,y,z,a)},_aCab,_aAuto,nOpcAuto) //aRateio //// 3 - Inclusao, 4 - Altera√ß√£o, 5 - Exclus√£o
+		MSExecAuto({|x,y,z,a| mata105(x,y,z,a)},aCab,aAuto,nOpcAuto) //aRateio //// 3 - Inclusao, 4 - Altera√ß√£o, 5 - Exclus√£o
 
 		if !lMsErroAuto
 
@@ -243,7 +173,7 @@ Static Function FazExec(_aCab,_aAuto,cNumero)
 			FWAlertSuccess('Foi gerado uma solicitacao ao Armazem, Nro: '+ cNumero, 'S.A gerada.')
 		Else
 			MostraErro()
-			FWAlertInfo('Nao foi gerado uma solicitacao ao Armazem, deseja firmar a OP sem a S.A ?', 'Atencao...')
+			lRet := FWAlertYesNo('Nao foi gerado uma solicitacao ao Armazem, deseja firmar a OP sem a S.A ?', 'Atencao...')
 		endif
 	Else
 		lRet := .T.

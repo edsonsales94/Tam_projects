@@ -64,7 +64,7 @@ User Function PE01NFESEFAZ()
 	Private _lImport   := .F. //*COEL:
 
 	dbSelectArea("SA1")
-	SA1->(dbsetorder(1))
+	dbsetorder(1)
 	dbSeek(xFilial("SA1")+SF2->F2_CLIENTE+SF2->F2_LOJA)
 	_cNreduz := SA1->A1_NREDUZ
 	xEST_CLI := SA1->A1_EST
@@ -114,7 +114,7 @@ User Function PE01NFESEFAZ()
 		If Len( xOBS_FISC ) > 0
 
 			DbSelectArea("SZ3")
-			SZ3->(DbSetOrder(1))
+			DbSetOrder(1)
 			For I := 1 To Len( xOBS_FISC )
 				cTextoAdd := ""
 				DbSeek( xFilial("SZ3") + xOBS_FISC[I] )
@@ -216,11 +216,11 @@ User Function PE01NFESEFAZ()
 		// *** Fim Obser. Fiscais ***
 
 		dbSelectArea("SA1")
-		SA1->(dbsetorder(1))
+		dbsetorder(1)
 		dbSeek(xFilial("SA1")+SF2->F2_CLIENTE+SF2->F2_LOJA)
 		IF ( SF2->F2_TIPO == "B" )      ///Carlos Nina - 21/10/11
 			dbSelectArea("SA2")
-			SA2->(dbsetorder(1))
+			dbsetorder(1)
 			dbSeek(xFilial("SA2")+SF2->F2_CLIENTE+SF2->F2_LOJA)
 		ENDIF
 		//if !empty(SA1->A1_COD)
@@ -247,11 +247,11 @@ User Function PE01NFESEFAZ()
 		For NX:=1 TO LEN(aProd)
 			//POSICIONA B5
 			dbSelectArea("SB5")
-			SB5->(DBSETORDER(1)) //filial + CODIGO
+			DBSETORDER(1) //filial + CODIGO
 			SB5->(dbSeek(xFilial("SB5")+aProd[nx,2]))
 
 			dbSelectArea("SB1")
-			SB1->(dbSetOrder(1))
+			dbSetOrder(1)
 			SB1->(MsSeek(xFilial("SB1")+aProd[nx,2]))
 
 			dbSelectArea("SC6")
@@ -259,7 +259,7 @@ User Function PE01NFESEFAZ()
 			SC6->(MsSeek(xFilial("SD2")+aProd[nx,2]+aProd[nx,38]+aProd[nx,39]))
 
 			dbSelectArea("SC5")
-			SC5->(DBSETORDER(1)) //filial + numero
+			DBSETORDER(1) //filial + numero
 			dbSeek(xFilial("SC5")+SC6->C6_NUM)
 			_cVend := SC5->C5_VEND1
 			_cPedidc := alltrim(SC5->C5_CLPEDCL)
@@ -312,7 +312,7 @@ User Function PE01NFESEFAZ()
 			endif
 
 			DbSelectArea("SA3")                    // * Cadastro de Vendedores
-			SA3->(DbSetOrder(1))
+			DbSetOrder(1)
 			DbSeek( xFilial("SA3") + _CVEND)
 			_Ccvend := SA3->A3_NREDUZ
 
@@ -356,7 +356,7 @@ User Function PE01NFESEFAZ()
 
 			//POSICIONA B5
 			dbSelectArea("SB5")
-			SB5->(DBSETORDER(1)) //filial + CODIGO
+			DBSETORDER(1) //filial + CODIGO
 			dbSeek(xFilial("SB5")+SB1->B1_COD)
 
 			c_PediCli := IIF(LEFT(SC6->C6_PEDCLI,1)=="#",SPACE(11),SC6->C6_PEDCLI)    ///Carlos - 17/05/12
@@ -398,11 +398,11 @@ User Function PE01NFESEFAZ()
 		//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     /* Refatoração: custumizações que estavam direto no fonte do NFESEFAZ para o PE01NFESEFAZ.*/
 		dbSelectArea("SA1")
-		SA1->(dbsetorder(1))
+		dbsetorder(1)
 		dbSeek(xFilial("SA1")+SF2->F2_CLIENTE+SF2->F2_LOJA)
 		IF ( SF2->F2_TIPO == "B" )      ///Carlos Nina - 21/10/11
 			dbSelectArea("SA2")
-			SA2->(dbsetorder(1))
+			dbsetorder(1)
 			dbSeek(xFilial("SA2")+SF2->F2_CLIENTE+SF2->F2_LOJA)
 		ENDIF
 
@@ -444,132 +444,16 @@ User Function PE01NFESEFAZ()
 				ENDIF
 		endif
 
-		//especifico coel ----------------------------------------------------------------------------------------------------------------//
-		//COEL:
-		//
-		If ALLTRIM(SM0->M0_CODIGO) == "03" .and. ALLTRIM(SM0->M0_CODFIL) == "01" .and. !empty(SC5->C5_X_TRANS)
-			DbSelectArea("SA4")
-			SA4->(DbSetOrder(1))
-			If SA4->(DbSeek( xFilial("SA4") + SC5->C5_X_TRANS )) // POSICIONA TRANSPORTADORA ALTERNATIVA REDESPACHO(Tranportadora de Manaus)
-				aTransp := {}
-				aadd(aTransp,AllTrim(SA4->A4_CGC))
-				aadd(aTransp,SA4->A4_NOME)
-				aadd(aTransp,VldIE(SA4->A4_INSEST))
-				aadd(aTransp,SA4->A4_END)
-				aadd(aTransp,SA4->A4_MUN)
-				aadd(aTransp,Upper(SA4->A4_EST)	)
-				aadd(aTransp,SA4->A4_EMAIL	)
-				aadd(aTransp,SA4->A4_CEP)
-				aadd(aTransp,SA4->A4_CLBAIRR)
-
-				If !Empty(SF2->F2_VEICUL1)
-					dbSelectArea("DA3")
-					DA3->(dbSetOrder(1))
-					MsSeek(xFilial("DA3")+SF2->F2_VEICUL1)
-
-					aadd(aVeiculo,DA3->DA3_PLACA)
-					aadd(aVeiculo,DA3->DA3_ESTPLA)
-					aadd(aVeiculo,"")//RNTC
-
-					If !Empty(SF2->F2_VEICUL2)
-
-						dbSelectArea("DA3")
-						DA3->(dbSetOrder(1))
-						MsSeek(xFilial("DA3")+SF2->F2_VEICUL2)
-
-						aadd(aReboque,DA3->DA3_PLACA)
-						aadd(aReboque,DA3->DA3_ESTPLA)
-						aadd(aReboque,"") //RNTC
-
-					EndIf
-				EndIf
-
-			Else
-				MsgAlert("Transportador de redespacho informado no pedido não encontrado no cadastro de transportadoras.","Atencao!")
-			EndIf
-		Elseif !Empty(SF2->F2_TRANSP)
-			dbSelectArea("SA4")
-			SA4->(dbSetOrder(1))
-			if SA4->(MsSeek(xFilial("SA4")+SF2->F2_TRANSP))
-
-				aadd(aTransp,AllTrim(SA4->A4_CGC))
-				aadd(aTransp,SA4->A4_NOME)
-				If (SA4->A4_TPTRANS <> "3")
-					//Conforme RICMS/MG, Anexo V Art. 2º, na emissão do documento fiscal em relação ao quadro transportador,
-					//se o mesmo for o próprio remetente ou destinatário, deve-se informar a palavra Remetente ou Destinatário,
-					//dispensado o preenchimento dos campos: condição de pagamento, CNPJ ou CPF do transportador, endereço, município,
-					//unidade da Federação e a inscrição estadual do transportador (CHAMADO-TVMWZL).
-					if (IIF(!lEndFis,ConvType(SM0->M0_ESTCOB),ConvType(SM0->M0_ESTENT)) == "MG") .and. Empty(SA4->A4_INSEST) .and. (ALLTRIM(Upper(SA4->A4_NOME)) =='REMETENTE' .OR. ALLTRIM(Upper(SA4->A4_NOME)) =='DESTINATARIO')
-						aadd(aTransp,VldIE(SA4->A4_INSEST,.F.))
-					Else
-						aadd(aTransp,VldIE(SA4->A4_INSEST))
-					EndIf
-				Else
-					aadd(aTransp,"")
-				EndIf
-
-				aadd(aTransp,SA4->A4_END)
-				aadd(aTransp,SA4->A4_MUN)
-				aadd(aTransp,Upper(SA4->A4_EST)	)
-				aadd(aTransp,SA4->A4_EMAIL	)
-			EndIf
-
-			If len(aCampoCnpj) > 0 .and. !Empty(SA4->A4_CGC) .and. ASCAN(aCampoCnpj, { |x| allTrim(x) == "C5_TRANSP" .or. allTrim(x) == "F2_TRANSP" }) > 0
-				aadd(aCnpjPart,{AllTrim(SA4->A4_CGC)})
-			EndIf
-
-			If !Empty(SF2->F2_VEICUL1)
-				dbSelectArea("DA3")
-				DA3->(dbSetOrder(1))
-				MsSeek(xFilial("DA3")+SF2->F2_VEICUL1)
-
-				aadd(aVeiculo,DA3->DA3_PLACA)
-				aadd(aVeiculo,DA3->DA3_ESTPLA)
-				aadd(aVeiculo,Iif(DA3->(FieldPos("DA3_RNTC")) > 0 ,DA3->DA3_RNTC,iif(!Empty(cAnttRntrc),cAnttRntrc,"")))//RNTC
-
-				If !Empty(SF2->F2_VEICUL2)
-
-					dbSelectArea("DA3")
-					DA3->(dbSetOrder(1))
-					MsSeek(xFilial("DA3")+SF2->F2_VEICUL2)
-
-					aadd(aReboque,DA3->DA3_PLACA)
-					aadd(aReboque,DA3->DA3_ESTPLA)
-					aadd(aReboque,Iif(DA3->(FieldPos("DA3_RNTC")) > 0 ,DA3->DA3_RNTC,"")) //RNTC
-
-					If !Empty(SF2->F2_VEICUL3)
-
-						dbSelectArea("DA3")
-						DA3->(dbSetOrder(1))
-						MsSeek(xFilial("DA3")+SF2->F2_VEICUL3)
-
-						aadd(aReboqu2,DA3->DA3_PLACA)
-						aadd(aReboqu2,DA3->DA3_ESTPLA)
-						aadd(aReboqu2,Iif(DA3->(FieldPos("DA3_RNTC")) > 0 ,DA3->DA3_RNTC,"")) //RNTC
-
-					EndIf
-				EndIf
-			ElseIf lNfCup
-				SL1->(dbSetOrder(2))
-				SL1->(MsSeek(xFilial("SL1")+SF2->F2_SERIE+SF2->F2_DOC))
-
-				aadd(aVeiculo,SL1->L1_PLACA)
-				aadd(aVeiculo,SL1->L1_UFPLACA)
-				aadd(aVeiculo,iif(!Empty(cAnttRntrc),cAnttRntrc,""))
-
-			EndIf
-		EndIf
-
 		//-----------mensagens do redespacho  coel-----------------------------//
 		If ALLTRIM(SM0->M0_CODIGO) == "03" .and. ALLTRIM(SM0->M0_CODFIL) == "01"
 			If !Empty(SF2->F2_TRANSP)   //se empresa 03 não vazio de SC5->C5_X_TRANSP e não vazio SF2->F2_TRANSP
 				dbSelectArea("SA4")
-				SA4->(dbSetOrder(1))
-				SA4->(MsSeek(xFilial("SA4")+SF2->F2_TRANSP))   //POSICIONA TRANSPORTADORA ORIGINAL REDESPACHO
+				dbSetOrder(1)
+				MsSeek(xFilial("SA4")+SF2->F2_TRANSP)   //POSICIONA TRANSPORTADORA ORIGINAL REDESPACHO
 
 				If SC5->C5_X_FRETE == "C"
 					if Empty(cMensRed)
-						cMensRed += " - Redespacho , " + ALLTRIM(SA4->A4_NOME)+" "
+						cMensRed += " -Redespacho , " + ALLTRIM(SA4->A4_NOME)+" "
 						cMensRed += ALLTRIM(SA4->A4_END) + " - " + ALLTRIM(SA4->A4_MUN)+" - "+(SA4->A4_EST)+" BAIRRO "+ALLTRIM(SA4->A4_CLBAIRR)
 						cMensRed += " Cep :"+SA4->A4_CEP//+" - Tel :"+(SA4->A4_TEL)
 						cMensRed += "Via de transporte: " + alltrim(SA4->A4_VIA)
@@ -577,7 +461,7 @@ User Function PE01NFESEFAZ()
 					endif
 				else
 					If empty(cMensRed)
-						cMensRed += " - Redespacho , " + ALLTRIM(SA4->A4_NOME)+" "
+						cMensRed += " -Redespacho , " + ALLTRIM(SA4->A4_NOME)+" "
 						cMensRed += ALLTRIM(SA4->A4_END)+" - "+ALLTRIM(SA4->A4_MUN)+" - "+(SA4->A4_EST)+" BAIRRO "+ALLTRIM(SA4->A4_CLBAIRR)
 						cMensRed += " Cep :"+SA4->A4_CEP//+" - Tel :"+(SA4->A4_TEL)
 						cMensRed += "Via de transporte: " + alltrim(SA4->A4_VIA)

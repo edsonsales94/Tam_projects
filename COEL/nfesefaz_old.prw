@@ -917,10 +917,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 					aadd(aDest,SA1->A1_CEP)
 					aadd(aDest,Alltrim(SA1->A1_DDD)+SA1->A1_TEL)
 					aadd(aDest,SA1->A1_INSCRM)
-					// especifico coel ------------------------------------------------------------------------------------------------
-						//aadd(aDest,SA1->A1_EMAIL) //COEL
-						aadd(aDest,SA1->A1_X_MAIL2) 
-					//-----------
+					aadd(aDest,SA1->A1_EMAIL)
 
 					If !Upper(SA1->A1_EST) == "EX"
 						SC6->(dbSetOrder(4))
@@ -1322,7 +1319,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							aadd(aDest,"")
 						EndIf
 						aadd(aDest,SA1->A1_SUFRAMA)
-						aadd(aDest,SA1->A1_X_MAIL2)  //coel
+						aadd(aDest,SA1->A1_EMAIL)
 						aAdd(aDest,SA1->A1_CONTRIB) // Posição 17
 						aadd(aDest,Iif(SA1->(FieldPos("A1_IENCONT")) > 0 ,SA1->A1_IENCONT,""))
 						aadd(aDest,SA1->A1_INSCRM)
@@ -2941,17 +2938,10 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							EndIf
 
 						//INICIO CUSTOMIZAÇÃO COEL PARA O ZERAR O VALOR DE DESCONTO DECORRENTE DO PEDIDO DE VENDAS
-
-						cCodClientesDescZero := GetNewPar("MV_XDESTDE","")
-
-						If !Empty(cCodClientesDescZero)
-							aClientesDescZero := StrTokArr(cCodClientesDescZero, ";")
-							If aScan(aClientesDescZero, {|x| AllTrim(x) == AllTrim(SF2->F2_CLIENTE)}) == 0
-								nDesconto := 0
-							EndIf
-						EndIf
+						iF SF2->F2_CLIENTE  <> '010523' //destaque desconto
+							nDesconto := 0     ///COEL: 01/07/12						   
+						endif 
 						//FIM CUSTOMIZAÇÃO COEL PARA O ZERAR O VALOR DE DESCONTO DECORRENTE DO PEDIDO DE VENDAS
-
 
 							//Tratamento para verificar se o produto e controlado por terceiros (IDENTB6)
 							//e a partir do tipo do pedido (Cliente ou Fornecedor) verifica  se existe

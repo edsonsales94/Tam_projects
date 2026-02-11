@@ -50,14 +50,10 @@ Static Function IncluiPedido()
 			AAdd( aLinha, { "C6_PRUNIT"  , SD1->D1_VUNIT       , Nil} )
 			AAdd( aLinha, { "C6_PRCVEN"  , SD1->D1_VUNIT       , Nil} )
 			AAdd( aLinha, { "C6_VALOR"   , nTotal              , Nil} )
-			AAdd( aLinha, { "C6_VALDESC" , SD1->D1_VALDESC     , Nil} )
-			if !empty(SD1->D1_LOTECTL)
-				AAdd( aLinha, { "C6_LOTECTL" , SD1->D1_LOTECTL     , Nil} ) 
-				AAdd( aLinha, { "C6_DTVALID" , SD1->D1_DTVALID     , Nil} ) 
-			endif
-			if SB1->B1_RASTRO  == 'S'
-				AAdd( aLinha, { "C6_LOCALIZ" , 'PRONTOCARGO'       , Nil} ) 
-			endif
+			AAdd( aLinha, { "C6_VALDESC" , SD1->D1_VALDESC     , Nil} ) 
+			AAdd( aLinha, { "C6_LOTECTL" , SD1->D1_LOTECTL     , Nil} ) 
+			AAdd( aLinha, { "C6_DTVALID" , SD1->D1_DTVALID     , Nil} ) 
+			AAdd( aLinha, { "C6_LOCALIZ" , 'PRONTOCARGO'       , Nil} ) 
 			
 			aAdd( aItem, aLinha )
 		Else

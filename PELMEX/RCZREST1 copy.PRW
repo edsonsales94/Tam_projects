@@ -16,15 +16,15 @@ Exemplo de Webservice usando REST
  
 WSRESTFUL zWSProdutos DESCRIPTION 'WebService Cadastro de Produtos'
     //Atributos
-    WSDATA CodEtiq         AS STRING
-    WSDATA updated_at AS STRING
-    WSDATA limit      AS INTEGER
-    WSDATA page       AS INTEGER
+    WSDATA CodEtiq      AS STRING
+    WSDATA updated_at   AS STRING
+    WSDATA limit        AS INTEGER
+    WSDATA page         AS INTEGER
   
     //Métodos
-    WSMETHOD GET  CodEtiq  DESCRIPTION 'Retorna o registro pesquisado' WSSYNTAX '/zWSProdutos/get_CodEtiq?{CodEtiq}'                       PATH 'get_CodEtiq'        PRODUCES APPLICATION_JSON
-    WSMETHOD GET  ALL DESCRIPTION 'Retorna todos os registros'    WSSYNTAX '/zWSProdutos/get_all?{updated_at, limit, page}' PATH 'get_all'       PRODUCES APPLICATION_JSON
-    WSMETHOD POST NEW DESCRIPTION 'Inclusão de registro'          WSSYNTAX '/zWSProdutos/new'                               PATH 'new'           PRODUCES APPLICATION_JSON
+    WSMETHOD GET  CodEtiq   DESCRIPTION 'Retorna o registro pesquisado' WSSYNTAX '/zWSProdutos/get_CodEtiq?{CodEtiq}'                       PATH 'get_CodEtiq'        PRODUCES APPLICATION_JSON
+    WSMETHOD GET  ALL       DESCRIPTION 'Retorna todos os registros'    WSSYNTAX '/zWSProdutos/get_all?{updated_at, limit, page}' PATH 'get_all'       PRODUCES APPLICATION_JSON
+    WSMETHOD POST NEW       DESCRIPTION 'Inclusão de registro'          WSSYNTAX '/zWSProdutos/new'                               PATH 'new'           PRODUCES APPLICATION_JSON
 END WSRESTFUL
  
 /*/{Protheus.doc} WSMETHOD GET CodEtiq
