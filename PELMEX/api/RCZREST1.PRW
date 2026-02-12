@@ -14,7 +14,7 @@ Exemplo de Webservice usando REST
     **** Apoie nosso projeto, se inscreva em https://www.youtube.com/TerminalDeInformacao ****
 /*/
 
-WSRESTFUL wsEtiquetas DESCRIPTION 'WebService Cadastro de Produtos'
+WSRESTFUL wsEtiquetas DESCRIPTION 'WebService Etiquetas tabela CB0'
 	//Atributos
 	WSDATA CODETI   AS STRING
 	WSDATA DTINICIO AS STRING
@@ -30,18 +30,11 @@ WSRESTFUL wsEtiquetas DESCRIPTION 'WebService Cadastro de Produtos'
 
 	// WSMETHOD GET  ETIQ_ALL DESCRIPTION 'Retorna todos os registros'     WSSYNTAX '/wsEtiquetas/GET_ETIQ_ALL?{updated_at, limit, page}' PATH 'GET_ETIQ_ALL' PRODUCES APPLICATION_JSON
 	// POST
-	WSMETHOD POST NEW_APONT	DESCRIPTION 'Insere apontamento'	WSSYNTAX '/wsEtiquetas/new'	PATH 'new'	CONSUMES APPLICATION_JSON	PRODUCES APPLICATION_JSON
+	WSMETHOD POST NEW_APONT	DESCRIPTION 'Insere apontamento'	WSSYNTAX '/wsEtiquetas/NEW_APONT'	PATH 'NEW_APONT'	CONSUMES APPLICATION_JSON	PRODUCES APPLICATION_JSON
 	// WSMETHOD POST NEW DESCRIPTION 'InclusÃ£o de registro'          WSSYNTAX '/wsEtiquetas/new'                               PATH 'new'           PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
 /*/{Protheus.doc} WSMETHOD GET ID
-Busca registro via ID
-@author Atilio
-@since 07/04/2022
-@version 1.0
-@param id, Caractere, String que serÃ¡ pesquisada atravÃ©s do MsSeek
-@obs Codigo gerado automaticamente pelo Autumn Code Maker
-@see http://autumncodemaker.com
 /*/
 
 WSMETHOD GET CODETI WSRECEIVE CODETI WSSERVICE wsEtiquetas
@@ -238,24 +231,6 @@ WSMETHOD GET ETIQ_ALL WSRECEIVE limit, page WSSERVICE wsEtiquetas
 			// oRegistro['valid'] 			:= (cAliasWS)->CB0_DTVLD
 			// oRegistro['etiq2'] 			:= (cAliasWS)->CB0_CODETI2
 
-			// oRegistro['etiqueta'] := (cAliasWS)->CB0_CODETI
-			// oRegistro['dtnasc'] := (cAliasWS)->CB0_DTNASC
-			// oRegistro['tipo'] := (cAliasWS)->CB0_TIPO
-			// oRegistro['produto'] := (cAliasWS)->CB0_CODPRO
-			// oRegistro['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
-			// oRegistro['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
-			// oRegistro['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
-			// oRegistro['qtd'] := (cAliasWS)->CB0_QTDE
-			// oRegistro['local'] := (cAliasWS)->CB0_LOCAL
-			// oRegistro['ender'] := (cAliasWS)->CB0_LOCALI
-			// oRegistro['valid'] := (cAliasWS)->CB0_DTVLD
-			// oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
-			// oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
-			// oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
-			// oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
-			// oRegistro['cliente'] := (cAliasWS)->CB0_CLI
-			// oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
-
 			aAdd(jResponse['objects'], oRegistro)
 
 			QRYALL->(DbSkip())
@@ -395,24 +370,6 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 			// oRegistro['valid'] 			:= (cAliasWS)->CB0_DTVLD
 			// oRegistro['etiq2'] 			:= (cAliasWS)->CB0_CODETI2
 
-			// oRegistro['etiqueta'] := (cAliasWS)->CB0_CODETI
-			// oRegistro['dtnasc'] := (cAliasWS)->CB0_DTNASC
-			// oRegistro['tipo'] := (cAliasWS)->CB0_TIPO
-			// oRegistro['produto'] := (cAliasWS)->CB0_CODPRO
-			// oRegistro['descprod'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_DESC')
-			// oRegistro['um'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_UM')
-			// oRegistro['grupo'] := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasWS)->CB0_CODPRO,'B1_GRUPO')
-			// oRegistro['qtd'] := (cAliasWS)->CB0_QTDE
-			// oRegistro['local'] := (cAliasWS)->CB0_LOCAL
-			// oRegistro['ender'] := (cAliasWS)->CB0_LOCALI
-			// oRegistro['valid'] := (cAliasWS)->CB0_DTVLD
-			// oRegistro['etiq2'] := (cAliasWS)->CB0_CODETI2
-			// oRegistro['fornec'] := (cAliasWS)->CB0_FORNEC
-			// oRegistro['lojafor'] := (cAliasWS)->CB0_LOJAFO
-			// oRegistro['pedven'] := (cAliasWS)->CB0_PEDVEN
-			// oRegistro['cliente'] := (cAliasWS)->CB0_CLI
-			// oRegistro['lojacli'] := (cAliasWS)->CB0_LOJACL
-
 			aAdd(jResponse['objects'], oRegistro)
 
 			QRYDATA->(DbSkip())
@@ -426,74 +383,141 @@ WSMETHOD GET DTINICIO WSRECEIVE DTINICIO,DTFIM,limit, page WSSERVICE wsEtiquetas
 
 Return lRet
 
-// rota post
-WSMETHOD POST NEW_APONT WSSERVICE wsEtiquetas
+WSMETHOD POST NEW_APONT WSRECEIVE WSSERVICE wsEtiquetas
+	Local lRet              := .T.
+	Local aDados            := {}
+	Local jJson             := Nil
+	Local cJson             := Self:GetContent()
+	Local cError            := ''
+	Local nLinha            := 0
+	Local cDirLog           := '\rest1_logs\'
+	Local cArqLog           := ''
+	Local cErrorLog         := ''
+	Local aLogAuto          := {}
+	Local nCampo            := 0
+	Local jResponse         := JsonObject():New()
+	Local cAliasWS          := 'ZZJ'
+	Local cAliasCB0         := GetNextAlias()
+	Private lMsHelpAuto     := .T.
+	Private lAutoErrNoFile  := .T.
 
-	Local lRet      := .T.
-	Local oJsonIn   := Nil
-	Local oJsonOut  := JsonObject():New()
-	Local cBody     := Self:GetContent()
-	Local cAliasWS  := 'ZZJ'
+	//Se não existir a pasta de logs, cria
+	IF ! ExistDir(cDirLog)
+		MakeDir(cDirLog)
+	EndIF
+
+	//Definindo o conteúdo como JSON, e pegando o content e dando um parse para ver se a estrutura está ok
+	Self:SetContentType('application/json')
+	jJson  := JsonObject():New()
+	cError := jJson:FromJson(cJson)
 
 	// Valida Body
-	If Empty(cBody)
+	If Empty(cJson)
 		Self:SetStatus(400)
-		oJsonOut['error'] := 'Body vazio'
-		Self:SetResponse(oJsonOut:ToJson())
+		jResponse['error'] := 'Body vazio'
+		Self:SetResponse(jResponse:ToJson())
+		Return lRet
+	EndIf
+	
+	// Validacao basica.
+	If !jJson:HasProperty('etiqueta') .or. !jJson:HasProperty('quantidade')
+		Self:SetStatus(400)
+		jResponse['error'] := 'A etiqueta ou a quantidade nao foram informado.'
+		Self:SetResponse(jResponse:ToJson())
 		Return lRet
 	EndIf
 
-	// Converte JSON
-	oJsonIn := JsonObject():New()
-	oJsonIn:FromJson(cBody)
 
-	// ValidaÃ§Ã£o bÃ¡sica
-	If !oJsonIn:HasProperty('etiqueta') .or.!oJsonIn:HasProperty('operador')
-		Self:SetStatus(400)
-		oJsonOut['error'] := 'Campo etiqueta ou operador nÃ£o informado.'
-		Self:SetResponse(oJsonOut:ToJson())
-		Return lRet
-	EndIf
+	//Se tiver algum erro no Parse, encerra a execução
+	IF ! Empty(cError)
+		//SetRestFault(500, 'Falha ao obter JSON') //caso queira usar esse comando, você não poderá usar outros retornos, como os abaixo
+		Self:setStatus(500)
+		jResponse['errorId']  := 'NEW004'
+		jResponse['error']    := 'Parse do JSON'
+		jResponse['solution'] := 'Erro ao fazer o Parse do JSON'
 
-	DbSelectArea(cAliasWS)
-	DbSetOrder(1)
-
-	// Evita duplicidade
-	If (cAliasWS)->(MsSeek(FWxFilial(cAliasWS) + oJsonIn['etiqueta']))
-		Self:SetStatus(409)
-		oJsonOut['error'] := 'Etiqueta jÃ¡ existe'
-		Self:SetResponse(oJsonOut:ToJson())
-		Return lRet
 	Else
-		DbSelectArea('CB0')
-		DbSetOrder(1)
-		IF CB0->(MSEEK(xFilial('CB0')+oJsonIn['etiqueta']))
-			RecLock(cAliasWS, .T.)
-			(cAliasWS)->ZZJ_FILIAL := CB0_FILIAL
-			(cAliasWS)->ZZ7_CODETI := CB0_CODETI
-			(cAliasWS)->ZZ7_PRODUT := CB0_CODPRO
-			(cAliasWS)->ZZ7_DESC   := POSICIONE('SB1',1,XFILIAL('SB1')+CB0->CB0_CODPRO,'B1_DESC')
-			(cAliasWS)->ZZ7_OP     := CB0_OP
-			(cAliasWS)->ZZ7_QUANT   := CB0_QTDE
-			(cAliasWS)->ZZ7_DATA:=  CB0_DTNASC
-			(cAliasWS)->ZZ7_HORA :=  LEFT(TIME(),5)
-			(cAliasWS)->ZZ7_STATUS:=  'I'
-			(cAliasWS)->ZZ7_CODOPE:=  oJsonIn['operador']
-			MsUnlock()
-		else
+		DbSelectArea(cAliasWS)
+		(cAliasWS)->(DbSetOrder(1))
+
+		//Adiciona os dados do ExecAuto
+		cEtiq :=    jJson:GetJsonObject('etiqueta')
+		nQuant:=    jJson:GetJsonObject('quantidade')
+		cOper :=    jJson:GetJsonObject('operador')
+
+		// Evita duplicidade
+		If MsSeek(xFilial(cAliasWS) + cEtiq)
 			Self:SetStatus(409)
-			oJsonOut['error'] := 'Etiqueta nÃ£o existe na CB0'
-			Self:SetResponse(oJsonOut:ToJson())
-			Return lRet
+			jResponse['error'] := 'Etiqueta já existe'
+			Self:SetResponse(EncodeUTF8(jResponse:ToJson()))
+			Return .F.
 		EndIf
+
+		ZZJ->(DbGoBottom())
+		cSeq := strZero(val(soma1(ZZJ->ZZJ_NUM)),6)
+
+		// ==============================
+		// Query CB0 - Consultar etiqueta
+		// ==============================
+		BeginSQL ALIAS cAliasCB0
+			SELECT * FROM %TABLE:CB0% CB0
+			WHERE CB0.%NOTDEL% AND
+				CB0_CODETI = %EXP:cEtiq%
+		endSQL
+
+		If Empty((cAliasCB0)->CB0_CODETI)
+			Self:SetStatus(404)
+			jResponse['error'] := 'Etiqueta não existe na CB0'
+			Self:SetResponse(EncodeUTF8(jResponse:ToJson()))
+			Return .F.
+		EndIf
+
+		// ==============================
+		// Grava ZZJ
+		// ==============================
+		DbSelectArea(cAliasWS)
+
+		If RecLock(cAliasWS, .T.)
+
+			ZZJ->ZZJ_FILIAL := (cAliasCB0)->CB0_FILIAL
+			ZZJ->ZZJ_NUM    := cSeq
+			ZZJ->ZZJ_CODETI := (cAliasCB0)->CB0_CODETI
+			ZZJ->ZZJ_PRODUT := (cAliasCB0)->CB0_CODPRO
+			ZZJ->ZZJ_DESC   := POSICIONE('SB1',1,XFILIAL('SB1')+(cAliasCB0)->CB0_CODPRO,'B1_DESC')
+			ZZJ->ZZJ_OP     := (cAliasCB0)->CB0_OP
+			ZZJ->ZZJ_QUANT  := nQuant
+			ZZJ->ZZJ_DATA   := STOD((cAliasCB0)->CB0_DTNASC)
+			ZZJ->ZZJ_HORA   := Left(Time(),5)
+			ZZJ->ZZJ_STATUS := 'P'
+			ZZJ->ZZJ_CODOPE := iif(!Empty(cOper),cOper,'AUTO')
+
+			MsUnlock()
+
+			Self:SetStatus(201)
+			jResponse['success'] := .T.
+			jResponse['message'] := 'Registro incluído com sucesso'
+
+		Else
+			//Monta o texto do Error Log que será salvo
+			cErrorLog   := 'Falha Apontamento'
+			cErrorLog   += 'Tentativa de gravar no monitor tabela ZZJ'
+			cErrorLog   += 'Erro na inclusão do registro, REFID: '+cEtiq + " OP: "+(cAliasCB0)->CB0_OP
+
+			//Grava o arquivo de log
+			cArqLog := 'zWsEtiquetas' + dToS(Date()) + '_' + StrTran(Time(), ':', '-') + '.log'
+			MemoWrite(cDirLog + cArqLog, cErrorLog)
+
+			//Define o retorno para o WebService
+			//SetRestFault(500, cErrorLog) //caso queira usar esse comando, você não poderá usar outros retornos, como os abaixo
+			Self:setStatus(500)
+			jResponse['errorId']  := 'NEW005'
+			jResponse['error']    := 'Erro na inclusão do registro'
+			jResponse['solution'] := 'Nao foi possivel incluir o registro, foi gerado um arquivo de log em ' + cDirLog + cArqLog + ' '
+			lRet := .F.
+		EndIf
+
 	EndIf
 
-
-	oJsonOut['success'] := .T.
-	oJsonOut['message'] := 'Etiqueta apontada com sucesso'
-
-	Self:SetStatus(201)
-	Self:SetContentType('application/json')
-	Self:SetResponse(oJsonOut:ToJson())
-
+	//Define o retorno
+	Self:SetResponse(EncodeUTF8(jResponse:toJSON()))
 Return lRet

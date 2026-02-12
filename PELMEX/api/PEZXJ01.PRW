@@ -2,7 +2,7 @@
  | Data       : 18/12/2023                                                   |
  | Rotina     : PEZXJ01                                                      |
  | Responsável: Edson Pedro                                                  |
- | Descrição  : Rotina de Cadastro de Ordem de Serviço Amazonaves            |
+ | Descrição  : Rotina Monitor Integracao RFID x PROTHEUS                    |
  *---------------------------------------------------------------------------*/
 
 //Bibliotecas
@@ -32,12 +32,11 @@ User Function PEZXJ01()
     oBrowse:SetDescription(cTitulo)
      
     //Legendas
-    oBrowse:AddLegend( "ZZJ->Z4_XSTATUS == 'A'", "GREEN",  "Em Aberto" )
-    oBrowse:AddLegend( "ZZJ->Z4_XSTATUS == 'E'", "RED",    "Fechado" )
-    oBrowse:AddLegend( "ZZJ->Z4_XSTATUS == 'P'", "BLUE",    "Fechado" )
+    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'A'", "GREEN",  "Apontado" )
+    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'P'", "BLUE",    "Pendente" )
      
     //Filtrando
-    //oBrowse:SetFilterDefault("ZZJ->ZZJ_COD >= '000000' .And. ZZJ->ZZJ_COD <= 'ZZZZZZ'")
+    //oBrowse:SetFilterDefault("ZZJ->ZZJ_PRODUT >= '000000' .And. ZZJ->ZZJ_PRODUT <= 'ZZZZZZ'")
      
     //Ativa a Browse
     oBrowse:Activate()
@@ -54,16 +53,17 @@ Return Nil
  *---------------------------------------------------------------------*/
  
 Static Function MenuDef()
-    Local aRot := {}
+    Local aRotina := {}
      
     //Adicionando opções
-    ADD OPTION aRot TITLE 'Visualizar' ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 1
-    ADD OPTION aRot TITLE 'Legenda'    ACTION 'u_xLegend'       OPERATION 6                      ACCESS 0 //OPERATION X
-    ADD OPTION aRot TITLE 'Incluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
-    ADD OPTION aRot TITLE 'Alterar'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_UPDATE ACCESS 0 //OPERATION 4
-    ADD OPTION aRot TITLE 'Excluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_DELETE ACCESS 0 //OPERATION 5
+    ADD OPTION aRotina TITLE 'Incluir'    ACTION 'U_PEAPONT' OPERATION 6 ACCESS 0 //OPERATION X
+    ADD OPTION aRotina TITLE 'Visualizar' ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 1
+    ADD OPTION aRotina TITLE 'Legenda'    ACTION 'u_xLegend'       OPERATION 6                      ACCESS 0 //OPERATION X
+    // ADD OPTION aRotina TITLE 'Incluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
+    // ADD OPTION aRotina TITLE 'Alterar'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_UPDATE ACCESS 0 //OPERATION 4
+    ADD OPTION aRotina TITLE 'Excluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_DELETE ACCESS 0 //OPERATION 5
  
-Return aRot
+Return aRotina
  
 /*---------------------------------------------------------------------*
  | Func:  ModelDef                                                     |
@@ -80,8 +80,8 @@ Static Function ModelDef()
     Local oStZZJ := FWFormStruct(1, "ZZJ")
      
     //Editando características do dicionário
-    // oStZZJ:SetProperty('ZZJ_COD',   MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.F.'))                                 //Modo de Edição
-    // oStZZJ:SetProperty('ZZJ_COD',   MODEL_FIELD_INIT,    FwBuildFeature(STRUCT_FEATURE_INIPAD,  'GetSXENum("ZZJ", "ZZJ_COD")'))         //Ini Padrão
+    // oStZZJ:SetProperty('ZZJ_PRODUT',   MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.F.'))                                 //Modo de Edição
+    // oStZZJ:SetProperty('ZZJ_PRODUT',   MODEL_FIELD_INIT,    FwBuildFeature(STRUCT_FEATURE_INIPAD,  'GetSXENum("ZZJ", "ZZJ_PRODUT")'))         //Ini Padrão
     // oStZZJ:SetProperty('ZZJ_DESC',  MODEL_FIELD_VALID,   FwBuildFeature(STRUCT_FEATURE_VALID,   'Iif(Empty(M->ZZJ_DESC), .F., .T.)'))   //Validação de Campo
     // oStZZJ:SetProperty('ZZJ_DESC',  MODEL_FIELD_OBRIGAT, Iif(RetCodUsr()!='000000', .T., .F.) )                                         //Campo Obrigatório
      
@@ -92,7 +92,7 @@ Static Function ModelDef()
     oModel:AddFields("FORMZZJ",/*cOwner*/,oStZZJ)
      
     //Setando a chave primária da rotina
-    oModel:SetPrimaryKey({'Z4_FILIAL','Z4_COD'})
+    oModel:SetPrimaryKey({'ZZJ_FILIAL','ZZJ_PRODUT'})
      
     //Adicionando descrição ao modelo
     oModel:SetDescription("Modelo de Dados do Cadastro "+cTitulo)
@@ -149,7 +149,7 @@ Static Function ViewDef()
         cCampoAux := Alltrim(aStruZZJ[nAtual][01])
          
         //Se o campo atual não estiver nos que forem considerados
-        If Alltrim(cCampoAux) $ "ZZJ_COD;"
+        If Alltrim(cCampoAux) $ "ZZJ_PRODUT;"
             oStZZJ:RemoveField(cCampoAux)
         EndIf
     Next
@@ -169,9 +169,8 @@ User Function xLegend()
     Local aLegenda := {}
      
     //Monta as cores
-    AADD(aLegenda,{"BR_VERDE",       "Em Aberto"    })
-    AADD(aLegenda,{"BR_VERMELHO",    "Fechado"      })
-    AADD(aLegenda,{"BR_AZUL"    ,    "Fechado"      })
+    AADD(aLegenda,{"BR_VERDE",  "Apontado"    })
+    AADD(aLegenda,{"BR_AZUL",    "Pendente"      })
      
     BrwLegenda('Status Apontamento', "Status", aLegenda)
 Return
@@ -180,7 +179,7 @@ Static Function fPreVld(oModel)
 Local lRet         := .T.
 Local nOpc        := oModel:GetOperation()  
 
-    If(nOpc == MODEL_OPERATION_UPDATE .and. ZZJ->Z4_XSTATUS == '2')
+    If(nOpc == MODEL_OPERATION_UPDATE .and. ZZJ->ZZJ_STATUS == 'A')
 
         lRet := .F.
 
