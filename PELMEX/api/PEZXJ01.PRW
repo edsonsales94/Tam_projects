@@ -19,25 +19,52 @@ User Function PEZXJ01()
     Local aArea   := GetArea()
     Local oBrowse
     Local cFunBkp := FunName()
+
+	Local aPergs   := {}
+    local cStatus :='P'
+    local cCondicao := ''
+	local aStatus  := {'P=Pendentes','A=Apontados','E=Erro','T=Todos'}
+
+    FnParam(@aPergs,@cStatus,@cCondicao,@aStatus)
      
     SetFunName("PEZXJ01")
+
+    // aSeek:={}
+    aFields:={}
+
+    // aAdd(aSeek,{GetSX3Cache('ZZJ_CODETI', "X3_TITULO"), {{"", GetSX3Cache('ZZJ_CODETI', "X3_TIPO"), GetSX3Cache('ZZJ_CODETI', "X3_TAMANHO"), GetSX3Cache('ZZJ_CODETI', "X3_DECIMAL"), AllTrim(GetSX3Cache('ZZJ_CODETI', "X3_TITULO")), AllTrim(GetSX3Cache('ZZJ_CODETI', "X3_PICTURE"))}} } )
+	// aAdd(aSeek,{GetSX3Cache('ZZJ_OP', "X3_TITULO"), {{"", GetSX3Cache('ZZJ_OP', "X3_TIPO"), GetSX3Cache('ZZJ_OP', "X3_TAMANHO"), GetSX3Cache('ZZJ_OP', "X3_DECIMAL"), AllTrim(GetSX3Cache('ZZJ_OP', "X3_TITULO")), AllTrim(GetSX3Cache('ZZJ_OP', "X3_PICTURE"))}} } )
+	// aAdd(aSeek,{GetSX3Cache('ZZJ_PRODUT', "X3_TITULO"), {{"", GetSX3Cache('ZZJ_PRODUT', "X3_TIPO"), GetSX3Cache('ZZJ_PRODUT', "X3_TAMANHO"), GetSX3Cache('ZZJ_PRODUT', "X3_DECIMAL"), AllTrim(GetSX3Cache('ZZJ_PRODUT', "X3_TITULO")), AllTrim(GetSX3Cache('ZZJ_PRODUT', "X3_PICTURE"))}} } )
+	// aAdd(aSeek,{GetSX3Cache('ZZJ_PRODUT', "X3_TITULO"), {{"", GetSX3Cache('ZZJ_PRODUT', "X3_TIPO"), GetSX3Cache('ZZJ_PRODUT', "X3_TAMANHO"), GetSX3Cache('ZZJ_PRODUT', "X3_DECIMAL"), AllTrim(GetSX3Cache('ZZJ_PRODUT', "X3_TITULO")), AllTrim(GetSX3Cache('ZZJ_PRODUT', "X3_PICTURE"))}} } )
+
+	aAdd(aFields,{GetSX3Cache('ZZJ_CODETI',     "X3_CAMPO"),GetSX3Cache('ZZJ_CODETI',     "X3_TITULO"), GetSX3Cache('ZZJ_CODETI', "X3_TIPO"), GetSX3Cache('ZZJ_CODETI', "X3_TAMANHO"),     GetSX3Cache('ZZJ_CODETI', "X3_DECIMAL"), AllTrim(GetSX3Cache('ZZJ_CODETI', "X3_PICTURE"))})
+	aAdd(aFields,{GetSX3Cache('ZZJ_OP', "X3_CAMPO"),GetSX3Cache('ZZJ_OP', "X3_TITULO"), GetSX3Cache('ZZJ_OP', "X3_TIPO"), GetSX3Cache('ZZJ_OP', "X3_TAMANHO"), GetSX3Cache('ZZJ_OP', "X3_DECIMAL"), AllTrim(GetSX3Cache('ZZJ_OP', "X3_PICTURE"))})
+	aAdd(aFields,{GetSX3Cache('ZZJ_PRODUT', "X3_CAMPO"),GetSX3Cache('ZZJ_PRODUT', "X3_TITULO"), GetSX3Cache('ZZJ_PRODUT', "X3_TIPO"), GetSX3Cache('ZZJ_PRODUT', "X3_TAMANHO"), GetSX3Cache('ZZJ_PRODUT', "X3_DECIMAL"), AllTrim(GetSX3Cache('F2_XNUMPRO', "X3_PICTURE"))})
      
     //Instânciando FWMBrowse - Somente com dicionário de dados
     oBrowse := FWMBrowse():New()
-     
+    
     //Setando a tabela de Cadastro de Ordem de Serviços Amazonaves
     oBrowse:SetAlias("ZZJ")
- 
+    oBrowse:SetFilterDefault(cCondicao)
     //Setando a descrição da rotina
     oBrowse:SetDescription(cTitulo)
-     
+    oBrowse:SetDBFFilter(.T.)
+	oBrowse:SetUseFilter(.T.) //Habilita a utilização do filtro no Browse
+	oBrowse:SetFixedBrowse(.T.)
+	oBrowse:SetFieldFilter(aFields)
+    // oBrowse:SetSeek(.T.,aSeek)
+    
+    // chamar parametros prcionando F12
+    // oBrowse:bKeyDown := {|nKey|  If(nKey == 123, Refiltra(oBrowse,aPergs,cStatus,cCondicao,aStatus),  NIL)}
+    // Habilita filtro padrão
+    oBrowse:SetFilterDefault(cCondicao)
     //Legendas
-    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'A'", "GREEN",  "Apontado" )
-    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'P'", "BLUE",    "Pendente" )
-     
-    //Filtrando
-    //oBrowse:SetFilterDefault("ZZJ->ZZJ_PRODUT >= '000000' .And. ZZJ->ZZJ_PRODUT <= 'ZZZZZZ'")
-     
+    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'A'", "GREEN",  "Apontado"             )
+    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'P'", "BLUE",   "Pendente Apontamento" )
+    oBrowse:AddLegend( "ZZJ->ZZJ_STATUS == 'E'", "RED",    "Erro Apontamento"     )
+          
+    SetKey(VK_F12 , { || Refiltra(oBrowse,aPergs,cStatus,cCondicao,aStatus) })
     //Ativa a Browse
     oBrowse:Activate()
      
@@ -47,7 +74,7 @@ Return Nil
  
 /*---------------------------------------------------------------------*
  | Func:  MenuDef                                                      |
- | Autor: eDSON SALES                                                  |
+ | Autor: EDSON SALES                                                  |
  | Data:  31/07/2016                                                   |
  | Desc:  Criação do menu MVC                                          |
  *---------------------------------------------------------------------*/
@@ -56,12 +83,12 @@ Static Function MenuDef()
     Local aRotina := {}
      
     //Adicionando opções
-    ADD OPTION aRotina TITLE 'Incluir'    ACTION 'U_PEAPONT' OPERATION 6 ACCESS 0 //OPERATION X
+    ADD OPTION aRotina TITLE 'Apontar'    ACTION 'U_PEAPONT' OPERATION 6 ACCESS 0 //OPERATION X
     ADD OPTION aRotina TITLE 'Visualizar' ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 1
     ADD OPTION aRotina TITLE 'Legenda'    ACTION 'u_xLegend'       OPERATION 6                      ACCESS 0 //OPERATION X
     // ADD OPTION aRotina TITLE 'Incluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
     // ADD OPTION aRotina TITLE 'Alterar'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_UPDATE ACCESS 0 //OPERATION 4
-    ADD OPTION aRotina TITLE 'Excluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_DELETE ACCESS 0 //OPERATION 5
+    // ADD OPTION aRotina TITLE 'Excluir'    ACTION 'VIEWDEF.PEZXJ01' OPERATION MODEL_OPERATION_DELETE ACCESS 0 //OPERATION 5
  
 Return aRotina
  
@@ -155,7 +182,7 @@ Static Function ViewDef()
     Next
     */
 Return oView
- 
+
 /*/{Protheus.doc} xLegend
 Função para mostrar a legenda
 @author Atilio
@@ -164,27 +191,63 @@ Função para mostrar a legenda
     @example
     u_xLegend()
 /*/
- 
+
 User Function xLegend()
-    Local aLegenda := {}
-     
-    //Monta as cores
-    AADD(aLegenda,{"BR_VERDE",  "Apontado"    })
-    AADD(aLegenda,{"BR_AZUL",    "Pendente"      })
-     
-    BrwLegenda('Status Apontamento', "Status", aLegenda)
+	Local aLegenda := {}
+
+	//Monta as cores
+	AADD(aLegenda,{"BR_VERDE",  "Apontado"                  })
+	AADD(aLegenda,{"BR_AZUL",   "Pendente apontamento"      })
+	AADD(aLegenda,{"BR_RED",    "Erro Apontamento"          })
+
+	BrwLegenda('Status Apontamento', "Status", aLegenda)
 Return
 
 Static Function fPreVld(oModel)
-Local lRet         := .T.
-Local nOpc        := oModel:GetOperation()  
+	Local lRet         := .T.
+	Local nOpc        := oModel:GetOperation()
 
-    If(nOpc == MODEL_OPERATION_UPDATE .and. ZZJ->ZZJ_STATUS == 'A')
+	If(nOpc == MODEL_OPERATION_UPDATE .and. ZZJ->ZZJ_STATUS == 'A')
 
-        lRet := .F.
+		lRet := .F.
 
-        Help(,,'O.S Fechada','Não é permitida a alteração de O.S Fechada',,1,0,,,,,,{'Não Altera'})
+		Help(,,'O.S Fechada','Não é permitida a alteração de O.S Fechada',,1,0,,,,,,{'Não Altera'})
 
-    EndIf
+	EndIf
 
 Return(lRet)
+
+
+/*/{Protheus.doc} FnParam
+@author user
+@since 19/02/2026
+
+/*/
+Static Function FnParam(aPergs,cStatus,cCondicao,aStatus)
+	aPergs := {}
+	aAdd(aPergs, {2, "Status OP:",  cStatus, aStatus,80, ".T.", .F.})
+	If ParamBox(aPergs, "Informe os parametros")
+		Do Case
+		Case MV_PAR01 == "T"
+			cCondicao := ""
+
+		Case MV_PAR01 == "P"
+			cCondicao := "ZZJ->ZZJ_STATUS == 'P'"
+
+		Case MV_PAR01 == "A"
+			cCondicao := "ZZJ->ZZJ_STATUS == 'A'"
+
+		Case MV_PAR01 == "E"
+			cCondicao := "ZZJ->ZZJ_STATUS == 'E'"
+		EndCase
+	EndIF
+Return
+
+Static Function Refiltra(oBrowse,aPergs,cStatus,cCondicao,aStatus)
+
+	FnParam(@aPergs,@cStatus,@cCondicao,@aStatus)
+
+	oBrowse:SetFilterDefault(cCondicao)
+	oBrowse:Refresh()
+
+Return

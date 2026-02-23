@@ -81,6 +81,23 @@
 		},
 		{
 			"label": "U_PAIMPSB1"
+		},
+		{
+			"args": [],
+			"label": "U_fnImpCart"
+		},
+		{
+			"label": "U_PMZTOKEN"
+		},
+		{
+			"label": "U_TrfSaldo"
+		},
+		{
+			"label": "U_trfParam"
+		},
+		{
+			"args": [],
+			"label": "u_PEAPONT"
 		}
 	],
 	"lastProgramExecuted": "SIGAMDI",

@@ -13,7 +13,8 @@ User Function MCETIQ05()
 	// Local nLargBtn      := 50
 	local nx :=0
 	local aForn := {}
-	Private aBrowse:= {{.F.,'','','','','','','',''}}
+	Private cProdAtual := ''
+	Private aBrowse:= {{.F.,'','','','','','','','',''}}
 	//Objetos e componentes
 	Private oDlg
 	Private oFwLayer
@@ -66,13 +67,14 @@ User Function MCETIQ05()
 	oSayTitulo := TSay():New(014, 005, {|| 'Nro. Etiqueta:'}, oPanHeader, "", oFontSub,  , , , .T., RGB(031, 073, 125), , 100, 30, , , , , , .F., , )
 	oSayTitulo := TSay():New(014, 250, {|| 'Matricula:'}, oPanHeader, "", oFontSub,  , , , .T., RGB(031, 073, 125), , 100, 30, , , , , , .F., , )
 	cTGet1 := space(tamsx3('Z7_ETIQMAE')[1])
-	oTGet1 := TGet():New( 014,080,{|u| if( Pcount( )>0, cTGet1 := u, cTGet1) },oDlg,120,20,"@!",,0,,,.F.,,.T.,,.F.,{|| x_load(cTGet1)},.F.,.F.,,.F.,.F.,,cTGet1,,,, )
+	oTGet1 := TGet():New( 014,080,{|u| if( Pcount( )>0, cTGet1 := u, cTGet1) },oDlg,120,20,"@!", ,0,,,.F.,,.T.,,.F.,{|| x_load(cTGet1)},.F.,.F.,,.F.,.F.,,cTGet1,,,, )
 
 	cTGet2 := '      '//space(tamsx3('Z7_ETIQMAE')[1])
 	oTGet2 := TGet():New( 014,280,{|u| if( Pcount( )>0, cTGet2 := u, cTGet2) },oDlg,80,20,"@!",,0,,,.F.,,.T.,,.F.,{|| IIF(Empty(cTGet2),{|| Alert('Informe o RE'),.F.},.T.)},.F.,.F.,,.F.,.F.,,cTGet2,,,, )
 
-	oBtnSair := TButton():New(014, 200, "Gerar coali",  oPanBut, {|| GeraCoal()}, 50, 012, , oFontBtn, , .T., , , , , , )
-	oBtnSair := TButton():New(014, 260, "Ver Coali"  ,  oPanBut, {|| VerCoali(cTGet1)}, 50, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSair := TButton():New(014, 140, "Gerar coali",  oPanBut, {|| GeraCoal()}, 50, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSair := TButton():New(014, 200, "Ver Coali"  ,  oPanBut, {|| VerCoali(cTGet1)}, 50, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSair := TButton():New(014, 260, "Reimp. FIFO",  oPanBut, {|| FnImp01()}, 50, 012, , oFontBtn, , .T., , , , , , )
 
 	//dialog com browse para defir as notas fiscais
 	oBrowse := fwBrowse():New()
@@ -90,6 +92,7 @@ User Function MCETIQ05()
 	oBrowse:addColumn({"Quantidade   " , 	{||aBrowse[oBrowse:nAt,06]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
 	oBrowse:addColumn({"Ord. Produção" , 	{||aBrowse[oBrowse:nAt,07]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
 	oBrowse:addColumn({"Armazém      " , 	{||aBrowse[oBrowse:nAt,08]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
+	oBrowse:addColumn({"Cliente      " , 	{||aBrowse[oBrowse:nAt,10]}, "C", "@!"	, 1, 10 ,     , .T. , , .F.,, "__ReadVar",, .F., .T., , "xLote"    })
 
 	oBrowse:setArray( aBrowse )
 	oBrowse:SetLocate() // Habilita a LocalizaÃ§Ã£o de registros
@@ -142,7 +145,7 @@ Static Function fPopula(_cetiq)
 	While ! ('QRYDADTMP')->(EoF())
 		nAtual++
 		IncProc('Analisando registro ' + cValToChar(nAtual) + ' de ' + cValToChar(nTotal) + '...')
-		aadd(aDadosEtq,{.T.,;
+		aadd(aDadosEtq,{.F.,;
 			('QRYDADTMP')->Z7_ETIQMAE,;
 			('QRYDADTMP')->Z7_PAMASA,;
 			('QRYDADTMP')->Z7_CODCLI,;
@@ -152,6 +155,7 @@ Static Function fPopula(_cetiq)
 			('QRYDADTMP')->Z7_LOCAL,;
 			('QRYDADTMP')->Z7_MOLDE,;
 			('QRYDADTMP')->Z7_CLIENTE,;
+			('QRYDADTMP')->Z7_QRCODE1,;
 			cUsuario})
 
 		('QRYDADTMP')->(DbSkip())
@@ -176,16 +180,27 @@ Return aDadosEtq
 /*/
 Static Function x_load(cTGet1)
 	local aEtiq :={}
-
-	dbselectarea('SZ7')
-	dbsetorder(1)
-	if SZ7->(MSSEEK(XFILIAL('SZ7')+cTGet1)) .AND.!Empty(cTGet1)
-		Processa({|| aEtiq := fPopula(cTGet1)}, 'Processando...')
-		aBrowse := aEtiq
-		oBrowse:SetLocate()
-		oBrowse:refresh()
-	elseif !Empty(cTGet1)
-		FWAlertInfo('A Etiqueta informada não foi encontrada...', 'Atencao !')
+	if !(cProdAtual == cTGet1)   // so vai recarregar a grid se mudar o produto
+		dbselectarea('SZ7')
+		dbsetorder(1)
+		if SZ7->(MSSEEK(XFILIAL('SZ7')+cTGet1)) .AND.!Empty(cTGet1)
+			Processa({|| aEtiq := fPopula(cTGet1)}, 'Processando...')
+			aBrowse := aEtiq
+			if len(aBrowse) == 1
+				aBrowse[1,1] := .T.
+			endif
+			oBrowse:setArray(aBrowse)
+			oBrowse:SetLocate()
+			oBrowse:GoTo( 1, .T. )
+			// oBrowse:refresh()
+		elseif !Empty(cTGet1)
+			FWAlertInfo('A Etiqueta informada não foi encontrada...', 'Atencao !')
+			aBrowse:= {{.F.,'','','','','','','','','',''}}
+			oBrowse:setArray(aBrowse)
+			oBrowse:SetLocate()
+			oBrowse:GoTo( 1, .T. )
+		endif
+		cProdAtual := cTGet1
 	endif
 
 Return .T.
@@ -201,6 +216,7 @@ Static Function GeraCoal()
 	Local lBrowMark := .F.
 
 	dbselectarea('CB5')
+	CB5->(dbGotop())
 	while !CB5->(EOF())
 		if 'MCETIQ05' $ CB5->CB5_ROTINA  // fonte setado no cadastro de impressoras
 			AADD(aImp, alltrim(CB5->CB5_PRINTR))
@@ -225,6 +241,7 @@ Static Function GeraCoal()
 	//Se a pergunta for confirma, chama a tela
 	If ParamBox(aPergs, "Informe os parametros")
 		xQtdQuebra := VAL(MV_PAR01)
+		
 		SaveCoaL(xQtdQuebra)
 	EndIf
 
@@ -283,7 +300,7 @@ Return
 
 
 Static Function SaveCoaL(_xQtdQuebra)
-	// Local nX := 0
+	Local nX := 0
 	Local cLabel  := ""
 	Local CTMP  := GETNEXTALIAS()
 	Local cQryDados := ''
@@ -292,88 +309,230 @@ Static Function SaveCoaL(_xQtdQuebra)
 	// abater a quantidade da COLALI do saldo da etiqueta MAE.
 	AbatSald(_xQtdQuebra)
 
-	if !aBrowse[1,1]
-		FwAlertWarning('Nenhum Registro foi selecionado', 'Atenção!')
+	for NX := 1 to LEN(aBrowse)
+		if aBrowse[nx,1]
+		
+			if !aBrowse[NX,1]
+				FwAlertWarning('Nenhum Registro foi selecionado', 'Atenção!')
+				Return
+			EndIf
+
+			cQryDados += "SELECT MAX(Z7_COALI) ULT_COALI  "        + CRLF
+			cQryDados += "FROM SZ7010 SZ7 "        + CRLF
+			cQryDados += "WHERE SZ7.D_E_L_E_T_ = ' ' "
+
+			PLSQuery(cQryDados, CTMP)
+
+			cCoali := cvaltochar(val(SOMA1(space(2)+alltrim((CTMP)->ULT_COALI)))) // incrementar o Numero do COALI.
+
+			cQR := left(aBrowse[NX,4],25)+;  // Cod. Cliente
+			alltrim(aBrowse[NX,2])+;			// Cod. Etiqueta Mae
+			StrZero(_xQtdQuebra,5)+; 		// Quantidade
+			cCoali							// Cod. COALI
+
+			RECLOCK('SZ7', .T.)
+			SZ7->Z7_ETIQMAE := aBrowse[NX,2]
+			SZ7->Z7_COALI   := cCoali
+			SZ7->Z7_PAMASA 	:= aBrowse[NX,3]
+			SZ7->Z7_CODCLI 	:= aBrowse[NX,4]
+			SZ7->Z7_DESCRI 	:= aBrowse[NX,5]
+			SZ7->Z7_OP 		:= aBrowse[NX,7]
+			SZ7->Z7_QUANT 	:= _xQtdQuebra
+			SZ7->Z7_LOCAL 	:= aBrowse[NX,8]
+			SZ7->Z7_MOLDE 	:= aBrowse[NX,9]
+			SZ7->Z7_QRCODE1	:= cQR
+			SZ7->Z7_CLIENTE := aBrowse[NX,10]
+			SZ7->Z7_USUARIO := aBrowse[NX,12]
+			SZ7->(MsUnlock())
+
+			cLabel:= ""
+
+			cLabel+= (" CT~~CD,~CC^~CT~  ")
+			cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR2,2")
+			cLabel+= (" ~SD"+alltrim(MV_PAR02))
+			cLabel+= ("^JUS^LRN^CI0^XZ  ")
+			cLabel+= (" ^XA  ")
+			cLabel+= (" ^MMT  ")
+			cLabel+= (" ^PW945  ")
+			cLabel+= (" ^LL0685  ")
+			cLabel+= (" ^LS0  ")
+			cLabel+= (" ^FT714,114^A0N,42,40^FH\^FD"+DTOC(ddatabase)+"^FS  ")
+			// OP
+			cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDOP: ^FS  ")
+			cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(SZ7->Z7_OP)+"^FS  ")
+			// QUANT
+			cLabel+= (" ^FT45,312^A0N,42,40^FH\^FDQUANT: ^FS  ")
+			cLabel+= (" ^FT206,312^A0N,42,40^FH\^FD"+;
+				ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999,999,999.999'))+"^FS  ")
+			// USUÁRIO
+			cLabel+= (" ^FT45,362^A0N,29,26^FH\^FD"+AllTrim(SZ7->Z7_USUARIO)+"^FS  ")
+			// cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDQUANT: ^FS  ")
+			// cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999,999,999.999'))+"^FS  ")
+			// cLabel+= (" ^FT43,354^A0N,29,26^FH\^FD"+alltrim(SZ7->Z7_USUARIO)+"^FS  ")
+			if len(alltrim(SZ7->Z7_DESCRI)) <= 48
+				cLabel+= (" ^FT44,487^A0N,33,33^FH\^FD"+AllTRim(SZ7->Z7_DESCRI)+"^FS  ")
+			else
+				cLabel+= (" ^FT44,487^A0N,33,33^FH\^FD"+left(alltrim(SZ7->Z7_DESCRI),48)+"^FS  ")
+				cLabel+= (" ^FT44,588^A0N,33,33^FH\^FD"+substr(alltrim(SZ7->Z7_DESCRI),49)+"^FS  ")
+			endif
+			cLabel+= (" ^FT346,200^A0N,42,40^FH\^FD"+SZ7->Z7_CODCLI+"^FS  ")
+			cLabel+= (" ^FT45,434^A0N,33,28^FH\^FDNRO. ETIQUETA NORMAL^FS  ")
+			cLabel+= (" ^FT369,433^A0N,33,50^FH\^FD"+AllTRim(SZ7->Z7_ETIQMAE)+"^FS  ")
+			cLabel+= (" ^FT45,201^A0N,42,40^FH\^FD"+SZ7->Z7_PAMASA+"^FS  ")
+			cLabel+= (" ^FT41,658^A0N,120,196^FH\^FD"+SZ7->Z7_CLIENTE+"^FS  ")
+			cLabel+= (" ^FT46,117^A0N,42,40^FH\^FDCOALI - "+SZ7->Z7_COALI+"^FS  ")
+			cLabel+= (" ^FT658,471^BQN,2,10  ")
+			cLabel+= (" ^FDLA,"+cQR+"^FS  ")
+			cLabel+= (" ^LRY^FO1,11^GB942,0,133^FS^LRN  ")
+			cLabel+= (" ^PQ1,0,1,Y^XZ  ")
+
+			impriRaw(cLabel,cPrinter)
+		endif
+	next nx
+	// atualizar a tela
+	cProdAtual := ''
+	oDlg:refresh()
+	// oDlg:END()
+	// u_MCETIQ05()
+Return
+/*
+Reimpressão da etiqueta fifo
+Parametros
+*/
+Static Function FnImp01()
+	// Local aArea := FwGetArea()
+	Local aRet := {}
+	Local aPergs := {}
+	Local aImp := {}
+	Local cPrinter := ''
+	// RpcSetEnv('01','01')
+
+	dbselectarea('CB5')
+	CB5->(DbGoTop())
+	while !CB5->(EOF())
+		if 'MCETIQ04' $ CB5->CB5_ROTINA  // fonte setado no cadastro de impressoras
+			AADD(aImp, alltrim(CB5->CB5_PRINTR))
+		endif
+		CB5->(dbskip())
+	EndDo
+
+	aAdd(aPergs,{1,"Densidade: " ,'22',"","","","",0 ,.F.})
+	aAdd(aPergs,{2, "Impressora",cPrinter, aImp,     122, ".T.", .F.})
+
+	If !ParamBox(aPergs ,"Etiquetas ...",@aRet,,,,,,,,.F.,.T.)
 		Return
-	EndIf
+	Else	
+		Processa( {|| ReimpFif() }, "Aguarde...","Imprimindo...",.F.)
+	Endif
 
-	cQryDados += "SELECT MAX(Z7_COALI) ULT_COALI  "        + CRLF
-	cQryDados += "FROM SZ7010 SZ7 "        + CRLF
-	cQryDados += "WHERE SZ7.D_E_L_E_T_ = ' ' "
+Return
 
-	PLSQuery(cQryDados, CTMP)
 
-	cCoali := cvaltochar(val(SOMA1(space(2)+alltrim((CTMP)->ULT_COALI)))) // incrementar o Numero do COALI.
+/*
+Reimpressão da etiqueta fifo
+motagem do zpl
+*/
+Static Function ReimpFif()
+	Local cLabel  := ""
+	Local lBrowMark := .F.
+	Local NX := 0
+	Local cAliasSZ7  := GETNEXTALIAS()
+	Local cSeqEtiq1 := ''
+	Local cPrinter := ALLTRIM(MV_PAR02)
 
-	cQR := left(aBrowse[1,4],25)+;  // Cod. Cliente
-	alltrim(aBrowse[1,2])+;			// Cod. Etiqueta Mae
-	StrZero(_xQtdQuebra,5)+; 		// Quantidade
-	cCoali							// Cod. COALI
+	for NX := 1 to LEN(aBrowse)
 
-	RECLOCK('SZ7', .T.)
-	SZ7->Z7_ETIQMAE := aBrowse[1,2]
-	SZ7->Z7_COALI   := cCoali
-	SZ7->Z7_PAMASA 	:= aBrowse[1,3]
-	SZ7->Z7_CODCLI 	:= aBrowse[1,4]
-	SZ7->Z7_DESCRI 	:= aBrowse[1,5]
-	SZ7->Z7_OP 		:= aBrowse[1,7]
-	SZ7->Z7_QUANT 	:= _xQtdQuebra
-	SZ7->Z7_LOCAL 	:= aBrowse[1,8]
-	SZ7->Z7_MOLDE 	:= aBrowse[1,9]
-	SZ7->Z7_QRCODE1	:= cQR
-	SZ7->Z7_CLIENTE := aBrowse[1,10]
-	SZ7->Z7_USUARIO := aBrowse[1,11]
-	SZ7->(MsUnlock())
+		DbSelectArea('SC2')
+		SC2->(dbSetOrder(1))
+		dbselectarea('SB1')
+		dbSetOrder(1)
 
-	cLabel:= ""
+		SB1->(MSSEEK(xFilial('SB1')+aBrowse[NX,3]))
+		SC2->(MSSEEK(xFilial('SC2')+aBrowse[NX,7]))
 
-	cLabel+= (" CT~~CD,~CC^~CT~  ")
-	cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR2,2")
-	cLabel+= (" ~SD"+alltrim(MV_PAR02))
-	cLabel+= ("^JUS^LRN^CI0^XZ  ")
-	cLabel+= (" ^XA  ")
-	cLabel+= (" ^MMT  ")
-	cLabel+= (" ^PW945  ")
-	cLabel+= (" ^LL0685  ")
-	cLabel+= (" ^LS0  ")
-	cLabel+= (" ^FT714,114^A0N,42,40^FH\^FD"+DTOC(ddatabase)+"^FS  ")
-	// OP
-	cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDOP: ^FS  ")
-	cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(SZ7->Z7_OP)+"^FS  ")
-	// QUANT
-	cLabel+= (" ^FT45,312^A0N,42,40^FH\^FDQUANT: ^FS  ")
-	cLabel+= (" ^FT206,312^A0N,42,40^FH\^FD"+;
-		ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999.999'))+"^FS  ")
-	// USUÁRIO
-	cLabel+= (" ^FT45,362^A0N,29,26^FH\^FD"+AllTrim(SZ7->Z7_USUARIO)+"^FS  ")
-	// cLabel+= (" ^FT45,262^A0N,42,40^FH\^FDQUANT: ^FS  ")
-	// cLabel+= (" ^FT206,262^A0N,42,40^FH\^FD"+ALLTRIM(TRANSFORM(SZ7->Z7_QUANT,'@E 999.999'))+"^FS  ")
-	// cLabel+= (" ^FT43,354^A0N,29,26^FH\^FD"+alltrim(SZ7->Z7_USUARIO)+"^FS  ")
-	if len(alltrim(SZ7->Z7_DESCRI)) <= 48
-		cLabel+= (" ^FT44,487^A0N,33,33^FH\^FD"+AllTRim(SZ7->Z7_DESCRI)+"^FS  ")
-	else
-		cLabel+= (" ^FT44,487^A0N,33,33^FH\^FD"+left(alltrim(SZ7->Z7_DESCRI),48)+"^FS  ")
-		cLabel+= (" ^FT44,588^A0N,33,33^FH\^FD"+substr(alltrim(SZ7->Z7_DESCRI),49)+"^FS  ")
-	endif
-	cLabel+= (" ^FT346,200^A0N,42,40^FH\^FD"+SZ7->Z7_CODCLI+"^FS  ")
-	cLabel+= (" ^FT45,434^A0N,33,28^FH\^FDNRO. ETIQUETA NORMAL^FS  ")
-	cLabel+= (" ^FT369,433^A0N,33,50^FH\^FD"+AllTRim(SZ7->Z7_ETIQMAE)+"^FS  ")
-	cLabel+= (" ^FT45,201^A0N,42,40^FH\^FD"+SZ7->Z7_PAMASA+"^FS  ")
-	cLabel+= (" ^FT41,658^A0N,120,196^FH\^FD"+SZ7->Z7_CLIENTE+"^FS  ")
-	cLabel+= (" ^FT46,117^A0N,42,40^FH\^FDCOALI - "+SZ7->Z7_COALI+"^FS  ")
-	cLabel+= (" ^FT658,471^BQN,2,10  ")
-	cLabel+= (" ^FDLA,"+cQR+"^FS  ")
-	cLabel+= (" ^LRY^FO1,11^GB942,0,133^FS^LRN  ")
-	cLabel+= (" ^PQ1,0,1,Y^XZ  ")
+		if aBrowse[nx,1]
+			BeginSQL ALIAS cAliasSZ7
+				SELECT max(Z7_ETIQMAE) ULT_ETIQ FROM %table:SZ7% (NOLOCK)
+			EndSQL
 
-	impriRaw(cLabel,cPrinter)
+			cSeqEtiq1 := AllTRim((cAliasSZ7)->ULT_ETIQ) // sequencial da etiqueta MAE
 
+			cSeqEtiq1 := SOMA1(space(2)+cSeqEtiq1)
+			cSeqEtiq1 := cvaltochar(val(cSeqEtiq1))
+
+			cLabel:= ""
+			cLabel+= ("CT~~CD,~CC^~CT~ ")
+			cLabel+= (" ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA ")
+			cLabel+= (" ^PR10,10 ")
+			cLabel+= (" ~SD"+alltrim(MV_PAR01))
+			cLabel+= ("^JUS^LRN^CI0^XZ ")
+			cLabel+= (" ^XA ")
+			cLabel+= (" ^MMT ")
+			cLabel+= (" ^PW945 ")
+			cLabel+= (" ^LL0650 ")
+			cLabel+= (" ^LS0 ")
+			cLabel+= (" ^FT32,211^A0N,42,38^FH\^FD"+aBrowse[NX,4]+"^FS ")
+			cLabel+= (" ^FT356,91^A0N,42,38^FH\^FD"+aBrowse[NX,2]+"^FS ")
+			cLabel+= (" ^FT365,469^A0N,33,31^FH\^FD"+cvaltochar(aBrowse[NX,6])+"^FS ")
+			cLabel+= (" ^FT704,623^A0N,37,52^FH\^FDRE:____^FS ")
+			cLabel+= (" ^FT703,575^A0N,37,36^FH\^FDTURNO:____^FS ")
+			cLabel+= (" ^FT702,526^A0N,37,33^FH\^FDMAQ: "+SC2->C2_XMAQ+"^FS ")
+			cLabel+= (" ^FT702,477^A0N,37,36^FH\^FD"+"___"+right(dtoc(ddatabase),8)+" ^FS ")
+			cLabel+= (" ^FT270,468^A0N,33,31^FH\^FDQTD: ^FS ")
+			cLabel+= (" ^FT101,468^A0N,33,31^FH\^FD"+SC2->C2_NUM+"^FS ")
+			cLabel+= (" ^FT269,512^A0N,33,31^FH\^FDALMOX: ^FS ")
+			cLabel+= (" ^FT394,512^A0N,33,31^FH\^FD"+SC2->C2_LOCAL+"^FS ")
+			cLabel+= (" ^FT152,512^A0N,33,31^FH\^FD"+SC2->C2_XMOLDE+"^FS ")
+			cLabel+= (" ^FT36,512^A0N,33,31^FH\^FDMOLDE:^FS ")
+			cLabel+= (" ^FT36,468^A0N,33,31^FH\^FDOP: ^FS ")
+			cLabel+= (" ^FT35,627^A0N,80,141^FH\^FD"+aBrowse[NX,10]+"^FS ")
+			if len(alltrim(SB1->B1_DESC)) <= 45
+				cLabel+= (" ^FT33,345^A0N,37,36^FH\^FD"+alltrim(SB1->B1_DESC)+"^FS ")
+			else
+				cLabel+= (" ^FT33,345^A0N,37,36^FH\^FD"+left(alltrim(SB1->B1_DESC),45)+"^FS ")
+				cLabel+= (" ^FT33,406^A0N,37,36^FH\^FD"+substr(alltrim(SB1->B1_DESC),46)+"^FS ")
+			endif
+			cLabel+= (" ^FT34,150^A0N,42,38^FH\^FD"+SB1->B1_COD+"^FS ")
+			cLabel+= (" ^FT34,91^A0N,42,38^FH\^FDMASA^FS ")
+			cLabel+= (" ^FT682,313^BQN,2,8 ")
+			cLabel+= (" ^FDLA,"+aBrowse[NX,11]+"^FS ")
+			cLabel+= (" ^PQ1,0,1,Y^XZ ")
+
+			if impriRaw(cLabel,cPrinter)
+				dbselectarea('SZ7')
+				dbsetorder(1)
+
+				RECLOCK('SZ7', .T.)
+				SZ7->Z7_ETIQMAE := cSeqEtiq1
+				// SZ7->Z7_PAMASA 	:= SB1->B1_COD
+				// SZ7->Z7_CODCLI 	:= cProdCli
+				// SZ7->Z7_DESCRI 	:= alltrim(SB1->B1_DESC)
+				// SZ7->Z7_OP 		:= SC2->C2_NUM
+				// SZ7->Z7_MOLDE 	:= SC2->C2_XMOLDE
+				// SZ7->Z7_QUANT 	:= VAL(MV_PAR01)
+				// SZ7->Z7_LOCAL 	:= SC2->C2_LOCAL
+				// SZ7->Z7_QRCODE1 := cQR
+				// SZ7->Z7_CLIENTE := cCliente
+				SZ7->(MsUnlock())
+			endif
+
+			lBrowMark := .T.
+		endif
+		if !lBrowMark
+			msgStop('Nenhuma OP Foi Selecionada')
+			return
+		endif
+	next nx
+	
+	oDlg:END()
+	u_MCETIQ05()
+			
 Return
 
 /*/{Protheus.doc} VerCoali /*/
 Static Function VerCoali(_cEtiqueta)
-	Local oBrw
-	Local aDados := {}
+	// Local oBrw
+	// Local aDados := {}
 	// Local nLargBtn      := 50
 	Private aBrw:= {{.F.,'','','','','','','',''}}
 	//Objetos e componentes
@@ -394,7 +553,9 @@ Static Function VerCoali(_cEtiqueta)
 	Private oFontBtn    := TFont():New(cFontUti, , -12)
 	Private oFontSay    := TFont():New(cFontUti, , -10)
 
-	fCarregar(_cEtiqueta)
+	if !fCarregar(_cEtiqueta)
+		return
+	endIf
 
 	//Cria a janela
 	cAno := cvaltochar(year(date()))
@@ -480,13 +641,13 @@ static function fCarregar(_cEtiMae)
 		endDo
 		if Empty(aBrw)
 			FwAlertWarning('Nenhuma etiqueta coali encontrada.','Atencao !!!')
-			return
+			return .F.
 		endif
 	else
 		FwAlertWarning('Nenhuma etiqueta coali encontrada.','Atencao !!!')
-		return
+		return .F.
 	endif
-return
+return .T.
 /*/{Protheus.doc} GeraCoal/*/
 Static Function fExclCol()
 
@@ -549,6 +710,9 @@ Static Function fExclCol()
 	oBrwCoali:SetLocate()
 	oBrwCoali:refresh()
 
+	cProdAtual := ''
+	oDlg:refresh()
+
 	RestArea(aArea)
 
 Return Nil
@@ -568,11 +732,11 @@ Static Function impriRaw(cZPL,cPrinter)
 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
-	Local aPrint          := GetImpWindows(.F.)
+	// Local aPrint          := GetImpWindows(.F.)
 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
-	Local oPrintSetupParam := Nil
-	Local aDevice           := {}
-	Local cSession          := GetPrinterSession()
+	// Local oPrintSetupParam := Nil
+	// Local aDevice           := {}
+	// Local cSession          := GetPrinterSession()
 	// Local oPrinter
 	// Local cLocal            := "c:\temp"
 

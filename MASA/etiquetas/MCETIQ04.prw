@@ -151,9 +151,9 @@ Static Function fPopula(_cetiq)
 	Local aDadosEtq := {}
 
 	//Monta a consulta
-	cQryDados += " SELECT C2_QTDETIQ,C2_OP,C2_NUM,C2_PRODUTO ,B1_DESC,C2_EMISSAO,C2_XMAQ,C2_XMOLDE,C2_XCODCLI,C2_QUANT   FROM "+RETSQLNAME('SC2') +  " C2 "  + CRLF
+	cQryDados += " SELECT C2_QTDETIQ,C2_OP,C2_NUM,C2_PRODUTO ,B1_DESC,C2_EMISSAO,C2_XMAQ,C2_XMOLDE,C2_XCODCLI,C2_QUANT   FROM "+RETSQLNAME('SC2') +  " C2 (NOLOCK) "  + CRLF
 	//cQryDados += "  INNER JOIN SD4010 D4 ON D4.D_E_L_E_T_='' AND D4_OP =C2_NUM+C2_ITEM+C2_SEQUEN AND D4_LOCAL = 'WP' "  + CRLF
-	cQryDados += "  INNER JOIN SB1010 B1 ON B1.D_E_L_E_T_='' AND B1_COD = C2_PRODUTO "  + CRLF
+	cQryDados += "  INNER JOIN SB1010 B1 (NOLOCK) ON B1.D_E_L_E_T_='' AND B1_COD = C2_PRODUTO "  + CRLF
 	// cQryDados += "  INNER JOIN SB1010 B1 ON B1.D_E_L_E_T_='' AND B1_COD = AND B1.B1_DESC LIKE ('%0103-%')  "  + CRLF
 	cQryDados += "  WHERE C2.D_E_L_E_T_='' AND C2_PRODUTO = '" + _cetiq +"' " + CRLF
 	cQryDados += "  AND C2_QUJE    < C2_QUANT "  + CRLF
@@ -264,11 +264,11 @@ Static Function FnImp01()
 	// aAdd(aPergs,{2, "Impressora",cPrinter, {"ZT410","ZT411","ZM400"},     122, ".T.", .F.})
 	// // aAdd(aPergs,{2, "Impressora",cPrinter, aImp, 122, ".T.", .F.})
 
-	If !ParamBox(aPergs ,"Etiquetas ...",@aRet,,,,,,,,.F.,.T.)
-		Return
-	Else
-		Processa( {|| xfImpPA() }, "Aguarde...","Imprimindo...",.F.)
-	Endif
+	// If !ParamBox(aPergs ,"Etiquetas ...",@aRet,,,,,,,,.F.,.T.)
+	// 	Return
+	// Else
+	// 	Processa( {|| xfImpPA() }, "Aguarde...","Imprimindo...",.F.)
+	// Endif
 
 Return
 
@@ -280,7 +280,8 @@ Static Function xfImpPA()
 	Local cLabel  := ""
 	Local cAliasSZ7  := GETNEXTALIAS()
 	// Local cPrinterPath:= "" //compartilhamento da impressora na rede
-	Local cSeqEtiq1 := GETMV('MV_SEQETQ')
+	// Local cSeqEtiq1 := GETMV('MV_SEQETQ')
+	Local cSeqEtiq1 := ''
 	// Local cNomePC := ComputerName()
 	// Local cDirLocal := "C:\TEMP\"
 	Local nTotal := VAL(MV_PAR03)
@@ -316,7 +317,7 @@ Static Function xfImpPA()
 		endif
 	EndIf
 	BeginSQL ALIAS cAliasSZ7
-		SELECT max(Z7_ETIQMAE) ULT_ETIQ FROM %table:SZ7%
+		SELECT max(Z7_ETIQMAE) ULT_ETIQ FROM %table:SZ7% (NOLOCK)
 	EndSQL
 
 	cSeqEtiq1 := AllTRim((cAliasSZ7)->ULT_ETIQ) // sequencial da etiqueta MAE
@@ -460,11 +461,11 @@ Static Function impriRaw(cZPL,cPrinter)
 	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
-	Local aPrint          := GetImpWindows(.F.)
+	// Local aPrint          := GetImpWindows(.F.)
 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
-	Local cSession          := GetPrinterSession()
-	Local aDevice           := {}
-	Local oPrintSetupParam := Nil
+	// Local cSession          := GetPrinterSession()
+	// Local aDevice           := {}
+	// Local oPrintSetupParam := Nil
 	// Local oPrinter
 	// Local cLocal            := "c:\temp"
 
