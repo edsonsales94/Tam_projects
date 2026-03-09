@@ -14,8 +14,10 @@
 User Function PMZTOKEN()
 	local lAMb      := RpcSetEnv('01','01')
 	Local aArea     := FWGetArea()
-	local cUsr      := "67fd225566e6f27fa26e8e88"
-	local cPsw      := "3717164e9v2Pci-595e-43de-8c92-4099dc9b18dd"
+	// (No parametro está usuario e senha separado por ';')
+	local aAuth 	:= StrTokArr(GetMv('MV_AUTHSER'), ";") 
+	local cUsr      := aAuth[1] // usuario
+	local cPsw      := aAuth[2]	// senha
 	Local cURL      := "https://uat-api.serasaexperian.com.br/security/"
 	local cPath     := "iam/v1/client-identities/login"
 	Local oRestToken

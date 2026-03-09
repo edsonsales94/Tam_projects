@@ -33,17 +33,17 @@ END WSRESTFUL
 
 WSMETHOD POST tranfer_fil WSRECEIVE WSSERVICE xWsTranfFil
 	Local lRet              := .T.
-	Local aDados            := {}
+	// Local aDados            := {}
 	Local cJson             := Self:GetContent()
 	Local cError            := ''
-	Local nLinha            := 0
+	// Local nLinha            := 0
 	Local cDirLog           := '\rest1_logs\'
-	Local cArqLog           := ''
-	Local cErrorLog         := ''
-	Local aLogAuto          := {}
-	Local nCampo            := 0
+	// Local cArqLog           := ''
+	// Local cErrorLog         := ''
+	// Local aLogAuto          := {}
+	// Local nCampo            := 0
 	Local cSB1              := 'SB1'
-	Local cAliasCB0         := GetNextAlias()
+	// Local cAliasCB0         := GetNextAlias()
 	Private jJson             := Nil
 	Private jResponse         := JsonObject():New()
 	Private lMsHelpAuto     := .T.
@@ -69,6 +69,7 @@ WSMETHOD POST tranfer_fil WSRECEIVE WSSERVICE xWsTranfFil
 
 	// Validacao basica.
 	If !jJson:HasProperty('produto') ;
+			.or. !jJson:HasProperty('quantidade');
 			.or. !jJson:HasProperty('filOrig');
 			.or. !jJson:HasProperty('locOrig');
 			.or. !jJson:HasProperty('tesSaida');
@@ -96,8 +97,8 @@ WSMETHOD POST tranfer_fil WSRECEIVE WSSERVICE xWsTranfFil
 
 		//Adiciona os dados do ExecAuto
 		cProduto :=    jJson:GetJsonObject('produto')
-		nQuant   :=    jJson:GetJsonObject('quantidade')
-		cOper    :=    jJson:GetJsonObject('operador')
+		// nQuant   :=    jJson:GetJsonObject('quantidade')
+		// cOper    :=    jJson:GetJsonObject('operador')
 
 		// ==============================
 		// Pesquisa produto.
@@ -119,6 +120,7 @@ WSMETHOD POST tranfer_fil WSRECEIVE WSSERVICE xWsTranfFil
 				Return .F.
 			EndIf
 		EndIf
+	EndIf
 
 	//Define o retorno
 	Self:SetResponse(EncodeUTF8(jResponse:toJSON()))
@@ -136,6 +138,7 @@ User Function zFazExec()
 	local lRet := .F.
 
 	cProdut := jJson:GetJsonObject('produto')
+	nQuant  := jJson:GetJsonObject('quantidade')
 	cFilOrg := jJson:GetJsonObject('filOrig')
 	cLocOrg := jJson:GetJsonObject('locOrig')
 	cTesSai := jJson:GetJsonObject('tesSaida')
@@ -150,8 +153,8 @@ User Function zFazExec()
 	oModel:Activate() // Ativa o Modelo
 
 	//Cabeçalho da solicitacao
-	oModel:SetValue( 'NNSMASTER', 'NNS_CLASS', '1' )
-	oModel:SetValue( 'NNSMASTER', 'NNS_ESPECI', ' ' )
+	oModel:SetValue( 'NNSMASTER', 'NNS_CLASS', '2' )
+	oModel:SetValue( 'NNSMASTER', 'NNS_ESPECI', 'NF' )
 
 	//Itens da solicitação
 	// produto e local de origem
@@ -159,11 +162,13 @@ User Function zFazExec()
 	oModel:SetValue( 'NNTDETAIL', 'NNT_PROD', 'PRO001' )
 	oModel:SetValue( 'NNTDETAIL', 'NNT_LOCAL', '0A' )
 	oModel:SetValue( 'NNTDETAIL', 'NNT_QUANT', 1 )
+	oModel:SetValue( 'NNTDETAIL', 'NNT_TS', cTesSai )
 
 	// produto e local de destino
 	oModel:SetValue( 'NNTDETAIL', 'NNT_FILDES', '01' )
 	oModel:SetValue( 'NNTDETAIL', 'NNT_PRODD', 'PRO001' )
 	oModel:SetValue( 'NNTDETAIL', 'NNT_LOCLD', '0B' )
+	oModel:SetValue( 'NNTDETAIL', 'NNT_TE', cTesEnt )
 
 	If oModel:VldData() //Validação do modelo
 		oModel:CommitData() // Gravação do Modelo

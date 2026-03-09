@@ -16,6 +16,7 @@ vscode/
 *.lxo
 *.prw.bkp
 *.tmb
+*.csv
 
 # Pastas de smartclient e binários
 smartclient/

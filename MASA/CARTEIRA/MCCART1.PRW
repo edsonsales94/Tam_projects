@@ -680,7 +680,7 @@ Return
 
 Static Function TransSld(_cCli,_cLoj,_cPer)
 	// Local LAMB := RpcSetEnv('01','01')
-	Local nLargBtn      := 50
+	// Local nLargBtn      := 50
 	Local oDlgTRF
 	Private aBrwSld := {}
 	//Objetos e componentes

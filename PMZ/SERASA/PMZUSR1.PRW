@@ -77,12 +77,37 @@ Return aRotina
 Static Function ModelDef()
     //Criação do objeto do modelo de dados
     Local oModel := Nil
+    Local oStSZ2 := FWFormStruct(1, "SZ2")
+    Local aGatilhos := {}
+    Local nAtual
+ 
+    //Adicionando um gatilho, do codigo para descrição
+    aAdd(aGatilhos, FWStruTriggger( ;
+        "Z2_CODUSER",;                              //Campo Origem
+        "Z2_NOMEUSR",;                              //Campo Destino
+        "UsrRetName(M->Z2_CODUSER)",;               //Regra de Preenchimento
+        .F.,;                                       //Irá Posicionar?
+        "",;                                        //Alias de Posicionamento
+        0,;                                         //Índice de Posicionamento
+        '',;                                        //Chave de Posicionamento
+        NIL,;                                       //Condição para execução do gatilho
+        "01");                                      //Sequência do gatilho
+    )
+  
+    //Percorrendo os gatilhos e adicionando na Struct
+    For nAtual := 1 To Len(aGatilhos)
+        oStSZ2:AddTrigger( ;
+            aGatilhos[nAtual][01],; //Campo Origem
+            aGatilhos[nAtual][02],; //Campo Destino
+            aGatilhos[nAtual][03],; //Bloco de código na validação da execução do gatilho
+            aGatilhos[nAtual][04];  //Bloco de código de execução do gatilho
+        )
+    Next
      
     //Criação da estrutura de dados utilizada na interface
-    Local oStSZ2 := FWFormStruct(1, "SZ2")
      
     //Editando características do dicionário
-    // oStSZ2:SetProperty('Z2_CODUSER',   MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.F.'))                                 //Modo de Edição
+    oStSZ2:SetProperty('Z2_CODUSER',   MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.F.'))                                 //Modo de Edição
     // oStSZ2:SetProperty('Z2_CODUSER',   MODEL_FIELD_INIT,    FwBuildFeature(STRUCT_FEATURE_INIPAD,  'GetSXENum("SZ2", "Z2_CODUSER")'))         //Ini Padrão
     // oStSZ2:SetProperty('Z2_DESC',  MODEL_FIELD_VALID,   FwBuildFeature(STRUCT_FEATURE_VALID,   'Iif(Empty(M->Z2_DESC), .F., .T.)'))   //Validação de Campo
     // oStSZ2:SetProperty('Z2_DESC',  MODEL_FIELD_OBRIGAT, Iif(RetCodUsr()!='000000', .T., .F.) )                                         //Campo Obrigatório

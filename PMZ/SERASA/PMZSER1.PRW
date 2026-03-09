@@ -177,6 +177,7 @@ Static Function ViewDef()
     oView := FWFormView():New()
     oView:SetModel(oModel)
      
+	
     //Atribuindo formulários para interface
     oView:AddField("VIEW_SA1", oStSA1, "FORMSA1")
      
@@ -234,14 +235,20 @@ Return
 /*/
 (Consultar API Serasa)
 @type user function
-@author user
+@author Edson Sales
 @since 16/02/2026
 /*/
 User Function fncAtual()
-    Local cToken := PMZTOKEN() // buscar token
+	local lAMb      := RpcSetEnv('01','01')
+    Local cToken := u_PMZTOKEN() // buscar token
 	Local aRet := {}
 	Local aPergs := {}
-	Local aTp := {'Basico PF','Basico PJ','Completo PF','Completo PJ'}
+	Local cTipo := ''
+	Local aTp := {'1=Basico PF','2=Basico PJ','3=Completo PF','4=Completo PJ'}
+
+	if !lAMb
+		Return
+	endif
 
 	aAdd(aPergs,{2, "Tipo Rel:.",cTipo, aTp,     122, ".T.", .F.})
     // aAdd(aPergs,{1,"Quant. Produto: ",Space(8),"","!Empty(MV_PAR01)","","",0 ,.F.})
@@ -261,5 +268,60 @@ Return
 	@since 16/02/2026
 /*/
 Static Function xConsult(xTkn)
-	Alert('AA')
+	// 
+	Local aArea     := FWGetArea()
+	Local cURL      := "https://uat-api.serasaexperian.com.br/"
+	// local cPath     := "credit-services/person-information-report/v1/creditreport"
+	local cPath     := ""
+	Local oConsult
+	Local aHeaders := {}
+	Local jResponse
+	Default cUsr := ""
+	Default cPsw := ""
+
+	DBSELECTAREA('SZ2')
+	SZ2->(DBSETORDER(1))
+	if SZ2->(msSeek(xFilial('SZ2')+__cUserID))
+		xDiasBas := SZ2-> Z2_DIASBAS 
+		xDiasCom := SZ2-> Z2_DIASCOM
+	EndIf
+
+	if MV_PAR01 =='1'
+		cRel := "ANOTACOES_COMPLETAS,LOCALIZACAO_PF"
+		cNameRel := "PERFIL_DE_CREDITO_BASICO_PF"
+	endif
+	cEstado := 'AM'// SA1->A1_EST
+		
+	cPath := "credit-services/person-information-report/v1/creditreport"
+	cPath += "?optionalFeatures=" + cRel
+	cPath += "&reportName=" + cNameRel
+	cPath += "&federalUnit=" + cEstado
+	
+
+	// Adiciona header Authorization
+	aAdd(aHeaders, "Authorization: Bearer " + xTkn)
+	aAdd(aHeaders, "X-Document-Id: 01491787279")//+ AllTrim(SA1->A1_CGC))
+	aAdd(aHeaders, "Content-Type: application/json")
+	aAdd(aHeaders, "Origin: protheus-api")
+	aAdd(aHeaders, "X-Retailer-Document-Id: 22763502008353")
+
+	// //Instancia o WS
+	oConsult   := FWRest():New(cURL)
+	oConsult:SetPath(cPath)
+    // oConsult:SetPostParams(cBody)
+
+	//Define a url
+	// oConsult:setPath("token?grant_type=password&password=" + cUsr + "&username=" + cPsw)
+	If oConsult:get(aHeaders)
+
+		//Pega o JSON de resposta, e pega o token
+		jResponse := JsonObject():New()
+		jResponse:FromJson(oConsult:cResult)
+
+		//Pega o Token de acesso
+		// cToken := Iif( ValType(jResponse['accessToken']) != "U", jResponse['accessToken'], "")
+	else
+		MsgStop(oConsult:getLastError())
+	EndIf
+	RestArea(aArea)
 Return 
