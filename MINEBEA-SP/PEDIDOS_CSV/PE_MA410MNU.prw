@@ -13,6 +13,7 @@ Ponto de entrada inclusão de botões na enchoicebar
 User Function MA410MNU()
 	
 	aAdd(aRotina, {"Exc. PV Lote", "U_HLAFAT01()", 0, 9, 0, Nil})
-	aadd(aRotina, {'Pedido venda/devol - CSV ','U_HLAFAT02' , 0 , 6,0,NIL})
+	aadd(aRotina, {'Ped. venda/devolucao - CSV ','U_HLAFAT02' , 0 , 6,0,NIL})
+	aadd(aRotina, {'Pedido devolucao - CSV '	,'U_HLAFAT03' , 0 , 6,0,NIL})
 	
 Return Nil      

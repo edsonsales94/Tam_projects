@@ -52,7 +52,7 @@ Static function FTELAMOD()
 	// Campo MOD
 	@ 15,10 SAY OemToAnsi("Valor Unit:")
 	@ 15,80 MSGET nVLRMod SIZE 80,12 OF oPed PIXEL ;
-		PICTURE '@E 999,999,999.99' //VALID( lValid(nVLRMod,1) )
+		PICTURE '@E 999,999,999.9999' //VALID( lValid(nVLRMod,1) )
 
 	// Área GGF
 	@ 45,2 TO 81,292 TITLE OemToAnsi("GGF: " + cCodGGF + " - " + cDescGGF)
@@ -60,7 +60,7 @@ Static function FTELAMOD()
 	// Campo GGF
 	@ 55,10 SAY OemToAnsi("Valor Unit:")
 	@ 55,80 MSGET nVLRGGF SIZE 80,12 OF oPed PIXEL ;
-		PICTURE '@E 999,999,999.99' //VALID( lValid(nVLRGGF,2) )
+		PICTURE '@E 999,999,999.9999' //VALID( lValid(nVLRGGF,2) )
 
 	// Botões
 	@ 90,175 BUTTON OemToAnsi("Salvar") SIZE 55,20 ;

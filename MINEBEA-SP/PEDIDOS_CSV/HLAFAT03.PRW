@@ -7,15 +7,13 @@
 
 //Posições do Array
 Static nPosCodigo := 1 //Coluna A no Excel
-Static nPosSubst1 := 2 //Coluna B no Excel
-Static nPosSubst2 := 3 //Coluna C no Excel
-Static nPosQuntid := 4 //Coluna D no Excel
+Static nPosQuntid := 2 //Coluna B no Excel
 
 /*/
 +-------------------------------------------------------------------------------+
 ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 ¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
-¦¦¦ Programa  ¦ HLAFAT02  ¦ Autor ¦Edson Sales        	  ¦ Data ¦ 24/11/2025 ¦¦¦
+¦¦¦ Programa  ¦ HLAFAT03  ¦ Autor ¦Edson Sales        	  ¦ Data ¦ 24/11/2025 ¦¦¦
 ¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
 ¦¦¦           ¦ Gera tela para carregar dados do arquivo CSV e informações    ¦¦¦
 ¦¦¦           ¦ do pedido.                                                    ¦¦¦
@@ -24,7 +22,7 @@ Static nPosQuntid := 4 //Coluna D no Excel
 +-------------------------------------------------------------------------------+
 /*/
 
-User function HLAFAT02()
+User function HLAFAT03()
 
 	Local aArea         := GetArea()
 	Private cCliente    := Space(6)
@@ -91,8 +89,6 @@ Static Function HLAPROC()
 	ENDIF
 
 Return(.T.)
-
-
 
 	*****************************
 Static Function PesqCli()
@@ -249,9 +245,6 @@ Static Function CargaArray(cArqOri)
 					// caso algum substrato não exista, coloca N/A para manter o array aLinha com as 4 posições.
 					iF ";;" $ cLinAtu
 						cLinAtu := StrTran(cLinAtu,';;',';N/A;')
-						iF ";;" $ cLinAtu
-							cLinAtu := StrTran(cLinAtu,';;',';N/A;')
-						endif
 						aLinha  := StrTokArr(cLinAtu, ";")
 					else
 						aLinha  := StrTokArr(cLinAtu, ";")
@@ -268,70 +261,28 @@ Static Function CargaArray(cArqOri)
 					//Se não for o cabeçalho (encontrar o texto "Código" na linha atual)
 					If ! "ns" $ Lower(cLinAtu);
 							.OR. ! "substrato" $ Lower(cLinAtu);
-							.OR. ! "quant" $ Lower(cLinAtu)						
+							.OR. ! "quant" $ Lower(cLinAtu)
 						//Zera as variaveis
 
 						nEstru	:= 0				&&	//NÃO REMOVER - Controla recursividade na funcao Estrut2()
 						cwTable := Nil
 
 						//Zera as variaveis
-						// cCodNS   := aLinha[nPosCodigo]
-						// cSubs1   := aLinha[nPosSubst1]
-						// cSubs2   := aLinha[nPosSubst2]
-						nQuant   := IIF(LEN(aLinha)>3, VAL(aLinha[nPosQuntid]),0)
+						nQuant   := VAL(aLinha[nPosQuntid])
 						CFORNCE:= '000099'
-						CTES:= '189'
-						NN := 0
-
+						CTES:= '196'
 						// PERCORRER OS TRES PRODUTOS NS;SUNSTRATO;SUBSTRATO
 
-						aProds := {}
-						for NN := 1 to 3
-							nPosAcols++
-							aDados := {}
-							// primeiro produto, NS
-							DBSelectArea('SB1')
-							SB1->(DBSetOrder(1))
-							if NN == nPosCodigo
-								if SB1->(msSeek(xfilial('SB1')+aLinha[nPosCodigo]))
+						nPosAcols++
+						aDados := {}
+						// primeiro produto, NS
+						DBSelectArea('SB1')
+						SB1->(DBSetOrder(1))
+						// if NN == nPosCodigo
+						if SB1->(msSeek(xfilial('SB1')+aLinha[nPosCodigo]))
 
-									CLOCAL:= '03'
-
-									cItem := Soma1(cItem)
-									nPrcVen := Posicione('SB1',1,xfilial('SB1')+aLinha[nPosCodigo],'B1_PRV1')
-
-									aAdd(aDados, {"C6_ITEM",	cItem,							Nil})
-									aAdd(aDados, {"C6_PRODUTO",	aLinha[nPosCodigo],				Nil})
-									aAdd(aDados, {"C6_QTDVEN",	nQuant,							Nil})
-									aAdd(aDados, {"C6_PRCVEN",	nPrcVen,						Nil})
-									aAdd(aDados, {"C6_QTDLIB",	nQuant,							Nil})
-									aAdd(aDados, {"C6_TES",		"585",							Nil})
-									aAdd(aDados, {"C6_PRUNIT",	nPrcVen,						Nil})
-									// aAdd(aDados, {"C6_NFFATUR",	'',							Nil})
-									// aAdd(aDados, {"C6_NFSERIE",	'',							Nil})
-									// aAdd(aDados, {"C6_ITEMFAT",	'',							Nil})
-									aAdd(aDados, {"C6_IDENTB6",	CriaVar("C6_IDENTB6",	.F.),	Nil})
-									aAdd(aDados, {"C6_NFORI",	CriaVar("C6_NFORI",		.F.),	Nil})
-									aAdd(aDados, {"C6_SERIORI",	CriaVar("C6_SERIORI",	.F.),	Nil})
-									aAdd(aDados, {"C6_ITEMORI",	CriaVar("C6_ITEMORI",	.F.),	Nil})
-									aAdd(aDados, {"C6_ZZIDEXP",		" ",						Nil})
-									aAdd(aDados, {"C6_PROGRAM",	"HLAFAT02",						Nil})
-
-									AADD(aItens, aDados)  // todos os itens venda e devolção
-								endif
-							else
-								cProd := iif(NN==nPosSubst1,aLinha[nPosSubst1],aLinha[nPosSubst2])
-								if SB1->(msSeek(xfilial('SB1')+cProd))
-									xQuantEstrut := QTDESTRUT(cProd,aLinha[nPosCodigo]) //Posicione('SG1',1,XFILIAL('SG1')+aLinha[nPosCodigo]+cProd,'G1_QUANT')
-									aAdd(aProds, {cProd, xQuantEstrut})
-								endif
-							endif
-						next NN
-
-						For nI := 1 To Len(aProds)
-
+							CLOCAL:= SB1->B1_LOCPAD
 							cAliasDoc  := GetNextAlias()
-							CLOCAL:= '87'
 
 							BEGINSQL alias cAliasDoc
 
@@ -379,7 +330,7 @@ Static Function CargaArray(cArqOri)
 								AND SC6Q.C6_PRODUTO = SD1.D1_COD
 								AND SC6Q.C6_ITEMORI = SD1.D1_ITEM
 								WHERE D1_FORNECE=%EXP:CFORNCE%
-								AND D1_COD =%exp:aProds[nI,1]%
+								AND D1_COD =%exp:aLinha[nPosCodigo]%
 								AND D1_TES =%EXP:CTES%
 								AND D1_LOCAL =%EXP:CLOCAL%
 								AND SD1.D_E_L_E_T_ = ' '
@@ -396,7 +347,7 @@ Static Function CargaArray(cArqOri)
 										D1_VUNIT,
 										SC6Q.QTD_RES_PED,
 										SC6Q.C6_PRODUTO
-								HAVING (SD1.D1_QUANT - ISNULL(SUM(SD2.D2_QUANT), 0)) > %EXP:(APRODS[NI,2]*NQUANT)%
+								HAVING (SD1.D1_QUANT - ISNULL(SUM(SD2.D2_QUANT), 0)) > 0
 								ORDER BY D1_DOC
 							
 							ENDSQL
@@ -406,33 +357,80 @@ Static Function CargaArray(cArqOri)
 
 							(cAliasDoc)->(DbGoTop())
 							if !(cAliasDoc)->(EoF())
-								cItem	:=	Soma1(cItem)
 								// DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuantidad, cComp, cP3Serie, cP3Tes, cP3Local, dP3DtCor, aItens)
-
 								while !(cAliasDoc)->(EoF())
-									aPoder3	:=	DocsPoder3(	(cAliasDoc)->D1_DOC ,;
-										(cAliasDoc)->D1_SERIE					,;
-										(cAliasDoc)->D1_FORNECE					,;
-										(cAliasDoc)->D1_LOJA					,;
-										(cAliasDoc)->D1_COD						,;
-										(cAliasDoc)->D1_ITEM					,;
-										(APRODS[NI,2]*NQUANT)	,;
-										aProds[nI, 01],,,,,aItens,(cAliasDoc)->RESERVADO)
+									// cItem	:=	Soma1(cItem	)
+									// enquanto não referenciar toda a quantidade, ate zerar a diferenca
+									while cItem=='00' .or. NQUANT > 0
+										aPoder3 :=	DocsPoder3((cAliasDoc)->D1_DOC ,;
+											(cAliasDoc)->D1_SERIE					,;
+											(cAliasDoc)->D1_FORNECE					,;
+											(cAliasDoc)->D1_LOJA					,;
+											(cAliasDoc)->D1_COD						,;
+											(cAliasDoc)->D1_ITEM					,;
+											NQUANT	,;
+											aLinha[nPosCodigo],,,,,aItens,(cAliasDoc)->RESERVADO)
 
-									// SE RETORNA VAZIO A NOTA DA VEZ FOI ULTILIZADA TODA, PULA PARA A PROXIMA
-									If empty(aPoder3)
-										(cAliasDoc)->(DbSkip())
-										LOOP
-									EndIf
+										// SE RETORNA VAZIO A NOTA DA VEZ FOI ULTILIZADA TODA, PULA PARA A PROXIMA
+										nJ := Len(aPoder3)
+										If empty(aPoder3)
+											(cAliasDoc)->(DbSkip())
+											LOOP
+										else
+											NQUANT :=  aPoder3[nJ, 8]
+										EndIf
 
-									// se não hover saldo suficiente < vai retornar a vantidade restante > se tiver saldo retorna zero.
-									// se retorna zero é por que já encontro uma nota com saldo de poder 3º para refenciar, encerra o laço.
-									nJ := Len(aPoder3)
-									if aPoder3[nJ, 8] == 0
-										Exit
-									endif
+										// se não hover saldo suficiente < vai retornar a vantidade restante > se tiver saldo retorna zero.
+										// se retorna zero é por que já encontro uma nota com saldo de poder 3º para refenciar, encerra o laço.
+										// if aPoder3[nJ, 8] == 0
+										// 	Exit
+										// endif
+
+										&&	Clonagem das LINHA ORIGINAL para cada Doc. de Entrada utilizado para atender o Ped. Venda [Transferencia].
+										If nJ > 0
+											For nJ := 1 To Len(aPoder3)
+												cItem	:=	Soma1(cItem	)
+												aAdd(aDados, {"C6_ITEM",	cItem,							Nil})
+												aAdd(aDados, {"C6_PRODUTO",	aLinha[nPosCodigo],				Nil})
+												aAdd(aDados, {"C6_QTDVEN",	0,								Nil})
+												aAdd(aDados, {"C6_PRCVEN",	0,								Nil})
+												aAdd(aDados, {"C6_QTDLIB",	0,								Nil})
+												aAdd(aDados, {"C6_TES",		"522",							Nil})
+												aAdd(aDados, {"C6_PRUNIT",	0,								Nil})
+												aAdd(aDados, {"C6_IDENTB6",	CriaVar("C6_IDENTB6",	.F.),	Nil})
+												aAdd(aDados, {"C6_NFORI",	CriaVar("C6_NFORI",		.F.),	Nil})
+												aAdd(aDados, {"C6_SERIORI",	CriaVar("C6_SERIORI",	.F.),	Nil})
+												aAdd(aDados, {"C6_ITEMORI",	CriaVar("C6_ITEMORI",	.F.),	Nil})
+												aAdd(aDados, {"C6_ZZIDEXP",		"ABD",						Nil}) // ADD Luciano Lamberti - 07-02-2019 - Filial ABD para retorno
+												aAdd(aDados, {"C6_PROGRAM",	"HLAFAT03",						Nil})
+
+												// aDadosX	:=	aClone(aDados)
+												// If nJ > 1					&&	Somente Linhas CLONADAS
+												// 	cItem := Soma1(cItem, Len(CriaVar("C6_ITEM")) )
+												// 	aAdd(aItens, aDadosX)
+												// 	aDados[aScan(aDados, {|x| x[1] == "C6_ITEM"}), 2] := cItem
+												// EndIf
+
+												&&	Preenchendo/Sobrescrevendo os dados de acordo com o Doc. de Entrada utilizado para atender o Ped. Venda [Transferencia].
+												nQtdVen := aPoder3[nJ, 05]
+												nPrcVen := a410Arred(aPoder3[nJ, 06], "C6_PRCVEN")
+
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_QTDVEN" }), 02] := nQtdVen
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_PRCVEN" }), 02] := nPrcVen
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_QTDLIB" }), 02] := nQtdVen
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_NFORI"  }), 02] := aPoder3[nJ, 01]
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_SERIORI"}), 02] := aPoder3[nJ, 02]
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_ITEMORI"}), 02] := aPoder3[nJ, 04]
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_IDENTB6"}), 02] := aPoder3[nJ, 03]
+												aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_PRUNIT" }), 02] := nPrcVen
+											Next nJ
+
+											AADD(aItens, aDados)  // todos os itens venda e devolção
+											// aPoder3	:= {}
+										endif
+									EndDo
 									(cAliasDoc)->(DbSkip())
-								enddO
+								EndDo
 								&& Conteudo de aPoder3
 								&&
 								&& 1 - Documento
@@ -446,59 +444,15 @@ Static Function CargaArray(cArqOri)
 
 								// SE RETORNA VAZIO NÃO EXISTE MAIS NOTA PARA COM SALDO EM PODER DE TERCEIRO PARA ESSE ITEM, o item não entrarar mais no pedido.
 								If empty(aPoder3)
-									cItem := CVALTOCHAR(VAL(cItem)-1) // VOLTA O ITEM
-									FWALERTWARNING('Saldo insuficiente para o item '+aProds[nI, 01] +', todo o saldo existente já foi consumido.','Atenção !!!')
+									// cItem := CVALTOCHAR(VAL(cItem)-1) // VOLTA O ITEM
+									FWALERTWARNING('Saldo insuficiente para o item '+aLinha[nPosCodigo] +', todo o saldo existente já foi consumido.','Atenção !!!')
 									LOOP
 								EndIf
 
-								If nJ > 0 .And. aPoder3[nJ, 8] == 0
-									aAdd(aDados, {"C6_ITEM",	cItem,							Nil})
-									aAdd(aDados, {"C6_PRODUTO",	aProds[nI, 01],					Nil})
-									aAdd(aDados, {"C6_QTDVEN",	0,								Nil})
-									aAdd(aDados, {"C6_PRCVEN",	0,								Nil})
-									aAdd(aDados, {"C6_QTDLIB",	0,								Nil})
-									aAdd(aDados, {"C6_TES",		"586",							Nil})
-									aAdd(aDados, {"C6_PRUNIT",	0,								Nil})
-									// aAdd(aDados, {"C6_NFFATUR",	SD2->D2_DOC,					Nil})
-									// aAdd(aDados, {"C6_NFSERIE",	SD2->D2_SERIE,					Nil})
-									// aAdd(aDados, {"C6_ITEMFAT",	SD2->D2_ITEM,					Nil})
-									aAdd(aDados, {"C6_IDENTB6",	CriaVar("C6_IDENTB6",	.F.),	Nil})
-									aAdd(aDados, {"C6_NFORI",	CriaVar("C6_NFORI",		.F.),	Nil})
-									aAdd(aDados, {"C6_SERIORI",	CriaVar("C6_SERIORI",	.F.),	Nil})
-									aAdd(aDados, {"C6_ITEMORI",	CriaVar("C6_ITEMORI",	.F.),	Nil})
-									aAdd(aDados, {"C6_ZZIDEXP",		"ABD",						Nil}) // ADD Luciano Lamberti - 07-02-2019 - Filial ABD para retorno
-									aAdd(aDados, {"C6_PROGRAM",	"HLAFAT02",						Nil})
-
-									&&	Clonagem das LINHA ORIGINAL para cada Doc. de Entrada utilizado para atender o Ped. Venda [Transferencia].
-									For nJ := 1 To Len(aPoder3)
-										aDadosX	:=	aClone(aDados)
-										If nJ > 1					&&	Somente Linhas CLONADAS
-											cItem := Soma1(cItem, Len(CriaVar("C6_ITEM")) )
-											aAdd(aItens, aDadosX)
-											aDados[aScan(aDados, {|x| x[1] == "C6_ITEM"}), 2] := cItem
-										EndIf
-
-										&&	Preenchendo/Sobrescrevendo os dados de acordo com o Doc. de Entrada utilizado para atender o Ped. Venda [Transferencia].
-										nQtdVen := aPoder3[nJ, 05]
-										nPrcVen := a410Arred(aPoder3[nJ, 06], "C6_PRCVEN")
-
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_QTDVEN" }), 02] := nQtdVen
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_PRCVEN" }), 02] := nPrcVen
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_QTDLIB" }), 02] := nQtdVen
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_NFORI"  }), 02] := aPoder3[nJ, 01]
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_SERIORI"}), 02] := aPoder3[nJ, 02]
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_ITEMORI"}), 02] := aPoder3[nJ, 04]
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_IDENTB6"}), 02] := aPoder3[nJ, 03]
-										aDados[aScan(aDados, {|x| AllTrim(x[01]) == "C6_PRUNIT" }), 02] := nPrcVen
-									Next nJ
-
-									AADD(aItens, aDados)  // todos os itens venda e devolção
-									aPoder3	:= {}
-								endif,
 							endif
 							(cAliasDoc)->(DbCloseArea())
-						NEXT nI
-					EndIf
+						EndIf
+					endif
 				EndDo
 
 				lMsHelpAuto	:=	.T.
@@ -556,7 +510,7 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 	Local	aAliasATU	:=	GetArea()
 	Local	aAliasSB6	:=	SB6->(GetArea())
 	Local	cQuery		:=	""
-	Local	nI			:=	0
+	Local	cAtuEst		:=	POSICIONE('SF4',1,XFILIAL('SF4')+'196','F4_ESTOQUE')
 	Local	aRetorno	:=	{}
 	Local	nSaldoDoc	:=	0
 	Local	nResto		:=	0
@@ -566,6 +520,8 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 	Default	cP3Tes		:=	FormatIn(	GetMv("ZZ_P3TES",,		"585;558;620"), ";")
 	Default	cP3Local	:=	FormatIn(	GetMv("ZZ_P3LOCAL",,	"85;86"), ";")
 	Default	dP3DtCor	:=				GetMv("ZZ_P3DTCOR",,	DtoS(CtoD("25/09/15")))
+
+
 
 	cQuery	:=	"SELECT "																+ CRLF
 	cQuery	+=	"	B6_TPCF, B6_TIPO, B6_PODER3, B6_EMISSAO, B6_PRODUTO, B6_LOCAL, "	+ CRLF
@@ -591,7 +547,7 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 	
 	cQuery	+=	"		B6_CLIFOR = D1_FORNECE AND B6_LOJA = D1_LOJA AND "				+ CRLF
 	cQuery	+=	"		B6_PODER3 = 'R' AND B6_TIPO = 'D' AND B6_SALDO > 0 AND "		+ CRLF  // inclusao de tratativa para nao utilizar nf sem saldo - Sr Adilson Teixeira 03/12/14
-	cQuery	+=	"		B6_ESTOQUE = 'S' AND SB6.D_E_L_E_T_ = ' ' AND "					+ CRLF
+	cQuery	+=	"		B6_ESTOQUE = '"+cAtuEst+"' AND SB6.D_E_L_E_T_ = ' ' AND "		+ CRLF
 	cQuery	+=	"		B6_ATEND <> 'S' AND B6_SALDO <= B6_QUANT"  						+ CRLF
 	cQuery	+=	"	INNER JOIN "				+ RetSQLName("SB1")	+ " SB1 ON "		+ CRLF
 	cQuery	+=	"		B1_FILIAL = '"			+ xFilial("SB1")	+ "' AND "			+ CRLF
@@ -628,17 +584,19 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 		nSaldoDoc	:=	(cTabelaSQL)->B6_SALDO - (cTabelaSQL)->B6_QULIB - DescUsado((cTabelaSQL)->B6_DOC, (cTabelaSQL)->B6_SERIE, (cTabelaSQL)->D1_ITEM, (cTabelaSQL)->B6_IDENT, aItens)
 		nSaldoDoc -= nReserva									&&	Abate qtde reservada em outro pedido EM Aberto e não faturado.?
 		If nSaldoDoc > 0										&&	HA Saldo no Doc.?
-			nQuantidad	-=	nSaldoDoc							&& Abate a qtde desejada do saldo disponível	
-			nResto		:=	nSaldoDoc - (nQuantidad * -1)		&& Carrega o resto caso a qtde a devolver seja maior que a disponível ou a própria qtde se for suficiente
+			nDif	:=	 nQuantidad - nSaldoDoc					&& Carrega a diferenca caso a qtde a devolver seja maior que a disponível ou a própria qtde se for suficiente
+			// nResto	:=	 nSaldoDoc - nQuantidad					&& Carrega o resto caso a qtde a devolver seja maior que a disponível ou a própria qtde se for suficiente
+			// nSaldoDoc -= nQuantidad								&& Abate a qtde desejada do saldo disponível	
+			// nResto	:=	nSaldoDoc - (nQuantidad * -1)			&& Carrega o resto caso a qtde a devolver seja maior que a disponível ou a própria qtde se for suficiente
 
-			aAdd(aRetorno, {	(cTabelaSQL)->B6_DOC					,;
-								(cTabelaSQL)->B6_SERIE					,;
-								(cTabelaSQL)->B6_IDENT					,;
-								(cTabelaSQL)->D1_ITEM					,;
-								IIf(nQuantidad > 0, nSaldoDoc, nResto)	,;
-								(cTabelaSQL)->B6_PRUNIT					,;
-								(cTabelaSQL)->B6_PRODUTO				,;
-								0										})
+			aAdd(aRetorno, {	(cTabelaSQL)->B6_DOC							  ,;
+								(cTabelaSQL)->B6_SERIE							  ,;
+								(cTabelaSQL)->B6_IDENT							  ,;
+								(cTabelaSQL)->D1_ITEM							  ,;
+								IIf(nQuantidad < nSaldoDoc, nQuantidad, nSaldoDoc),;
+								(cTabelaSQL)->B6_PRUNIT							  ,;
+								(cTabelaSQL)->B6_PRODUTO						  ,;
+								iif(nDif > 0,nDif,0)											})
 			If nQuantidad <= 0
 				Exit											&& Caso conseguiu atender, abandona o laço
 			EndIf
@@ -646,12 +604,12 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 		(cTabelaSQL)->(DbSkip())
 	EndDo
 
-	If nQuantidad > 0	&&	Saldo de Terceiro em Nosso Poder INSUFICIENTE.
-		If Len(aRetorno) > 0
-			aRetorno[Len(aRetorno), 5] += nQuantidad
-			aRetorno[Len(aRetorno), 8] := nQuantidad
-		EndIf
-	EndIf
+	// If nQuantidad > 0	&&	Saldo de Terceiro em Nosso Poder INSUFICIENTE.
+	// 	If Len(aRetorno) > 0
+	// 		aRetorno[Len(aRetorno), 5] += nQuantidad
+	// 		aRetorno[Len(aRetorno), 8] := nQuantidad
+	// 	EndIf
+	// EndIf
 
 	(cTabelaSQL)->(DbCloseArea())
 
@@ -723,260 +681,3 @@ ENDSQL
 nQuant := (cAliasSg1)->(QUANT)
 	
 Return nQuant
-
-// 	***********************************
-// Static Function CargaArray(cArq)
-// 	***********************************
-// 	Local cLinha     := ""
-// 	Local nLin       := 1
-// 	Local nTotLin    := 0
-// 	Local cFile      := cArq // Caminho+nome do arquivo .CSV
-// 	Local nHandle    := 0
-// 	Local nLinTit    := 3    //Não considerar o cabeçalho do arquivo .CSV
-// 	Local nPreco     := 0
-// 	Local nItem      := 1
-// 	Local nTot       := 0
-// 	Local nPreco     := 0
-// 	Local nEstrutura := 0
-// 	Local nUsado	 := 0
-// 	Local nQtd       := 1
-// 	Local cItem      := strzero(1,TamSX3("C6_ITEM")[1])
-// 	// Local nUsado     := Len(aHeader)
-// 	// Local aExport    := aClone(aDados)
-// 	// Private _cod     := AScan(aHeader,{|x|AllTrim(x[2])=="C6_PRODUTO"})
-// 	// Private _Descri  := AScan(aHeader,{|x|AllTrim(x[2])=="C6_DESCRI"})
-// 	// Private _Um      := AScan(aHeader,{|x|AllTrim(x[2])=="C6_UM"})
-// 	// Private _Qtd     := AScan(aHeader,{|x|AllTrim(x[2])=="C6_QTDVEN"})
-// 	// Private _Local   := AScan(aHeader,{|x|AllTrim(x[2])=="C6_LOCAL"})
-// 	// Private _Prcven  := AScan(aHeader,{|x|AllTrim(x[2])=="C6_PRCVEN"})
-// 	// Private _valor   := AScan(aHeader,{|x|AllTrim(x[2])=="C6_VALOR"})
-// 	// Private _tes     := AScan(aHeader,{|x|AllTrim(x[2])=="C6_TES"})
-// 	// Private _cf      := AScan(aHeader,{|x|AllTrim(x[2])=="C6_CF"})
-
-// 	// nUsado  := Len(aHeader)
-// //abre o arquivo csv
-// 	nHandle := Ft_Fuse(cFile)
-// 	If nHandle == -1
-// 		Return aDados
-// 	EndIf
-// 	Ft_FGoTop()
-// 	nLinTot := FT_FLastRec()
-// 	ProcRegua(nLinTot)
-
-// //Pula as linhas de cabeçalho
-// 	While nLinTit > 0 .AND. !Ft_FEof()
-// 		Ft_FSkip()
-// 		nLinTit--
-// 	EndDo
-
-// //percorre todas linhas do arquivo csv
-// 	Do While !Ft_FEof()
-// 		//exibe a linha a ser lida
-// 		IncProc("Carregando Linha "+AllTrim(Str(nLin))+" de "+AllTrim(Str(nLinTot)))
-// 		nLin++
-// 		//le a linha
-// 		cLinha := Ft_FReadLn()
-// 		//verifica se a linha está em branco, se estiver pula
-// 		If Empty(AllTrim(StrTran(cLinha,';',''))) .or. Len(AllTrim(StrTran(cLinha,';',''))) < 11
-// 			Ft_FSkip()
-// 			Loop
-// 		EndIf
-// 		//transforma as aspas duplas em aspas simples
-// 		cLinha := StrTran(cLinha,'"',"'")
-// 		cLinha += ";"+StrZero(nItem,4)
-// 		cLinha := '{"'+cLinha+'"}'
-
-// 		//adiciona o cLinha no array trocando o delimitador ; por , para ser reconhecido como elementos de um array
-// 		cLinha := StrTran(cLinha,';','","')
-// 		nPos := aScan(aDados, {|x| x[2] == &cLinha[2] })
-// 		if nPos = 0
-// 			aAdd(aDados,&cLinha)
-// 		else
-// 			aDados[nPos,7] := LTRIM(STR(VAL(aDados[nPos,7])+VAL(&cLinha[7])))
-// 		endif
-
-// 		//aAdd(aDados, &cLinha)
-// 		nItem  += 1
-// 		//passa para a próxima linha
-// 		FT_FSkip()
-// 		//
-// 	EndDo
-
-// //libera o arquivo CSV
-// 	FT_FUse()
-
-// //Exclui o arquivo csv
-// 	If File(cFile)
-// 		//FErase(cFile)
-// 	EndIf
-// 	*
-// 	IF ( LEN(aDados) > 0 )
-// 		ProcRegua(Len(aDados))
-// 		cItem    := "01"
-// 		nProduto := 0
-//    /*
-//    FOR ix:=1 TO LEN(aDados)
-//        if !EMPTY(aDados[ix,2])          
-//           dbSelectArea("SB1")            
-//           dbSetOrder(1)
-//           if !(dbSeek(xFilial("SB1")+aDados[ix,2])) .or. SB1->B1_MSBLQL == "1"   
-//              aAdd( aLogP, {aDados[ix,1],aDados[ix,2],aDados[ix,7],0})	
-//           endif
-//        else
-//           aAdd( aLogP, {aDados[ix,1],aDados[ix,2],aDados[ix,7],0})	
-//        endif
-//    NEXT
-//    */
-// 		//if Len(aLogP) = 0
-// 		// FOR ix:=1 TO LEN(aDados)
-// 		// 	*
-// 		// 	if !EMPTY(aDados[ix,2])
-// 		// 		IncProc("Carregando Produto :"+aDados[ix,2])
-// 		// 		SF4->(dbSetOrder(1))
-// 		// 		SF4->(dbSeek(XFILIAL("SF4")+cTes))
-// 		// 		dbSelectArea("SB1")
-// 		// 		dbSetOrder(1)
-// 		// 		if dbSeek(xFilial("SB1")+aDados[ix,2])  .and. SB1->B1_MSBLQL == "2"
-// 		// 			cItem  := Soma1(cItem)
-// 		// 			aDados[n,_cod]    := aDados[ix,2]
-// 		// 			aDados[n,_Descri] := SB1->B1_DESC
-// 		// 			aDados[n,_Um]     := SB1->B1_UM
-// 		// 			aDados[n,_Qtd]    := VAL(aDados[ix,7])
-// 		// 			aDados[n,_Local]  := cLocal //SB1->B1_LOCPAD
-// 		// 			aDados[n,_Prcven] := SB1->B1_UPRC
-// 		// 			if SB1->B1_UPRC = 0
-// 		// 				aAdd( aLogP, {aDados[ix,1],aDados[ix,2],aDados[ix,7],SB1->B1_UPRC})
-// 		// 			endif
-// 		// 			aDados[n,_valor]  := ROUND(SB1->B1_UPRC*VAL(aDados[ix,7]),2)
-// 		// 			aDados[n,_tes]    := cTes
-// 		// 			aDados[n,_cf]     := SF4->F4_CF
-// 		// 			nProduto++
-// 		// 			*
-// 		// 			//Inseri nova linha.
-// 		// 			if nProduto < LEN(aDados)
-// 		// 				if !Empty(aDados[nproduto+1,3])
-// 		// 					//   1 ,2 , 3, 4,5,6,7,8,9 ,10,11,12,13,14,15,16,  17     ,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102
-// 		// 					//aadd(aDados,{cItem,'','','',0,0,0,0,'',0,'','',0,'','', 0,dDataBase, 0, 0,'', 0,'','', 0,'',0 ,'','','',0,'','','','','',ctod(' / / '),'','','','','','','F','','','','','',0,'','','','','',dDataBase,'',0,0,0,'','','','2','','','','',0,'','','',ctod(' / / '),0,0,'','','','','','','','','','','',ctod(' / / '),'','1','','','','','','','','1','',0,'','SC6',0,.F.})
-// 		// 					//aadd(aDados,{cItem,'','','',0,0,0,0,'',0,'','',0,'','', 0,dDataBase, 0, 0,'', 0,'','', 0,'',0 ,'','','',0,'','','','','',ctod(' / / '),'','','','','','','F','','','','','',0,'','','','','',dDataBase,'',0,0,0,'','','','','','','2','','','','',0,'','','',ctod(' / / '),0,0,'','','','','','','','','','','',ctod(' / / '),'','1','','','','','','','','1','',0,'','SC6',0,.F.})
-// 		// 					//Montagem do aDados
-// 		// 					AADD(aDados,Array(LEN(aHeader)+1))
-// 		// 					aDados[LEN(aDados),LEN(aHeader)+1]:=.F.
-// 		// 					For i := 1 to LEN(aHeader)
-// 		// 						If !alltrim(aHeader[i,2]) $ 'C6_ALI_WT|C6_REC_WT|C6_ITEM'
-// 		// 							aDados[LEN(aDados),i]:=CriaVar(aHeader[i,2])
-// 		// 						ElseIf aHeader[i,2] == "C6_ALI_WT"
-// 		// 							aDados[LEN(aDados),i]:= "SC6"
-// 		// 						ElseIf aHeader[i,2] == "C6_REC_WT"
-// 		// 							aDados[LEN(aDados),i]:= 0
-// 		// 						ElseIf alltrim(aHeader[i,2]) == "C6_ITEM"
-// 		// 							aDados[LEN(aDados),i]:= cItem
-// 		// 						EndIf
-// 		// 					Next
-// 		// 					n++
-// 		// 				endif
-// 		// 			endif
-// 		// 		else
-// 		// 			aAdd( aLogP, {aDados[ix,1],aDados[ix,2],aDados[ix,7],0})
-// 		// 			nProduto++
-// 		// 		endif
-// 		// 	endif
-// 		// NEXT
-// 		// n := 1
-// 		//endif
-// 	ENDIF
-// 	*
-// 	if Len(aLogP) > 0
-// 		MsgAlert("Favor verificar o relatório!","Erro no CSV")
-// 		HLAPEDIMP()
-// 	else
-// 		Aviso("Importação","Total de produto importados : "+ALLTRIM(TRANSFORM(nProduto,"@E 9999")),{"OK"})
-// 	endif
-// 	*
-// Return aDados
-
-
-/*/
-	+-------------------------------------------------------------------------------+
-	¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
-	¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
-	¦¦¦ Programa  ¦ HLAPEDIMP  ¦ Autor ¦Edson Sales        	  ¦ Data ¦ 24/11/2025 ¦¦¦
-	¦¦+-----------+------------+-------+----------------------+------+------------+¦¦
-	¦¦¦ DESCRIÇÃO ¦ Relatorio de produtos com erro CSV.                           ¦¦¦
-	¦¦+-----------+---------------------------------------------------------------+¦¦
-	¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
-	+-------------------------------------------------------------------------------+
-/*/
-// Static Function HLAPEDIMP()
-
-// 	Private oReport, oSection1
-// 	Private cPerg    := ""
-
-// 	oReport := ReportDef()
-// 	If !Empty(oReport:uParam)
-// 		Pergunte(oReport:uParam,.F.)
-// 	EndIf
-// 	oReport:PrintDialog()
-
-// Return
-
-// //=================================================================================
-// // relatorio de produtividade - formato personalizavel
-// //=================================================================================
-// Static Function ReportDef()
-
-// 	Private cTitulo := 'Relação de produtos'
-
-
-// 	oReport := TReport():New("HLAPEDIMP", cTitulo, cPerg , {|oReport| PrintReport(oReport)},"Emitirá Relatório com relação de produtos")
-
-// 	oReport:SetPortrait()
-// 	oReport:SetTotalInLine(.F.)
-// 	oReport:ShowHeader()
-
-// 	oSection1 := TRSection():New(oReport,"Produtos não cadastrados/sem preço - CSV",{""})
-// 	oSection1:SetTotalInLine(.F.)
-
-// 	TRCell():new(oSection1, "C_ITEM"    , "", "ITEM"                ,,10)
-// 	TRCell():new(oSection1, "C_PROD"    , "", "PRODUTO"             ,,15)
-// 	TRCell():new(oSection1, "C_DESC"    , "", "DESCRIÇÃO"           ,,35)
-// 	TRCell():new(oSection1, "C_QTD"     , "", "QUANTIDADE"          ,,10)
-// 	TRCell():new(oSection1, "C_PRC"     , "", "PREÇO"               ,,10)
-
-
-// return (oReport)
-
-// //=================================================================================
-// // definicao para impressao do relatorio personalizado 
-// //=================================================================================
-// Static Function PrintReport(oReport)
-
-// 	Local nReg
-// 	Local lTitulo := .T.
-
-// 	oSection1 := oReport:Section(1)
-
-// 	oSection1:Init()
-// 	oSection1:SetHeaderSection(.T.)
-
-// 	oReport:SetMeter(Len(aLogP))
-
-
-// 	For ix:=1 to Len(aLogP)
-
-// 		If oReport:Cancel()
-// 			Exit
-// 		EndIf
-// 		cDesc:=""
-// 		oReport:IncMeter()
-// 		oSection1:Cell("C_ITEM"):SetValue(aLogP[ix,1])
-// 		oSection1:Cell("C_PROD"):SetValue(aLogP[ix,2])
-// 		cDesc := Posicione("SB1",1,XFILIAL("SB1")+aLogP[ix,2],"B1_DESC")
-// 		oSection1:Cell("C_DESC"):SetValue(iif(Empty(cDesc),"",cDesc))
-// 		oSection1:Cell("C_QTD"):SetValue(aLogP[ix,3])
-// 		oReport:SkipLine()
-// 		oSection1:PrintLine()
-
-// 	Next
-// 	oSection1:Finish()
-
-// Return

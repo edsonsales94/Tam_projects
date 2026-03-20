@@ -106,8 +106,18 @@
 		{
 			"args": [],
 			"label": "U_HLAFAT02"
+		},
+		{
+			"args": [],
+			"label": "U_zTstRel"
+		},
+		{
+			"label": "U_PMZRSE01"
+		},
+		{
+			"label": "U_PMZCOMR1"
 		}
 	],
-	"lastProgramExecuted": "SIGAMDI",
+	"lastProgramExecuted": "U_PMZCOMR1",
 	"lastProgramArguments": []
 }

@@ -268,7 +268,7 @@ Static Function CargaArray(cArqOri)
 					//Se não for o cabeçalho (encontrar o texto "Código" na linha atual)
 					If ! "ns" $ Lower(cLinAtu);
 							.OR. ! "substrato" $ Lower(cLinAtu);
-							.OR. ! "quant" $ Lower(cLinAtu)						
+							.OR. ! "quant" $ Lower(cLinAtu)
 						//Zera as variaveis
 
 						nEstru	:= 0				&&	//NÃO REMOVER - Controla recursividade na funcao Estrut2()
@@ -286,16 +286,16 @@ Static Function CargaArray(cArqOri)
 						// PERCORRER OS TRES PRODUTOS NS;SUNSTRATO;SUBSTRATO
 
 						aProds := {}
-						for NN := 1 to 3
+						for NN := 1 to (len(aLinha)-1)
 							nPosAcols++
 							aDados := {}
 							// primeiro produto, NS
 							DBSelectArea('SB1')
 							SB1->(DBSetOrder(1))
-							if NN == nPosCodigo
-								if SB1->(msSeek(xfilial('SB1')+aLinha[nPosCodigo]))
+							if SB1->(msSeek(xfilial('SB1')+aLinha[NN]))
+								if NN == nPosCodigo
 
-									CLOCAL:= '03'
+									CLOCAL:= SB1->B1_LOCPAD
 
 									cItem := Soma1(cItem)
 									nPrcVen := Posicione('SB1',1,xfilial('SB1')+aLinha[nPosCodigo],'B1_PRV1')
@@ -318,21 +318,27 @@ Static Function CargaArray(cArqOri)
 									aAdd(aDados, {"C6_PROGRAM",	"HLAFAT02",						Nil})
 
 									AADD(aItens, aDados)  // todos os itens venda e devolção
-								endif
-							else
-								cProd := iif(NN==nPosSubst1,aLinha[nPosSubst1],aLinha[nPosSubst2])
-								if SB1->(msSeek(xfilial('SB1')+cProd))
-									xQuantEstrut := QTDESTRUT(cProd,aLinha[nPosCodigo]) //Posicione('SG1',1,XFILIAL('SG1')+aLinha[nPosCodigo]+cProd,'G1_QUANT')
-									aAdd(aProds, {cProd, xQuantEstrut})
+								else
+									cProd := iif(NN==nPosSubst1,aLinha[nPosSubst1],aLinha[nPosSubst2])
+									if SB1->(msSeek(xfilial('SB1')+cProd))
+										xQuantEstrut := QTDESTRUT(cProd,aLinha[nPosCodigo]) //Posicione('SG1',1,XFILIAL('SG1')+aLinha[nPosCodigo]+cProd,'G1_QUANT')
+										aAdd(aProds, {cProd, iif(xQuantEstrut==0,nQuant,xQuantEstrut)})
+										CLOCAL:= SB1->B1_LOCPAD	
+										cTes := iif(SB1->B1_TIPO =='BN','189','196')
+									endif
 								endif
 							endif
 						next NN
 
+						if empty(aProds)
+							FWALERTWARNING('Nenhum subatrato foi adicionado')
+							return
+						endif
+
 						For nI := 1 To Len(aProds)
 
 							cAliasDoc  := GetNextAlias()
-							CLOCAL:= '87'
-
+							
 							BEGINSQL alias cAliasDoc
 
 							SELECT D1_DOC,

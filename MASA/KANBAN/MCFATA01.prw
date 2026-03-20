@@ -110,8 +110,8 @@ User Function FATFaturar(cAlias, nRecNo, nOpc )
 	
 	EnChoice(cAlias, nRecNo, 3,,,,aAcho,aPosObj[1],, 3,,,,oDlg)
 	
-	@ 035, 160 SAY   oDatEnt PROMPT "Data Entrega:" SIZE 062, 014 OF oDlg FONT oFontOb COLORS 0, 16777215 PIXEL
-	@ 043, 160 MSGET ogDatEnt VAR dData     Valid( vDatEnt() ) SIZE 038, 012 OF oDlg COLORS 0, 16777215 FONT oFontOb PIXEL
+	@ 035, 260 SAY   oDatEnt PROMPT "Data Entrega:" SIZE 062, 014 OF oDlg FONT oFontOb COLORS 0, 16777215 PIXEL
+	@ 043, 260 MSGET ogDatEnt VAR dData     Valid( vDatEnt() ) SIZE 038, 012 OF oDlg COLORS 0, 16777215 FONT oFontOb PIXEL
 	 
 	oFolder := TFolder():New(aPosObj[2,1],aPosObj[2,2],aFolder,,oDlg,,,,.T.,,aPosObj[2,4]-aPosObj[2,2],aPosObj[2,3]-aPosObj[2,1],)
 
@@ -164,6 +164,9 @@ Static Function Gravacao()
 	SA1->(dbSetOrder(1))
 	SA1->(dbSeek(XFILIAL("SA1")+M->Z1_CLIENTE+M->Z1_LOJA))
 	
+	DBSelectArea('SZX')
+	SZX->(dbSetOrder(1))
+	
 	BeginTran()
 	
 	For nX:=1 To Len(aMark)
@@ -171,10 +174,6 @@ Static Function Gravacao()
 		// Posiciona no Cadastro de Produtos
 		SZ1->(dbSetOrder(1))    // Z1_FILIAL+Z1_CLIENTE+Z1_LOJA+Z1_PRODUTO+DTOS(Z1_DATENT)+Z1_HORENT+Z1_SETENT+Z1_KANBAN
 		SZ1->(dbSeek(XFILIAL("SZ1")+M->Z1_CLIENTE+M->Z1_LOJA+aMark[nX,1]+DtoS(aMark[nX,2])+aMark[nX,3]+aMark[nX,5]+aMark[nX,6]))
-		
-		RecLock("SZ1",.F.)
-		SZ1->Z1_QTDENT += aMark[nX,8]
-		MsUnLock()
 		
 		// Posiciona no Cadastro de Produtos
 		SB1->(dbSetOrder(1))
@@ -187,6 +186,28 @@ Static Function Gravacao()
 		nPreco := u_fPrecoTab(SB1->B1_COD,SA1->A1_COD+SA1->A1_LOJA)
 		cItem  := Soma1(cItem)
 		nValor := a410Arred( aMark[nX,8] * nPreco , "C6_VALOR" , NIL )
+		
+		// tratativa preco unitario = 0, na gravar pedido.
+		if nPreco == 0
+			FWAlertError('Não é possivel gravar pedido sem o preco unitario, verifique a tabela de preco do produto '+SB1->B1_COD, 'Error: Prc.Unit')
+			Return
+		endif
+
+		// grava quantidade entregue
+		RecLock("SZ1",.F.)
+		SZ1->Z1_QTDENT += aMark[nX,8]
+		MsUnLock()
+		
+		/*gravar quantidade entregue na carteira
+		  Edson Sales - 2026
+		  edson.pedro@totvs.com.br
+		  ZX_FILIAL+ZX_CLIENTE+ZX_LOJA+ZX_PERIODO+ZX_CODMASA+ZX_DATA 
+		*/
+		IF SZX->(dbSeek(XFILIAL("SZX")+M->Z1_CLIENTE+M->Z1_LOJA+left(DtoS(aMark[nX,2]),6)+aMark[nX,1]+DtoS(aMark[nX,2])))
+			RecLock("SZX",.F.)
+			SZX->ZX_QTDENT += aMark[nX,8]
+			MsUnLock()
+		EndIf
 		
 		aItem  := {}
 		aAdd( aItem , { "C6_FILIAL"  , xFilial("SC6") , Nil} )
@@ -236,8 +257,8 @@ Static Function Gravacao()
 
 	cNumPed := GetSXENum("SC5","C5_NUM")   // Pega o próximo pedido de venda
 	RollBAckSx8()
-// DE LUCCA 16/05/23 - PARA ATENDER ICMS	
-//	If MV_PAR02 == "X1" .And. SA1->A1_XTIPRET == "1" //Se for industrialização e retornar itens de beneficiamento automaticamente
+	// DE LUCCA 16/05/23 - PARA ATENDER ICMS	
+	//	If MV_PAR02 == "X1" .And. SA1->A1_XTIPRET == "1" //Se for industrialização e retornar itens de beneficiamento automaticamente
 	If  SA1->A1_XTIPRET == "1" .And. (MV_PAR02 == "X1" .Or. MV_PAR02 == "X6" .Or. MV_PAR02 == "X7" ) //Se for industrialização e retornar itens de beneficiamento automaticamente)
 		vAux := MONTAPED(SA1->A1_COD,SA1->A1_LOJA,vItens,@vAcumu,.T.)
 			If  !Empty(vAux)  // Se encontrou itens
@@ -330,10 +351,10 @@ Static Function Gravacao()
 			EndTran()
 			
 			MsgInfo("<strong><font color=BLACK>Pedido de venda <font color=RED>"+cNumPed+"</font> gravado com sucesso !</font></strong>","Pedido Kanban")
-      Else
-      	lMsErroAuto := .T.
-      Endif
-   Else
+		Else
+			lMsErroAuto := .T.
+		Endif
+   	Else
 		MostraErro()
 	Endif
 	
@@ -348,7 +369,7 @@ Static Function Gravacao()
 			Aviso( "INVÁLIDO", "Ocorreram problemas quanto a liberação de crédito / estoque para o pedido de venda !", {"Ok"} )
 			ExibeBloqueio(aPvlNfs,aBloqueio)
 		Endif
-		
+		RollBackSx8()
 		DisarmTransaction()
 	Endif
  

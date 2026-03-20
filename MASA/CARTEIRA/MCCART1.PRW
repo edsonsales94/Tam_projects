@@ -49,7 +49,8 @@ Static Function MenuDef()
 	ADD OPTION aRot TITLE 'Importar'		ACTION 'U_fnImpCart'	OPERATION 	6	ACCESS 0 //OPERATION 3
 	ADD OPTION aRot TITLE 'Tranfere Saldo'	ACTION 'U_TrfParam'		OPERATION 	6	ACCESS 0 //OPERATION 3
 	ADD OPTION aRot TITLE 'Visualizar' ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_VIEW  	ACCESS 0 //OPERATION 1
-	// ADD OPTION aRot TITLE 'Alterar'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_UPDATE	ACCESS 0 //OPERATION 4
+	ADD OPTION aRot TITLE 'Incluir'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_UPDATE	ACCESS 0 //OPERATION 4
+	ADD OPTION aRot TITLE 'Alterar'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_UPDATE	ACCESS 0 //OPERATION 4
 	ADD OPTION aRot TITLE 'Excluir'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_DELETE	ACCESS 0 //OPERATION 5
 
 Return aRot
@@ -189,20 +190,31 @@ User function fnImpCart()
 	Local cCliente       := Space(6)
 	Local cNomCli     := ''
 	Local cLoja       := Space(2)
-	// Local cCond       := Space(3)
 
 	Local cCaminho    := Space(100)
+	Private cPeriodo    := Space(6)
 	Private oArq
 	// RpcSetEnv('01','01')
 	@ 275,235 To 496,880 Dialog oArq Title OemToAnsi("Gerar os Itens da planilhas de contatos")
-	@ 5,2  To 41,311 Title OemToAnsi("ARQUIVO:")
-	@ 45,2 To 74,311 Title OemToAnsi("Cliente:")
-	@ 20,10	MSGET cCaminho Size 204,10   PIXEL of oArq WHEN .F.
-	@ 57,7	MSGET cCliente F3 "SA1" Size 50,10  OF oArq PIXEL  VALID(Pesquise(cCliente,'SA1',1,@cNomCli, @cLoja))
-	@ 57,62	MSGET cLoja   Size 20,10  PIXEL OF oArq WHEN .F.
-	@ 57,85	MSGET cNomCli SIZE 200,10 PIXEL OF oArq WHEN .F.
+	@ 5,2  To 41,311 Title OemToAnsi("Cliente:")
+	@ 20,7	MSGET cCliente F3 "SA1" Size 50,10  OF oArq PIXEL  VALID(Pesquise(cCliente,'SA1',1,@cNomCli, @cLoja))
+	@ 20,62	MSGET cLoja   Size 20,10  PIXEL OF oArq WHEN .F.
+	@ 20,85	MSGET cNomCli SIZE 150,10 PIXEL OF oArq WHEN .F.
+	@ 10,250 SAY "Periodo"  PIXEL OF oArq
+	@ 10,274 SAY "(Ano & Mes)"  PIXEL OF oArq color RGB(165,165,165)
+	@ 20,250 MSGET cPeriodo Size 20,10  PIXEL OF oArq WHEN .T.
+	@ 32,250 SAY "(ex: 202601)"  PIXEL OF oArq color RGB(165,165,165)
+	@ 45,2 To 74,311 Title OemToAnsi("ARQUIVO:")
+	@ 57,10	MSGET cCaminho Size 204,10   PIXEL of oArq WHEN .F.
 
-	@ 18,224 Button OemToAnsi("Carregar arquivo CSV") Size 60,16 Action FARQUI01(@cCaminho)
+	// @ 5,2  To 41,311 Title OemToAnsi("ARQUIVO:")
+	// @ 45,2 To 74,311 Title OemToAnsi("Cliente:")
+	// @ 20,10	MSGET cCaminho Size 204,10   PIXEL of oArq WHEN .F.
+	// @ 57,7	MSGET cCliente F3 "SA1" Size 50,10  OF oArq PIXEL  VALID(Pesquise(cCliente,'SA1',1,@cNomCli, @cLoja))
+	// @ 57,62	MSGET cLoja   Size 20,10  PIXEL OF oArq WHEN .F.
+	// @ 57,85	MSGET cNomCli SIZE 200,10 PIXEL OF oArq WHEN .F.
+
+	@ 56,224 Button OemToAnsi("Carregar arquivo CSV") Size 60,16 Action FARQUI01(@cCaminho)
 	@ 85,175 Button OemToAnsi("Gerar Itens")          Size 55,20 Action MCProces(cCaminho,cCliente,cLoja,cNomCli)
 	@ 85,250 Button OemToAnsi("Fechar")               Size 55,20 Action Close(oArq)
 
@@ -302,6 +314,10 @@ Static function MCProces(cCaminho,cCliente,cLoja,cNomCli)
 		Alert("Necess·rio informar o cliente! ")
 		Return .F.
 	endif
+	if Empty(cPeriodo)
+		Alert("Necess·rio informar o Periodo! ")
+		Return .F.
+	endif
 	*
 	if .T.
 	//Exemplo de Chamada
@@ -329,7 +345,7 @@ Static Function ProcOK(_cPath,cCliente,cLoja,cNomCli,oObj)
     Local aLinhas
     Private cDirLog    := GetTempPath() + "x_importacao\"
     Private cLog       := ""
-    Private cPeriodo       := left(dtos(date()),6)
+    // Private cPeriodo       := left(dtos(date()),6)
 
 	// Definir se È inclus„o ou alteraÁ„o
 	DBSelectArea('SZX')
@@ -535,9 +551,17 @@ Static Function IncRegs(_aDados,_nOper,cCliente,cLoja,cNomCli,cPeriodo)
 
 		Else // ALTERA«√O
 			dbSetOrder(2)
-			IF SZX->(MsSeek(XFILIAL()+cCliente +cLoja+ cPeriodo+LEFT(_aDados[ny,3]+SPACE(10),15) + DTOS(_aDados[ny,2])))
+			IF SZX->(MsSeek(XFILIAL('SZX')+cCliente +cLoja+ cPeriodo+LEFT(_aDados[ny,3]+SPACE(10),15) + DTOS(_aDados[ny,2])))
 				lRecL := .F.
 				cSeq := SZX->ZX_SEQ
+
+				// caso o saldo seja tranferido todo em algum dia especifico, ficando zerado ent„o a linha ser· deletada.
+				if EMPTY(ADADOS[ny,6])
+					RecLock('SZX',.F.)
+						dbDelete()
+					SXZ->(MsUnlock())					
+				endif
+
 			Else
 				// ULTIMO REGISTRO SOMA 1
 				if SELECT(caliasSeq) >0 
@@ -651,13 +675,17 @@ User Function trfParam()
 	local cCli    := space(TAMSX3('ZX_CLIENTE')[1])
 	local cLoj    := space(TAMSX3('ZX_LOJA')[1])
 	local cPer    := space(TAMSX3('ZX_PERIODO')[1])
+	Local oBtnBuscar
+	Local oBtnFechar
 	// local cPro    := space(TAMSX3('ZX_CODMASA')[1])
 	// local dData   := ctod('  /  /  ')
 	Private oTransf
 	// RpcSetEnv('01','01')
+
 	cCli := SZX->ZX_CLIENTE
 	cLoj := SZX->ZX_LOJA
 	cPer := SZX->ZX_PERIODO
+
 	@ 275,235 	To 496,880 Dialog oTransf Title OemToAnsi("Parametros")
 	@ 5,2  		To 41,150 Title OemToAnsi("Cliente:")
 	@ 5,160  	To 41,311 Title OemToAnsi("Periodo:")
@@ -702,32 +730,29 @@ Static Function TransSld(_cCli,_cLoj,_cPer)
 
 	//Cria a janela
 	Private aSize := MsAdvSize(.F.)
-	Private nJanLarg := aSize[5] / 2
-    Private nJanAltu := aSize[6] / 2
+	Private nJanLarg := aSize[5] 
+    Private nJanAltu := aSize[6] 
 
 	nJanLarg := 900
-	nJanAltu := 400
+	nJanAltu := 500
 
 	if !VldSZX(_cCli,_cLoj,_cPer,'','')
 		Return
 	endif
 
-
 	// aBrwSld := {{space(15),ctod('  /  /  '),0,space(15)}}
 	aAdd(aBrwSld, { _cCli,_cLoj,_cPer,space(15), ctod('  /  /    '), 0, ctod('  /  /    ') })
 
 	// DEFINE MSDIALOG oDlgTRF TITLE "Saldos enderecos/Lotes"  FROM 200, 200 TO 800, 800 PIXEL
-    DEFINE MSDIALOG oDlgTRF TITLE "Tranferir saldo" ;
-        FROM ( (aSize[6] - nJanAltu) ), ( (aSize[5] - nJanLarg) / 2 ) ;
-        TO ( (aSize[6] + nJanAltu)  ), ( (aSize[5] + nJanLarg) / 2 ) PIXEL
+    DEFINE MSDIALOG oDlgTRF TITLE "Tranferir saldo" FROM ( 200 ), ( 200 )  TO ( nJanAltu) , ( nJanLarg) PIXEL
 
 	//Criando a camada
 	oFwLayer := FwLayer():New()
 	oFwLayer:init(oDlgTRF,.F.)
 
 	//Adicionando 3 linhas, a de t√≠tulo, a superior e a do calend√°rio
-	oFWLayer:addLine("TIT", 10, .F.)
-	oFWLayer:addLine("COR", 90, .F.)
+	oFWLayer:addLine("TIT", 20, .F.)
+	oFWLayer:addLine("COR", 80, .F.)
 
 	//Adicionando as colunas das linhas
 	oFWLayer:addCollumn("HEADERTEXT",   050, .T., "TIT")
@@ -757,9 +782,8 @@ Static Function TransSld(_cCli,_cLoj,_cPer)
 
 	// //Criando os bot√µes
 	// oBtnRep := TButton():New(006, 001, "Replicar",  oPanBut, {|| replicar()}, 30, 012, , oFontBtn, , .T., , , , , , )
-	oBtnSel :=  TButton():New(006, 040, "Confirmar",  oPanBut, {|| TranfSaldo()}, 50, 012, , oFontBtn, , .T., , , , , , )
+	oBtnSel :=  TButton():New(006, 040, "Confirmar",  oPanBut, {|| TranfSaldo(),oDlgTRF:End(),close(oTransf)}, 50, 012, , oFontBtn, , .T., , , , , , )
 	oBtnSair := TButton():New(006, 100, "Sair",  	  oPanBut, {|| oDlgTRF:End()}, 30, 012, , oFontBtn, , .T., , , , , , )
-
 
 	//dialog com browse para defini√ß√£o dos lotes
 	oBrwSld := fwBrowse():New()
@@ -891,7 +915,5 @@ Static Function TranfSaldo()
 	aAdd(aDados,{'',aBrwSld[1][7],aBrwSld[1][4],cDescri,cPedCli,nSld})
 
 	RptStatus({|| IncRegs(aDados,2,cCliente,cLoja,cNomCli,cPeriodo)}, "Aguarde...", "Transferindo saldo...")
-	
-	oDlgTRF:End()
-	oTransf:End()
+
 Return

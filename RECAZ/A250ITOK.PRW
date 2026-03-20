@@ -49,8 +49,8 @@ Static function FTELAMOD()
 	// @ 45,100 To 74,160 Title OemToAnsi("LOJA:")
 	// @ 45,180 To 74,240 Title OemToAnsi("COND PAGTO:")
 	// @ 75,2 To 79,311
-	@ 20,10   MSGET nMod Size 100,10   OF oPed PIXEL PICTURE '@E 999,999,999.99'  VALID(lValid(nMod,1))
-	@ 57,7    MSGET nGGF Size 100,10   OF oPed PIXEL PICTURE '@E 999,999,999.99'  VALID(lValid(nMod,2))
+	@ 20,10   MSGET nMod Size 100,10   OF oPed PIXEL PICTURE '@E 999,999,999.9999'  VALID(lValid(nMod,1))
+	@ 57,7    MSGET nGGF Size 100,10   OF oPed PIXEL PICTURE '@E 999,999,999.9999'  VALID(lValid(nMod,2))
 
 	// @ 18,224 Button OemToAnsi("Carregar arquivo CSV") Size 60,16 Action HLAPROC()
 	@ 85,175 Button OemToAnsi("Salvar")          Size 55,20 Action lProcess(.T.,cMod,cGGF,nMod,nGGF)
