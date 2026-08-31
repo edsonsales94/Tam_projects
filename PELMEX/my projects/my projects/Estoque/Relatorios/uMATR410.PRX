@@ -1,0 +1,326 @@
+#INCLUDE "PROTHEUS.CH"
+#include "topconn.ch"
+
+/*_____________________________________________________________________________
+¦ Função    ¦ uMATR410   ¦ Autor ¦ Ulysses Ribeiro        ¦ Data ¦ 13/06/2008 ¦
++-----------+------------+-------+------------------------+------+------------+
+¦ Descriçäo ¦ Pick List personalizado - Pelmex											¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+User Function uMatr410()
+
+	LOCAL cString := "SD4"
+	LOCAL cDesc1  := "Este programa tem como objetivo,emitir um rela‡„o dos"
+	LOCAL cDesc2  := "produtos a serem retirados do almoxarifado."
+	LOCAL cDesc3  := ""
+
+	Private wnrel   := "MATR410"
+	Private titulo  := "Pick List 2"
+	Private Tamanho := "M"
+	PRIVATE aReturn:= { OemToAnsi("Zebrado"), 1,OemToAnsi("Administracao"), 2, 2, 1, "",1 }
+	PRIVATE aLinha := { } , nLastKey := 0
+	PRIVATE cPerg  := PADR("uMTR410",LEN(SX1->X1_GRUPO))
+
+	uMatR410x()
+
+	pergunte(cPerg,.F.)
+
+	wnrel:=SetPrint(cString,wnrel,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.F.,"",,Tamanho)
+
+	If nLastKey = 27
+		Set Filter To
+		Return
+	Endif
+
+	SetDefault(aReturn,cString)
+
+	If nLastKey = 27
+		Set Filter To
+		Return
+	Endif
+
+	RptStatus({|lEnd| uMatR410a(@lEnd)},titulo)				// Distribuição de Tarefas
+
+Return NIL
+/*_____________________________________________________________________________
+¦ Função    ¦ uMATR410a  ¦ Autor ¦ Ulysses Ribeiro        ¦ Data ¦ 13/06/2008 ¦
++-----------+------------+-------+------------------------+------+------------+
+¦ Descriçäo ¦ Distribuição de tarefas														¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function uMatR410a(lEnd)
+
+	nTipo := IF (aReturn[4] == 1, 15, 18)
+
+	cbtxt    := SPACE(10)
+	cbcont   := 00
+	li       := 999
+	m_pag    := 01
+
+	If Mv_Par04 == 1 .Or. Mv_Par04 == 3					// Necessidade ou Ambos
+		uMatR410b(lEnd)
+	End If
+
+	li       := 999
+
+	If Mv_Par04 == 2 .Or. Mv_Par04 == 3					// A Pagar ou Ambos
+		uMatR410c(lEnd)
+	End If
+
+	If aReturn[5] = 1
+		Set Printer TO
+		dbCommitAll()
+		ourspool(wnrel)
+	Endif
+
+	MS_FLUSH()
+
+Return NIL
+/*_____________________________________________________________________________
+¦ Função    ¦ uMATR410b  ¦ Autor ¦ Ulysses Ribeiro        ¦ Data ¦ 13/06/2008 ¦
++-----------+------------+-------+------------------------+------+------------+
+¦ Descriçäo ¦ Quadro - Empenho																¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function uMatR410b(lEnd)
+
+	Local cQuery := ""
+	Local cCCAtu := chr(255)
+
+	cabec1 := "Codigo Produto Descricao                      UM AL         Saldo       Empenho     Embalagem"
+	cabec2 := ""
+	//         XXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XX XX 99999,999.999 99999,999.999 99999,999.999 
+	//                   1         2         3         4         5         6         7         8         9        10       
+	//         012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+
+	// PRIMEIRA QUERY
+	cQuery := QueryRel("'ZZZZZZ' As ","",">")
+
+	cQuery += " Union "
+
+	// SEGUNDA QUERY
+	cQuery += QueryRel("","C2_CC, ","=")
+
+	cQuery += " Order by C2_CC, Produto"
+
+	MemoWrit('UMATR410.SQL',cQuery)
+	TCQUERY cQuery NEW ALIAS "TSD4"
+
+	SetRegua(400)
+
+	cCCAtu := TSD4->C2_CC
+
+	While !TSD4->(Eof())
+
+		IF iIf(ValType(lEnd)='L',lEnd,.F.)
+			@ Prow()+1,001 PSay "CANCELADO PELO OPERADOR"
+			Exit
+		EndIF
+
+		IncRegua()
+
+		If TSD4->C2_CC <> cCCAtu
+
+			If MV_Par05 == 1 .Or. Li > Mv_Par06		// Salta Página
+				cabec(Trim(titulo) + " - Empenho ate " + Dtoc(Mv_Par01),cabec1,cabec2,wnrel,Tamanho,nTipo)
+			Else
+				Li += 2
+			End If
+
+			@ Li, 000 Psay "Centro de Custos " + If (Trim(TSD4->C2_CC) == "ZZZZZZ", "Comum", TSD4->C2_CC)
+			Li += 2
+
+			cCCAtu := TSD4->C2_CC
+
+		Endif
+
+		If Li > Mv_Par06
+
+			cabec(Trim(titulo) + " - Empenho ate " + Dtoc(Mv_Par01),cabec1,cabec2,wnrel,Tamanho,nTipo)
+
+			@ Li, 000 Psay "Centro de Custos " + If (Trim(TSD4->C2_CC) == "ZZZZZZ", "Comum", TSD4->C2_CC)
+			Li += 2
+
+		Endif
+
+		@Li,000 PSay TSD4->Produto
+		@Li,015 PSay Left(TSD4->B1_DESC, 30)
+		@Li,046 PSay TSD4->B1_UM
+		@Li,049 PSay TSD4->D4_LOCAL
+		@Li,052 PSay TSD4->B2_QATU 	Picture "@E 99999,999.999"
+		@Li,066 PSay TSD4->D4_Quant	Picture "@E 99999,999.999"
+		@Li,080 PSay TSD4->B1_QE		Picture "@E 99999,999.999"
+
+		Li++
+
+		TSD4->(dbSkip())
+
+	End
+
+	TSD4->(dbCloseArea())
+
+Return Nil
+/*_____________________________________________________________________________
+¦ Função    ¦ uMATR410c  ¦ Autor ¦ Ulysses Ribeiro        ¦ Data ¦ 13/06/2008 ¦
++-----------+------------+-------+------------------------+------+------------+
+¦ Descriçäo ¦ Quadro - A Pagar																¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function uMatR410c(lEnd)
+
+	Local cQuery := ""
+	Local cCCAtu := chr(255)
+
+	cabec1 := "Codigo Produto Descricao                      UM AL       A Pagar     Embalagem  Quantidade Paga"
+	cabec2 := ""
+	//         XXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XX XX 99999,999.999 99999,999.999  [             ]
+	//                   1         2         3         4         5         6         7         8         9        10        11
+	//         012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+	// TERCEIRA QUERY
+	cQuery := QueryRel("'ZZZZZZ' As ","",">")
+
+	cQuery += " Union "
+
+	// QUARTA QUERY
+	cQuery += QueryRel("","C2_CC, ","=")
+
+	cQuery += " Order by C2_CC, Produto"
+
+	TCQUERY cQuery NEW ALIAS "TSD4"
+
+	SetRegua(400)
+
+	cCCAtu := TSD4->C2_CC
+
+	While !TSD4->(Eof())
+
+		IF iIf(ValType(lEnd)='L',lEnd,.F.)
+			@ Prow()+1,001 PSay "CANCELADO PELO OPERADOR"
+			Exit
+		EndIF
+
+		IncRegua()
+
+		If TSD4->Necess > 0
+
+			If TSD4->C2_CC <> cCCAtu
+
+				If MV_Par05 == 1 .Or. Li > Mv_Par06		// Salta Página
+
+					cabec(Trim(titulo) + " - A Pagar ate " + Dtoc(Mv_Par01),cabec1,cabec2,wnrel,Tamanho,nTipo)
+
+					@ Li, 000 Psay "Separador: [                 ]       Recebedor: [                 ]";	Li += 2
+
+					@ Li, 000 Psay "Digitador: [                 ]      Requisição: [                 ]";	Li += 2
+
+				Else
+					Li += 2
+				End If
+
+				@ Li, 000 Psay "Centro de Custos " + If (Trim(TSD4->C2_CC) == "ZZZZZZ", "Comum", TSD4->C2_CC);	Li += 2
+
+				cCCAtu := TSD4->C2_CC
+
+				@ Li++,000 PSay Repl("_", 110)
+
+			Endif
+
+			If Li > Mv_Par06
+
+				cabec(Trim(titulo) + " - A Pagar ate " + Dtoc(Mv_Par01),cabec1,cabec2,wnrel,Tamanho,nTipo)
+
+				@ Li, 000 Psay "Separador: [                 ]       Recebedor: [                 ]";		Li += 2
+
+				@ Li, 000 Psay "Digitador: [                 ]      Requisição: [                 ]";		Li += 2
+
+				@ Li, 000 Psay "Centro de Custos " + If (Trim(TSD4->C2_CC) == "ZZZZZZ", "Comum", TSD4->C2_CC);	Li += 2
+
+				@ Li++,000 PSay Repl("_", 110)
+
+			Endif
+
+			@Li,000 PSay TSD4->Produto
+			@Li,015 PSay Left(TSD4->B1_DESC, 30)
+			@Li,046 PSay TSD4->B1_UM
+			@Li,049 PSay TSD4->D4_LOCAL
+			@Li,052 PSay TSD4->Necess	 	Picture "@E 99999,999.999"
+			@Li,066 PSay TSD4->B1_QE		Picture "@E 99999,999.999"
+			@Li,081 PSay "[             ]"
+
+			Li += 2
+
+			@Li++,000 PSay Repl("_", 110)
+
+		End If
+
+		TSD4->(dbSkip())
+
+	End
+
+	TSD4->(dbCloseArea())
+
+Return Nil
+/*_____________________________________________________________________________
+¦ Função    ¦ AjustaSX1  ¦ Autor ¦ Ulysses Ribeiro        ¦ Data ¦ 13/06/2008 ¦
++-----------+------------+-------+------------------------+------+------------+
+¦ Descriçäo ¦ Criação das Perguntas        												¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function uMatR410x
+
+	u_InPutSx1(cPerg,"01","Referência","","",		"mv_ch1","D",8,0,0,"G","","",		"","","mv_par01")
+	u_InPutSx1(cPerg,"02","Tipo Produto de","","","mv_ch4","C",2,0,0,"G","","02",	"","","mv_par02")
+	u_InPutSx1(cPerg,"03","Tipo Produto Até","","","mv_ch5","C",2,0,0,"G","","02",	"","","mv_par03")
+	u_InPutSX1(cPerg,"04","Quadro","","",			"mv_ch6","N",1,0,0,"C","","",		"","","mv_par04","Necessidade","","","","A Pagar","","","Ambos")
+	u_InPutSX1(cPerg,"05","Salta Página","","",	"mv_ch7","N",1,0,0,"C","","",		"","","mv_par05","Sim","","","","Não")
+	u_InPutSX1(cPerg,"06","Linhas / Página","","","mv_ch8","N",2,0,0,"G","","",		"","","mv_par06")
+
+Return Nil
+
+Static Function QueryRel(cPar01,cPar02,cPar03)
+	Local cRet := ""
+
+	cRet += "Select "+cPar01+"C2_CC, D4.D4_COD As Produto, Left(B1_DESC, 30) As B1_DESC, B1_UM, D4.D4_LOCAL, B2_QATU, D4_QUANT,"
+	cRet += " D4_QUANT - B2_QATU As Necess, B1_QE"
+	cRet += " From " + RetSQLName("SB1") + " As B1"
+	cRet += " Inner Join " + RetSQLName("SB2") + " As B2 On "
+	cRet += " B2.B2_COD = B1_COD"
+	cRet += " Left Outer Join (Select "+cPar02+"D4_COD, D4_LOCAL, Sum(D4_QUANT) D4_QUANT"
+	cRet += "			From " + RetSQLName("SD4") + " As SD4"
+	cRet += "			Inner Join "    + RetSQLName("SC2") + " As SC2 On"
+	cRet += " 		SC2.D_E_L_E_T_ = ''"
+	cRet += "			And C2_FILIAL = '" + SC2->(xFilial()) + "'"
+	cRet += " 		And Left(D4_OP,6) = C2_NUM"
+	cRet += " 		And Substring(D4_OP, 7, 2) = C2_ITEM"
+	cRet += " 		And Substring(D4_OP, 9, 3) = C2_SEQUEN"
+	cRet += " 		Where SD4.D_E_L_E_T_ = ''"
+	cRet += "			And D4_FILIAL = '" + SD4->(xFilial()) + "'"
+	cRet += " 		And D4_QUANT > 0"
+	cRet += " 		And D4_DATA <= '" + Dtos(Mv_Par01) + "'"
+	cRet += " 		Group by "+cPar02+"D4_COD, D4_LOCAL"
+	cRet += " 		) D4 On "
+	cRet += " D4.D4_COD = B2_COD And D4.D4_LOCAL = B2_LOCAL"
+	cRet += " Inner Join (Select D4_COD, D4_LOCAL, Count(*) As QtdReg"
+	cRet += " 		From (	Select C2_CC, D4_COD, D4_LOCAL"
+	cRet += "						From " + RetSQLName("SD4") + " As SD4"
+	cRet += "						Inner Join " + RetSQLName("SC2") + " As SC2 On "
+	cRet += " 					SC2.D_E_L_E_T_ = ''"
+	cRet += "						And C2_FILIAL = '" + SC2->(xFilial()) + "'"
+	cRet += " 					And Left(D4_OP,6) = C2_NUM"
+	cRet += " 					And Substring(D4_OP, 7, 2) = C2_ITEM"
+	cRet += " 					And Substring(D4_OP, 9, 3) = C2_SEQUEN"
+	cRet += " 					Where SD4.D_E_L_E_T_ = ''"
+	cRet += "						And D4_FILIAL = '" + SD4->(xFilial()) + "'"
+	cRet += " 					And D4_QUANT > 0"
+	cRet += " 					And (D4_QUANT - B2_QATU) < 0 "
+	cRet += " 					And D4_DATA <= '" + Dtos(Mv_Par01) + "'"
+	cRet += " 					Group by C2_CC, D4_COD, D4_LOCAL"
+	cRet += " 					) Empenho"
+	cRet += " 		Group by D4_COD, D4_LOCAL"
+	cRet += " 		Having Count(*) "+cPar03+" 1"
+	cRet += " 		) As Comum On "
+	cRet += " D4.D4_COD = Comum.D4_COD And D4.D4_LOCAL = Comum.D4_LOCAL"
+
+	cRet += " Where B1.D_E_L_E_T_ = ''"
+	cRet += "	And B1_FILIAL = '" + SB1->(xFilial()) + "'"
+	cRet += "	And B2_FILIAL = '" + SB2->(xFilial()) + "'"
+	cRet += " And Left(B1_COD, 3) <> 'MOD'"
+	cRet += "	And B1_TIPO BetWeen '" + Mv_Par02 + "' And '" + Mv_Par03 + "'"
+
+Return cRet

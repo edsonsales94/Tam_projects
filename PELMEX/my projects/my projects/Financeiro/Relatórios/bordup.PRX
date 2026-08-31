@@ -1,0 +1,214 @@
+#INCLUDE "rwmake.ch"
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³ BorDup   º Autor ³ AP5 IDE            º Data ³  17/12/02   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescricao ³ Codigo gerado pelo AP5 IDE.                                º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP5 IDE                                                    º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+User Function BorDup()
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Declaracao de Variaveis                                             ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	Local titulo        := "Bordero de Desconto / Vendor de Duplicatas"
+	Local Li            := 80
+	Local Cabec1        := ""
+	Local Cabec2        := ""
+	Local aOrd          := {}
+	Local cDesc1        := "Este programa tem como objetivo imprimir relatorio "
+	Local cDesc2        := "de acordo com os parametros informados pelo usuario."
+	Local cDesc3        := "Bordero de Desconto / Vendor de Duplicatas"
+	Local cPict         := ""
+	Local imprime       := .T.
+	Local cPerg         := PADR("BORDUP",LEN(SX1->X1_GRUPO))
+
+	Private cString
+	Private CbTxt       := ""
+	Private lEnd        := .F.
+	Private lAbortPrint := .F.
+	Private limite      := 132
+	Private tamanho     := "M"
+	Private nomeprog    := "BORDUP"
+	Private nTipo       := 15
+	Private aReturn     := { "Zebrado", 1, "Administracao", 2, 2, 1, "", 1}
+	Private nLastKey    := 0
+	Private cbtxt       := Space(10)
+	Private cbcont      := 00
+	Private CONTFL      := 01
+	Private m_pag       := 01
+	Private wnrel       := "BORDUP  "
+	Private cString     := "SE1"
+
+	Pergunte(cPerg,.F.)
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Variaveis utilizadas para parametros                         ³
+	//³ mv_par01            // Numero do Bordero                     ³
+	//³ mv_par02            // Taxa Financeira                       ³
+	//³ mv_par03            // Taxa Cobranca                         ³
+	//³ mv_par04            // Lof / Loc (Dia)                       ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Monta a interface padrao com o usuario...                           ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	wnrel := SetPrint(cString,NomeProg,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.T.,aOrd,.T.,Tamanho,,.T.)
+
+	If nLastKey == 27
+		Return
+	Endif
+
+	SetDefault(aReturn,cString)
+
+	If nLastKey == 27
+		Return
+	Endif
+
+	nTipo := If(aReturn[4]==1,15,18)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Processamento. RPTSTATUS monta janela com a regua de processamento. ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	RptStatus({|| RunReport(Cabec1,Cabec2,Titulo,Li) },Titulo)
+Return
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºFun‡„o    ³RUNREPORT º Autor ³ AP5 IDE            º Data ³  17/12/02   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDescri‡„o ³ Funcao auxiliar chamada pela RPTSTATUS. A funcao RPTSTATUS º±±
+±±º          ³ monta a janela com a regua de processamento.               º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ Programa principal                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+Static Function RunReport(Cabec1,Cabec2,Titulo,Li)
+	aDrv := ReadDriver()
+	cCar := aDrv[aReturn[4]+2]
+	vSom := { 0, 0, 0, 0, 0, 0, 0}
+	vDia := { "Domingo", "Segunda-Feira", "Terca-Feira", "Quarta-Feira",;
+	"Quinta-Feira", "Sexta-Feira", "Sabado"}
+
+	dbSelectArea("SE1")
+	dbSetOrder(5)
+	dbSeek(XFILIAL("SE1")+mv_par01,.T.)
+	SetRegua(RecCount())
+	While ! Eof() .And. E1_NUMBOR == mv_par01 .And. XFILIAL("SE1") == E1_FILIAL
+
+		IncRegua()
+
+		If ! Empty(E1_BAIXA)
+			dbSkip()
+			Loop
+		Endif
+
+		dVencto  := DataValida(E1_VENCREA)
+		nDias    := If( dVencto > E1_DATABOR , dVencto - E1_DATABOR, 0)
+		nDespFin := (E1_VALOR * nDias * mv_par02) / 3000
+		nLofloc  := (E1_VALOR * nDias * mv_par04) / 100
+		nLiqDes  := E1_VALOR - nDespFin - mv_par03 - nLofloc
+
+		If Li >= 55
+			ImprTit(@Li)
+		Endif
+		@ li,002 PSAY E1_NUM
+		@ li,010 PSAY E1_VALOR Picture "@E 9,999,999.99"
+		@ li,024 PSAY dVencto
+		@ li,036 PSAY vDia[Dow(dVencto)]
+		@ li,051 PSAY nDias    Picture "@E 99999"
+		@ li,058 PSAY nDespFin Picture "@E 99,999.99"
+		@ li,069 PSAY mv_par03 Picture "@E 9999.99"
+		@ li,078 PSAY nLofloc  Picture "@E 9,999.99"
+		@ li,088 PSAY nLiqDes  Picture "@E 999,999.99"
+		li:=li+1
+		vSom[1] += E1_VALOR  ;  vSom[2] += nDias    ;  vSom[3] += nDespFin
+		vSom[4] += mv_par03  ;  vSom[5] += nLofloc  ;  vSom[6] += nLiqDes
+		vSom[7] ++
+
+		dbSkip()
+	Enddo
+	If vSom[1] <> 0
+		vSom[2] := vSom[2] / vSom[7]
+		li:=li+1
+		@ li,002 PSAY "Total"
+		@ li,010 PSAY vSom[1]  Picture "@E 9,999,999.99"
+		@ li,036 PSAY "Prazo Medio"
+		@ li,051 PSAY vSom[2]  Picture "@E 99999"
+		@ li,058 PSAY vSom[3]  Picture "@E 99,999.99"
+		@ li,069 PSAY vSom[4]  Picture "@E 9999.99"
+		@ li,078 PSAY vSom[5]  Picture "@E 9,999.99"
+		@ li,088 PSAY vSom[6]  Picture "@E 999,999.99"
+		li:=li+1
+		@ li,000 PSAY Repli("-",100)
+		li:=li+1
+		@ li,000 PSAY "RESUMO DESTA"
+		li:=li+1
+		@ li,000 PSAY "Total Titulos: "+Transform(vSom[1],"@E 999,999,999.99")
+		li:=li+1
+		@ li,000 PSAY "Desp. Financ.: "+Transform(vSom[3],"@E 999,999,999.99")
+		li:=li+1
+		@ li,000 PSAY "Tx. Cobranca : "+Transform(vSom[4],"@E 999,999,999.99")
+		li:=li+1
+		@ li,000 PSAY "lof / loc    : "+Transform(vSom[5],"@E 999,999,999.99")
+		li:=li+1
+		@ li,000 PSAY "Tf. Contrata.: "+Transform(  0    ,"@E 999,999,999.99")
+		li:=li+1
+		@ li,000 PSAY "Total Liquido: "+Transform(vSom[6],"@E 999,999,999.99")
+	Endif
+
+	If aReturn[5]==1
+		dbCommitAll()
+		SET PRINTER TO
+		OurSpool(wnrel)
+	Endif
+	MS_FLUSH()
+Return
+
+Static Function ImprTit(Li)
+	li     := 1
+	cB     := mv_par01
+	cF     := Str(mv_par02,6,2)
+	cC     := Str(mv_par03,6,2)
+	cL     := Str(mv_par04,8,6)
+	cData  := Dtoc(E1_DATABOR)
+	cBanco := Posicione("SA6",1,xFilial("SA6")+E1_PORTADO+E1_AGEDEP+E1_CONTA,"A6_NOME")
+
+	@ 00,000 PSAY &cCar
+	@ li,000 PSAY "+--------------------------------------------------------------------------------------------------+"
+	li:=li+1
+	@ li,000 PSAY "|                                                                                                  |"
+	li:=li+1
+	@ li,000 PSAY "|           B O R D E R O   D E S C O N T O   /  V E N D O R   D E   D U P L I C A T A S           |"
+	li:=li+1
+	@ li,000 PSAY "|                                                                                                  |"
+	li:=li+1
+	@ li,000 PSAY "+--------------------------------------------------------------------------------------------------+"
+	li:=li+1
+	@ li,000 PSAY "| Numero: "+cB+"     Data: "+cData +"      Banco: "+  cBanco      +                    "           |"
+	li:=li+1
+	@ li,000 PSAY "+--------------------------------------------------------------------------------------------------+"
+	li:=li+1
+	@ li,000 PSAY "| Tf. Contrat.:   0,00  | Taxa Financ: "+cF+"  | Taxa Cobranca: "+cC+"  |  lof/loc (Dia): "+ cL +" |"
+	li:=li+1
+	@ li,000 PSAY "|--------------------------------------------------------------------------------------------------|"
+	li:=li+1
+	@ li,000 PSAY "| Duplic  Valor Titulo  Vencimento  Dia da Semana   Dias  Desp. Fin  Tx. Cob   lof/loc   Liq. Desc |"
+	li:=li+1
+	@ li,000 PSAY "+--------------------------------------------------------------------------------------------------+"
+	li:=li+1 //      xxxxxx  9,999,999.99  99/99/9999  Segunda-Feira  99999  99.999,99  9999,99  9.999,99  999,999.99
+	//    0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999
+	//    0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+Return

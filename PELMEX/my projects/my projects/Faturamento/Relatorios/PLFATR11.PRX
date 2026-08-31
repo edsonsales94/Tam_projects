@@ -1,0 +1,400 @@
+#INCLUDE "LOJR780.CH"
+#INCLUDE "PROTHEUS.CH"
+#Include "TopConn.CH"
+#Include "TOTVS.CH" 
+/*___________________________________________________________________________________
+¦ Função    ¦ PLFATR11   ¦ Autor ¦ Ulisses Junior           ¦ Data ¦ 02/06/2008     ¦
++-----------+------------+-------+--------------------------+------+----------------+
+¦ Descriçäo ¦ Ranking de produtos por preço ou por quantidade					    ¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+User Function PlFatR11()
+
+	Local aArea := GetArea()
+	LOCAL cDesc1  := "Este programa ir  emitir um Ranking de Produtos por "
+	LOCAL cDesc2  := "Preco ou Quantidade em Moeda Corrente. "
+	LOCAL cDesc3  := ""
+	LOCAL cString := "SD2"
+	Local aHelpPor:= {}
+	Local aHelpEng:= {}
+	Local aHelpSpa:= {}
+
+	// Zebrado / Administracao
+	PRIVATE aReturn := { STR0003, 1, STR0004, 1, 2, 1, "",1 }
+	PRIVATE nomeprog:="PLFATR11"
+	PRIVATE cPerg	:=PadR("FATR11",Len(SX1->X1_GRUPO)),nLastKey:=0
+	PRIVATE Tamanho :=" ",nTamanho
+	PRIVATE wnrel
+	PRIVATE titulo  := "RANKING DE PRODUTOS"
+
+	ValidPerg()
+	Pergunte(cPerg,.F.)
+
+	wnrel := "PLFATR11"
+	wnrel := SetPrint(cString,wnrel,cPerg,@titulo,cDesc1,cDesc2,cDesc3,.F.,"")
+
+	If  nLastKey = 27
+		Return
+	Endif
+
+	nTamanho:=IIF(aReturn[4]==1,Getmv("MV_COMP"),Getmv("MV_NORM"))
+
+	SetDefault(aReturn,cString)
+	If nLastKey = 27
+		Return
+	Endif
+
+	RptStatus({|lEnd| PlFatR11a(@lEnd,wnRel,cString)},Titulo)
+
+	RestArea( aArea )
+Return Nil
+
+/*___________________________________________________________________________________
+¦ Função    ¦ PLFATR11a  ¦ Autor ¦ Ulisses Junior           ¦ Data ¦ 02/06/2008     ¦
++-----------+------------+-------+--------------------------+------+----------------+
+¦ Descriçäo ¦ Impressão do Ranking de Produtos por Preço ou por Quantidade		    ¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function PlFatR11a(lEnd,wnRel,cString)
+	Local Cabec1 	:= ""				// Cabecalho 1
+	Local Cabec2	:= ""				// Cabecalho 2
+	Local aCampos	:= {}				// Campos do arquivo de vendas
+	Local aCpoDev	:= {}				// Campos do arquivo de devolucoes
+	Local aTam		:= {}				// Tamanho do Campo
+	Local nTotVal 	:= 0				// Acumulador do total em valor por produto
+	Local nTotQtd 	:= 0				// Acumulador do total em quantidade por produto
+	Local nPReg 	:= 1				// Contador impressao
+	Local cArqTra	:= ""				// Arquivo de trabalho para impressao
+	Local cArqTra1	:= ""               // Resultado da Query de Vendas
+	Local cArqTra2	:= ""				// Indice para o arquivo de impressao
+	Local cArqTra3	:= ""				// Indice para o arquivo de impressao
+	Local cArqTDev	:= ""				// Resultado da Query de Devolucoes
+	Cabec1 := STR0006  // Codigo do Produto       Descricao do Produto                                      Quantidade    Un                 Valor
+	Cabec2 := ""
+
+	///			1			 2 		  3			4			 5 		  6			7			 8 		  9			1			 2 		  3
+	///1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+	//"Clas  Cod. Produto            Descricao do Produto                              Quantidade       Un                 Valor"
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Variaveis utilizadas para Impressao do Cabecalho e Rodape	 ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	cbtxt 	:= SPACE(10)
+	cbcont	:= 0
+	li 		:= 80
+	m_pag 	:= 1
+
+	// PRECO / QUANTIDADE
+	If (mv_par07 == 1)
+		titulo := titulo + " - " + STR0007
+	Else
+		titulo := titulo + " - " + STR0008
+	EndIf
+	titulo += " - PERIODO DE "+dtoc(mv_par03)+" A "+dtoc(mv_par04)
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Gera arquivo de Trabalho											  	  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	aCampos := {}
+	aTam:=TamSX3("B1_COD")
+	AADD(aCampos,{"COD" ,"C",aTam[1],aTam[2]})
+	aTam:=TamSX3("B1_DESC")
+	AADD(aCampos,{"DESCRI" ,"C",aTam[1],aTam[2]})
+	aTam:=TamSX3("B1_GRUPO")
+	AADD(aCampos,{"GRUPO" ,"C",aTam[1],aTam[2]})
+	aTam:=TamSX3("D2_QUANT")
+	AADD(aCampos,{"QUANT" ,"N",aTam[1] + 4,aTam[2]})
+	aTam:=TamSX3("D2_TOTAL")
+	AADD(aCampos,{"VALOR" ,"N",aTam[1] + 4,aTam[2]})
+	cArqTra1 := CriaTrab(aCampos,.T.)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Considera devolucoes.³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	If (mv_par09 == 1)
+		aCpoDev := {}
+		aTam := TamSX3("D1_COD")
+		AAdd(aCpoDev, {"COD","C",aTam[1],aTam[2]} )
+		aTam:=TamSX3("B1_DESC")
+		AADD(aCpoDev,{"GRUPO" ,"C",aTam[1],aTam[2]})
+		aTam:=TamSX3("B1_GRUPO")
+		AADD(aCpoDev,{"DESCRI" ,"C",aTam[1],aTam[2]})
+		aTam := TamSX3("D1_QUANT")
+		AAdd(aCpoDev, {"QTD_DEV","N",aTam[1],aTam[2]} )
+		aTam := TamSX3("D1_TOTAL")
+		AAdd(aCpoDev, {"VLR_DEV","N",aTam[1],aTam[2]} )
+		cArqTDev := CriaTrab(aCpoDev,.T.)
+	EndIf
+
+	cQuery := "SELECT "
+	cQuery += "SB1.B1_COD COD,"
+	cQuery += "SB1.B1_DESC DESCRI,"
+	If Mv_Par10 == 1
+		cQuery += "SB1.B1_GRUPO GRUPO,"
+	End If
+	cQuery += "SUM(SD2.D2_QUANT) QUANT,"
+	cQuery += "SUM(SD2.D2_TOTAL+SD2.D2_VALIPI) VALOR "
+
+	cQuery += "FROM "
+	cQuery += RetSqlName("SD2") + " SD2, "
+	cQuery += RetSqlName("SF4") + " SF4, "
+	cQuery += RetSqlName("SB1") + " SB1 "
+	cQuery += "WHERE "
+
+	cQuery += "SD2.D2_FILIAL ='" + xFilial( "SD2" ) + "' "
+	cQuery += "AND SD2.D2_EMISSAO >= '"+DToS(mv_par03)+"' "
+	cQuery += "AND SD2.D2_EMISSAO <= '"+DToS(mv_par04)+"' "
+	cQuery += "AND SD2.D2_COD >= '" + mv_par05 + "' "
+	cQuery += "AND SD2.D2_COD <= '" + mv_par06 + "' "
+	cQuery += "AND SF4.F4_DUPLIC  =  'S' "
+	cQuery += "AND SD2.D_E_L_E_T_ <> '*' "
+	cQuery += "AND SF4.D_E_L_E_T_ <> '*' "
+	cQuery += "AND SB1.D_E_L_E_T_ <> '*' "
+	cQuery += "AND SD2.D2_TES = SF4.F4_CODIGO "
+	cQuery += "AND '"+ xFilial( "SF4" ) + "' = SF4.F4_FILIAL "
+	cQuery += "AND SB1.B1_GRUPO >= '" + mv_par01 + "' "
+	cQuery += "AND SB1.B1_GRUPO <= '" + mv_par02 + "' "
+	cQuery += "AND SD2.D2_COD = SB1.B1_COD "
+	cQuery += "AND '"+ xFilial( "SB1" ) + "' = SB1.B1_FILIAL "
+
+	If MV_Par10 == 1
+		cQuery += "GROUP BY SD2.D2_COD, SB1.B1_COD,SB1.B1_DESC,SB1.B1_GRUPO "
+		cQuery += "ORDER BY GRUPO, COD"
+	Else
+		cQuery += "GROUP BY SD2.D2_COD, SB1.B1_COD,SB1.B1_DESC "
+		cQuery += "ORDER BY COD"
+	End If
+
+	cQuery := ChangeQuery( cQuery )
+
+	dbUseArea( .T., "TOPCONN", TCGENQRY(,,cQuery),"QVDA", .F., .T.)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Prepara o arquivo temporario³
+	//³para Impressao do Relatorio.³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	cArqTra  := CriaTrab(aCampos,.T.)
+	dbUseArea(.T.,,cArqTra,"TRB",.T.,.F.)
+
+	While !QVDA->(Eof())
+
+		Reclock("TRB",.T.)
+		TRB->COD	:= QVDA->COD
+		TRB->DESCRI	:= QVDA->DESCRI
+		If Mv_Par10 == 1
+			TRB->GRUPO	:= QVDA->GRUPO
+		End If
+		TRB->QUANT	:= QVDA->QUANT
+		TRB->VALOR	:= QVDA->VALOR
+		MsUnlock()
+
+		QVDA->(dbSkip())
+	End
+
+	QVDA->(dbCloseArea())
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Considera as devolucoes para a montagem do ranking.³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If (mv_par09 == 1)
+		cQuery := "SELECT "
+		cQuery += "SD1.D1_COD COD, "
+		cQuery += "SB1.B1_DESC DESCRI, "
+		If Mv_Par10 == 1
+			cQuery += "SB1.B1_GRUPO GRUPO, "
+		End If
+		cQuery += "SUM(SD1.D1_QUANT) QTD_DEV, "
+		cQuery += "SUM(SD1.D1_TOTAL + SD1.D1_VALIPI) VLR_DEV "
+		cQuery += "FROM "
+		cQuery += RetSqlName("SD1") + " SD1, "
+		cQuery += RetSqlName("SB1") + " SB1 "
+		cQuery += "WHERE SD1.D1_FILIAL = '" + xFilial("SD1") + "' "
+		cQuery += "AND SD1.D1_COD BETWEEN '" + mv_par05 + "' AND '" + mv_par06 + "' "
+		cQuery += "AND	SD1.D1_COD	= SB1.B1_COD "
+		cQuery += "AND SD1.D1_EMISSAO BETWEEN '" + DToS(mv_par03) + "' AND '" + DToS(mv_par04) + "' "
+		cQuery += "AND SB1.B1_GRUPO >= '" + mv_par01 + "' "
+		cQuery += "AND SB1.B1_GRUPO <= '" + mv_par02 + "' "
+		cQuery += "AND SD1.D1_TIPO	= 'D' "
+		cQuery += "AND SD1.D_E_L_E_T_ <> '*' "
+
+		If Mv_Par10 == 1
+			cQuery += "GROUP BY SD1.D1_COD, SB1.B1_DESC, SB1.B1_GRUPO "
+			cQuery += "ORDER BY SB1.B1_GRUPO, SD1.D1_COD "
+		Else
+			cQuery += "GROUP BY SD1.D1_COD, SB1.B1_DESC "
+			cQuery += "ORDER BY SD1.D1_COD "
+		End If
+
+		cQuery := ChangeQuery( cQuery )
+
+		dbUseArea( .T., "TOPCONN", TCGENQRY(,,cQuery),cArqTDev, .F., .T.)
+	EndIf
+
+	If (mv_par09 == 1)
+
+		dbSelectArea("TRB")
+		cArqTra2 := Substr(cArqTra,1,7) + "2"
+		If Mv_Par10 == 1
+			IndRegua("TRB",cArqTra2,"GRUPO+COD",,,STR0011) //Classificando
+		Else
+			IndRegua("TRB",cArqTra2,"COD",,,STR0011) //Classificando
+		End If
+
+		dbSelectArea(cArqTDev)
+
+		While !(cArqTDev)->(Eof())
+
+			TRB->(dbSetOrder(1))
+
+			If TRB->(dbSeek(If (Mv_Par10 == 1, (cArqTDev)->GRUPO, "") + (cArqTDev)->COD))
+				If ((TRB->QUANT - (cArqTDev)->QTD_DEV) > 0) .AND. ((TRB->VALOR - (cArqTDev)->VLR_DEV) > 0)
+					Reclock("TRB",.F.)
+					REPLACE TRB->QUANT	With TRB->QUANT - (cArqTDev)->QTD_DEV
+					REPLACE TRB->VALOR	With TRB->VALOR - (cArqTDev)->VLR_DEV
+					TRB->(MsUnlock())
+				EndIf
+			EndIf
+
+			dbSelectArea(cArqTDev)
+			(cArqTDev)->(dbSkip())
+		End
+	EndIf
+
+	cArqTra3 := Substr(cArqTra,1,7) + "3"
+	If (mv_par07 = 2)
+		If Mv_Par10 == 1
+			IndRegua("TRB",cArqTra3,"GRUPO+Descend(Str(QUANT,9,3))",,,STR0011) //Classificando
+		Else
+			IndRegua("TRB",cArqTra3,"Descend(Str(QUANT,9,3))",,,STR0011) //Classificando
+		End If
+	Else
+		If Mv_Par10 == 1
+			IndRegua("TRB",cArqTra3,"GRUPO+Descend(STR(VALOR,11,2))",,,STR0011) // Classificando
+		Else
+			IndRegua("TRB",cArqTra3,"Descend(STR(VALOR,11,2))",,,STR0011) // Classificando
+		End If
+	EndIf
+
+	SetRegua(RecCount())
+
+	cGrupo := ""
+	nPReg := 1
+
+	While !TRB->(Eof())
+
+		IncRegua()
+
+		If (mv_par07 = 1 .AND. TRB->VALOR = 0) .OR. (mv_par07 = 2 .AND. TRB->QUANT = 0)
+			TRB->(dbSkip())
+			Loop
+		EndIf
+
+		If ( mv_par08 > 0 .AND. nPReg > mv_par08 )
+			Exit
+		EndIf
+
+		IF lEnd
+			@PROW()+1,001 PSAY STR0009   // CANCELADO PELO OPERADOR
+			Exit
+		Endif
+
+		IF li > 55
+
+			cabec(titulo,cabec1,cabec2,nomeprog,tamanho,nTamanho)
+
+			If Mv_Par10 == 1
+				li--
+			End If
+
+		ENDIF
+
+		If Mv_Par10 == 1
+
+			If cGrupo # TRB->GRUPO
+				li+=2
+				@Li, 000 Psay "GRUPO : "+TRB->GRUPO
+				cGrupo := TRB->GRUPO
+				Li+=2
+				nPReg := 1
+			EndIf
+
+		End If
+
+		@ li,000 PSAY Str(nPReg,5)+' '+SubsTr(TRB->COD,1,23)
+
+		SB1->(dbSetOrder(1))
+		SB1->(dbSeek(xFilial("SB1")+TRB->COD))
+		@ li,025 PSAY SubsTr(SB1->B1_DESC,1,50)
+
+		@ li,078 PSAY TRB->QUANT picture PesqPict( "SD2" , "D2_QUANT",14)
+		nTotQtd += TRB->QUANT
+		@ li,097 PSAY SB1->B1_UM
+		@ li,108 PSAY TRB->VALOR picture PesqPict( "SD2" , "D2_TOTAL",14)
+		nTotVal += TRB->VALOR
+		li++
+
+		TRB->(dbSkip())
+		nPReg++
+	End
+
+	PlFatr11b(li,nTotQtd,nTotVal,titulo,cabec1,cabec2,nomeprog,tamanho,nTamanho)
+
+	IF li <> 80
+		roda(cbcont,cbtxt,tamanho)
+	EndIF
+
+	TRB->(dbCloseArea())
+
+	cDelArq := cArqTra+GetDBExtension()
+	FERASE(cDelArq)
+
+	cDelArq := SubStr(cArqTra,1,7)+"*"+OrdBagExt()
+	FERASE(cDelArq)
+
+	Set Filter To
+	Set Device To Screen
+	If aReturn[5] = 1
+		Set Printer TO
+		dbcommitAll()
+		OurSpool(wnrel)
+	Endif
+	MS_FLUSH()
+
+/*___________________________________________________________________________________
+¦ Função    ¦ PLFATR11b  ¦ Autor ¦ Ulisses Junior           ¦ Data ¦ 02/06/2008     ¦
++-----------+------------+-------+--------------------------+------+----------------+
+¦ Descriçäo ¦ Totalizador por preço e por Quantidade                      		    ¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function PlFatR11b(li,nTotQtd,nTotVal,titulo,cabec1,cabec2,nomeprog,tamanho,nTamanho)
+	Local nLargura
+	li++
+	IF li > 55
+		cabec(titulo,cabec1,cabec2,nomeprog,tamanho,nTamanho)
+		li++
+	ENDIF
+	nLargura := Iif(Tamanho = "P",80,Iif(Tamanho = "G",220,132))
+	@ li,000 PSAY replicate("_",nLargura)
+	li++
+	@ li,000 PSAY STR0010
+	li++
+	@ li,078 PSAY nTotQtd picture PesqPict( "SD2" , "D2_QUANT",14)
+	@ li,108 PSAY nTotVal picture PesqPict( "SD2" , "D2_TOTAL",14)
+	li++
+Return
+
+/*___________________________________________________________________________________
+¦ Função    ¦ ValidPerg  ¦ Autor ¦ Ulisses Junior           ¦ Data ¦ 02/06/2008     ¦
++-----------+------------+-------+--------------------------+------+----------------+
+¦ Descriçäo ¦ Totalizador por preço e por Quantidade                      		    ¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function ValidPerg()
+	u_InPutSX1(cPerg,"01","Do Grupo           ?","","","mv_ch1","C",04,0,0,"G","","","","","mv_par01")
+	u_InPutSX1(cPerg,"02","Ate o Grupo        ?","","","mv_ch2","C",04,0,0,"G","","","","","mv_par02")
+	u_InPutSX1(cPerg,"03","Da Data            ?","","","mv_ch3","D",08,0,0,"G","","","","","mv_par03")
+	u_InPutSX1(cPerg,"04","Ate a Data         ?","","","mv_ch4","D",08,0,0,"G","","","","","mv_par04")
+	u_InPutSX1(cPerg,"05","Do Produto         ?","","","mv_ch5","C",15,0,0,"G","","SB1","","","mv_par05")
+	u_InPutSX1(cPerg,"06","Ate o Produto      ?","","","mv_ch6","C",15,0,0,"G","","SB1","","","mv_par06")
+	u_InPutSx1(cPerg,"07","Ranking por        ?","","","mv_ch7","N",01,0,0,"C","","","","","mv_par07","Valor","","","","Quantidade")
+	u_InPutSX1(cPerg,"08","Classificacao      ?","","","mv_ch8","N",05,0,0,"G","","","","","mv_par08")
+	u_InPutSx1(cPerg,"09","Considera devolucao?","","","mv_ch9","N",01,0,0,"C","","","","","mv_par09","Sim","","","","Nao")
+	u_InPutSx1(cPerg,"10","Quebra por Grupo   ?","","","mv_chA","N",01,0,0,"C","","","","","mv_par10","Sim","","","","Nao")
+Return

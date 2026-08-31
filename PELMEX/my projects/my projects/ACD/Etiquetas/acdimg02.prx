@@ -1,0 +1,72 @@
+/*
+Padrao Zebra
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³IMG02     ºAutor  ³Sandro Valex        º Data ³  19/06/01   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³Ponto de entrada referente a imagem de identificacao da     º±±
+±±º          ³endereco                                                    º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP5                                                        º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/     
+Static nLinMin:=02
+Static nColMin:=02
+Static nSpace :=10
+Static nLinMax:=85
+Static nColMax:=150
+
+User Function Img02 // imagem de etiqueta de ENDERECO
+	Local cCodigo
+	Local cCodID := paramixb[1]
+	If cCodID # NIL
+		cCodigo := cCodID
+	ElseIf Empty(SBE->BE_IDETIQ)
+		If Usacb0('02')
+			cCodigo := CBGrvEti('02',{SBE->BE_LOCALIZ,SBE->BE_LOCAL})
+			RecLock("SBE",.F.)
+			SBE->BE_IDETIQ := cCodigo
+			MsUnlock()
+		Else
+			cCodigo :=SBE->(BE_LOCAL+BE_LOCALIZ)
+		EndIf
+	Else
+		If Usacb0('02')
+			cCodigo := SBE->BE_IDETIQ
+		Else
+			cCodigo :=SBE->(BE_LOCAL+BE_LOCALIZ)
+		EndIf
+	Endif
+	cCodigo := Alltrim(cCodigo)
+	MSCBLOADGRF("TESTE.GRF")
+	MSCBBEGIN(1,6)
+
+	//Grade principal etiqueta
+	aBox1:={nColMin,nLinMin,nColMax,nLinMax}
+	//MSCBBOX(aBox1[1],aBox1[2],aBox1[3],aBox1[4],17)
+
+	//	If cEmpAnt == "10"
+	//MSCBSAY((aBox1[3]/2)-(nSpace*2),aBox1[2]+nSpace,'PELMEX DA AMAZÔNIA',"N","0","075,055")
+
+	//Linha cabeçalho + Logo
+	aLine1:={aBox1[1],aBox1[2]+(nSpace*2)+3,aBox1[3]}
+	//MSCBLineH(aLine1[1],aLine1[2],aLine1[3],17)
+
+	MSCBGRAFIC(2,3,"TESTE")               
+
+	MSCBSAY(aLine1[1]+(nSpace*5),10,AllTrim(cCodigo),"N","0","125,105")
+
+	/*MSCBSAY(33,08, AllTrim(SBE->BE_LOCALIZ), "N", "0", "032,035")
+	MSCBSAY(05,14,"DESCRICAO","N","A","012,008")
+	MSCBSAY(05,17,SBE->BE_DESCRIC,"N", "0", "020,030")
+	*/                                                                       
+	//	MSCBSAYBAR((aBox1[3]/2)-(nSpace*3),aLine2[2]+(nSpace*3)-2,cCodigo,"N",cTipoBar,15,.F.,.T.,.F.,,4,1,.F.,.F.,"1",.T.)
+
+	MSCBSAYBAR((aBox1[3]/2)-(nSpace*4)-5,aLine1[2]+(nSpace),cCodigo,"N","MB07",15,.F.,.T.,.F.,,4,1,.F.,.F.,"1",.T.)
+
+	MSCBInfoEti("Endereco","30X100")
+	MSCBEND()
+Return .F.

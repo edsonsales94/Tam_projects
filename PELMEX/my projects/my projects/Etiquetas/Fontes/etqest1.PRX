@@ -1,0 +1,101 @@
+#include "rwmake.ch"   // incluido pelo assistente de conversao do AP6 IDE em 10/07/03
+
+User Function ETQEST1()
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+	//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+	//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+	//³ Incluido pelo assistente de conversao do AP6 IDE                    ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	SetPrvt("LCOND,MPRODUTO,MCODIGO,MCOR,MNROETIQ")
+
+	/*/
+	ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+	±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+	±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+	±±³Fun‡„o    ³ ETQPEL   ³ Autor ³ Jucimar Souza         ³ Data ³ 25/11/97 ³±±
+	±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+	±±³Descri‡„o ³ Gera Etiqueta de Codigo de Barras para Imp. Termica        ³±±
+	±±³          ³ Gravando os codigo que foram gerados para emissao de relat.³±±
+	±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+	±±³ Uso      ³ Generico                              alteracao: 07/04/98  ³±±
+	±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+	±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+	ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+	/*/
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Define Variaveis  ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	lCond := .T.
+
+	mProduto := Space(25)
+	mCodigo  := Space(6)
+	mCor     := Space(2)
+
+	While lCond
+		mNroEtiq := 0
+
+		@ 0,0 TO 250,475 DIALOG oECol TITLE "Impressao de Etiquetas - Descricao"
+
+		@ 10,005 Say "Produto"
+		@ 25,005 Say "Codigo"
+		@ 40,005 Say "Cor"
+		@ 70,005 Say "N. de Etiquetas"
+
+		@ 10,055 GET mProduto  Picture "@!" SIZE 100,15
+		@ 25,055 GET mCodigo   Picture "@!" SIZE 30,15
+		@ 40,055 GET mCor      Picture "@!" SIZE 30,15
+		@ 70,055 GET mNroEtiq  Picture "@E 9999" Valid mNroEtiq > 0
+
+		@ 100,070 BMPBUTTON TYPE 01 ACTION (Imprime() ,Close(oEcol))
+		@ 100,145 BMPBUTTON TYPE 02 ACTION (lCond:=.F.,Close(oEcol))
+
+		ACTIVATE DIALOG oECol CENTER
+	Enddo
+
+Return
+
+
+Static Function Imprime()
+	Local ContaEtq, cPorta := ""
+
+	ContaEtq := 1
+	cPorta := "COM2:9600,n,8,2"
+	MsCbPrinter("ALLEGRO",cPorta,,,.F.,,,,)
+	MsCbChkStatus(.F.)
+
+	While ContaEtq <= mNroEtiq
+		// Incrementa o No. do Chassis e Imprime
+
+		MsCbBegin(1,6,106.5)
+
+		MSCBBox(04,04,23,99,2,"B")
+		MSCBLineV(14,04,99,2,"B")
+		MSCBLineH(14,65,15,2,"B")
+
+		MsCbSay(11,06,"PRODUTO : "+mProduto,"B","4","01")
+		MsCbSay(21,06,"CODIGO. : "+mCodigo,"B","4","01")
+		MsCbSay(21,72,"COR : "+mCor,"B","4","01")
+
+		If (ContaEtq+1) <= mNroEtiq
+			MSCBBox(32,04,51,99,2,"B")
+			MSCBLineV(42,04,99,2,"B")
+			MSCBLineH(42,65,15,2,"B")
+
+			MsCbSay(39,06,"PRODUTO : "+mProduto,"B","4","01")
+			MsCbSay(49,06,"CODIGO. : "+mCodigo,"B","4","01")
+			MsCbSay(49,72,"COR : "+mCor,"B","4","01")
+
+			ContaEtq++
+		Endif
+
+		MsCbEnd()
+
+		ContaEtq++
+	Enddo
+
+	MsCbClosePrinter()
+Return

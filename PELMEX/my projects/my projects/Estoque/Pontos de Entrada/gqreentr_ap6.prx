@@ -1,0 +1,217 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 25/08/00
+
+User Function ()        // incluido pelo assistente de conversao do AP5 IDE em 25/08/00
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP5 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("_CALIAS,_CRECNO,MDOC,MSERIE,MFORNECE,MLOJA")
+SetPrvt("MBRUTO,CTPPRD,MCF,MPICM,MTES,MBASE")
+SetPrvt("MPROV,MPGPA,MNORMAL,")
+
+  _cAlias:=Alias()
+  _crecno:=recno()
+
+  dbSelectArea("SF1")
+  mDoc    := SF1->F1_DOC
+  mSerie  := SF1->F1_SERIE
+  mFornece:= SF1->F1_FORNECE
+  mLoja   := SF1->F1_LOJA
+  mBruto  := 0
+
+
+  dbSelectArea("SD1")
+  dbSetOrder(1)
+  dbSeek(xFilial()+mDoc+mSerie+mFornece+mLoja)
+  cTpPrd := D1_TIPO
+  While ! eof() .and. mDoc == D1_DOC .and. mSerie == D1_SERIE .and. mFornece == D1_FORNECE .AND. mLoja == D1_LOJA
+      If ALLTRIM(D1_COD) <> "ZCAPA"
+         mCf  := SD1->D1_CF
+         mPicm:= SD1->D1_PICM
+         mTes := SD1->D1_TES
+      Endif
+      mBruto:=mBruto+SD1->D1_TOTAL
+      dbSkip()
+  Enddo
+
+  dbSelectArea("SF1")
+  Reclock("SF1")
+  SF1->F1_TES:= mTes
+  SF1->F1_CF := mCF
+  MsUnLock()
+
+  IF mTES == "212" .and. SF1->F1_DESCONT <> 0 .and. SF1->F1_DESPESA <> 0
+     Reclock("SF1")
+     mBase:=(SF1->F1_VALMERC+SF1->F1_FRETE+SF1->F1_DESPESA) 
+     SF1->F1_BASEICM:=mBase
+     SF1->F1_VALICM :=mBase*7/100
+     MsUnLock()
+     dbSelectArea("SF3")
+     dbSetOrder(4)
+     dbSeek(xfilial()+mFORNECE+mLOJA+mDOC+mSERIE)
+     Reclock("SF3")
+     SF3->F3_REPROC:="N"
+     SF3->F3_BASEICM:=mBase
+     SF3->F3_VALICM :=SF1->F1_VALICM
+     MsUnlock()
+  ENDIF
+
+  IF mTES == "131" .and. SF1->F1_DESCONT <> 0 
+     Reclock("SF1")
+     mBase:=(SF1->F1_BASEICM+SF1->F1_DESCONTO) 
+     SF1->F1_BASEICM:=mBase
+     SF1->F1_VALICM :=mBase*mPicm/100
+     MsUnLock()
+     dbSelectArea("SF3")
+     dbSetOrder(4)
+     dbSeek(xfilial()+mFORNECE+mLOJA+mDOC+mSERIE)
+     Reclock("SF3")
+     SF3->F3_REPROC:="N"
+     SF3->F3_BASEICM:=mBase
+     SF3->F3_VALICM :=mBase*mPicm/100
+     MsUnlock()
+  ENDIF
+
+  IF mTES $ "211,212" .and. SF1->F1_DESPESA <> 0 .and. SF1->F1_DESCONT == 0
+     Reclock("SF1")
+     mBase:=mBruto
+     SF1->F1_BASEICM:=mBase
+     SF1->F1_VALICM :=mBase*mPicm/100
+     MsUnLock()
+     dbSelectArea("SF3")
+     dbSetOrder(4)
+     dbSeek(xfilial()+mFORNECE+mLOJA+mDOC+mSERIE)
+     Reclock("SF3")
+     SF3->F3_REPROC:="N"
+     SF3->F3_BASEICM:=mBase
+     SF3->F3_VALICM :=mBase*mPicm/100
+     MsUnlock()
+  ENDIF
+
+  IF mTES $ "211" .and. SF1->F1_DESCONT <> 0
+     Reclock("SF1")
+     mBase:=mBruto
+     SF1->F1_BASEICM:=mBase
+     SF1->F1_VALICM :=mBase*mPicm/100
+     MsUnLock()
+     dbSelectArea("SF3")
+     dbSetOrder(4)
+     dbSeek(xfilial()+mFORNECE+mLOJA+mDOC+mSERIE)
+     Reclock("SF3")
+     SF3->F3_REPROC:="N"
+     SF3->F3_BASEICM:=mBase
+     SF3->F3_VALICM :=mBase*mPicm/100
+     MsUnlock()
+  ENDIF
+
+  IF SD1->D1_TES == "194" 
+     Reclock("SF1")
+     SF1->F1_NOTCAP  := SF1->F1_VALBRUT-SF1->F1_BASEICM
+     MsUnLock()
+  ENDIF
+
+  dbSelectArea("SF3")
+  dbSetOrder(4)
+  dbSeek(xfilial()+mFORNECE+mLOJA+mDOC+mSERIE)
+  If .not. eof()
+    Reclock("SF3",.F.)
+    SF3->F3_TIPOP := cTpPrd
+    MsUnlock()
+  Endif
+  IF mTES == "151" .and. SF1->F1_DESCONT <> 0 
+     Reclock("SF1")
+     mBase:=(SF1->F1_BASEICM+SF1->F1_DESCONTO) 
+     SF1->F1_BASEICM:=mBase
+     SF1->F1_VALICM :=mBase*mPicm/100
+     MsUnLock()
+     dbSelectArea("SF3")
+     dbSetOrder(4)
+     dbSeek(xfilial()+mFORNECE+mLOJA+mDOC+mSERIE)
+     Reclock("SF3")
+     SF3->F3_REPROC:="N"
+     SF3->F3_BASEICM:=mBase
+     SF3->F3_VALICM :=mBase*mPicm/100
+     MsUnlock()
+  ENDIF
+
+
+    mProv:="N"
+    mPgPa:="N"
+    mNormal:="N"
+
+    dbSelectArea("SE2")
+    dbSetOrder(6)
+    dbSeek(xFilial()+mFornece+mLoja+mSerie+mDoc,.T.)
+    While ! eof() .and. mDoc == E2_NUM .and. mSerie == E2_PREFIXO .and. mFornece == E2_FORNECE .and. mLoja == E2_LOJA
+       IF mTes == "311"
+          Reclock("SE2")
+          //SE2->E2_ORIGEM:="FINA050"
+          SE2->E2_LA    := " "
+          Msunlock("")
+       ENDIF
+       if ALLTRIM(E2_TIPO) == "PR"
+          mProv:="S"
+       endif
+       if ALLTRIM(E2_TIPO) == "PA"
+          mPgPa:="S"
+       endif
+       if ALLTRIM(E2_TIPO) == "NF"
+          mNormal:="S"
+       endif
+       dbSkip()
+    Enddo
+
+    if mProv == "S" .and. mPgPa == "N"
+       dbSelectArea("SE2")
+       dbSetOrder(6)
+       dbSeek(xFilial()+mFornece+mLoja+mSerie+mDoc)
+       While ! eof() .and. mDoc == E2_NUM .and. mSerie == E2_PREFIXO .and. mFornece == E2_FORNECE .and. mLoja == E2_LOJA
+          IF ALLTRIM(E2_TIPO) == "PR"
+             MsgStop("O Titulo Provisorio sera Excluido!")
+             Reclock("SE2")
+             DELETE
+             MsUnlock()
+          ENDIF
+          dbSkip()
+       Enddo
+    endif
+
+    if mPgPa == "S" 
+       dbSelectArea("SE2")
+       dbSetOrder(6)
+       dbSeek(xFilial()+mFornece+mLoja+mSerie+mDoc)
+       While ! eof() .and. mDoc == E2_NUM .and. mSerie == E2_PREFIXO .and. mFornece == E2_FORNECE .and. mLoja == E2_LOJA
+          IF ALLTRIM(E2_ORIGEM) == "MATA100"
+             MsgStop("Os Titulos gerados via N.F.Entrada serao Excluidos!")
+             Reclock("SE2")
+             DELETE
+             MsUnlock()
+          ENDIF
+          dbSkip()
+       Enddo
+    endif
+
+
+  IF mTES == "311" 
+     Reclock("SF1")
+     SF1->F1_EMISSAO := DDATABASE
+     MsUnLock()
+     dbSelectArea("SF3")
+     dbSetOrder(4)
+     dbSeek(xfilial()+SF1->F1_FORNECE+SF1->F1_LOJA+SF1->F1_DOC+SF1->F1_SERIE)
+     Reclock("SF3")
+     SF3->F3_REPROC  :="N"
+     SF3->F3_EMISSAO := DDATABASE
+     MsUnlock()
+  ENDIF
+
+
+  dbSelectArea(_cAlias)
+  dbGoto(_crecno)
+
+// Substituido pelo assistente de conversao do AP5 IDE em 25/08/00 ==> __Return()
+Return()        // incluido pelo assistente de conversao do AP5 IDE em 25/08/00

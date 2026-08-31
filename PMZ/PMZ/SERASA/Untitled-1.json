@@ -1,0 +1,567 @@
+{
+    "reports": [
+        {
+            "reportName": "RELATORIO_INTERMEDIARIO_PF",
+            "registration": {
+                "documentNumber": "23427973115",
+                "consumerName": "SERGIO CARLOS FERREIRA",
+                "motherName": "BENEDITA MARIA FERREIRA",
+                "consumerGender": "M",
+                "birthDate": "1960-06-03",
+                "statusRegistration": "REGULAR",
+                "statusDate": "2026-06-03"
+            },
+            "negativeData": {
+                "pefin": {
+                    "pefinResponse": [
+                        {
+                            "occurrenceDate": "2026-07-02",
+                            "inclusionDate": "2026-07-20",
+                            "legalNatureId": "OO",
+                            "legalNature": "OUTRAS OPER",
+                            "contractId": "2026057176015",
+                            "creditorName": "EQUATORIAL ENERGIA GOIAS",
+                            "creditorBusinessId": "01543032000104",
+                            "amount": 557.47,
+                            "principal": true,
+                            "legalSquare": "",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "C955749215"
+                        },
+                        {
+                            "occurrenceDate": "2026-06-15",
+                            "inclusionDate": "2026-07-16",
+                            "legalNatureId": "DP",
+                            "legalNature": "DUPLICATA",
+                            "contractId": "0070047285301",
+                            "creditorName": "CONSIGAZ",
+                            "creditorBusinessId": "01597589000705",
+                            "amount": 81.17,
+                            "principal": true,
+                            "legalSquare": "",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "C952300870"
+                        },
+                        {
+                            "occurrenceDate": "2025-03-07",
+                            "inclusionDate": "2025-06-16",
+                            "legalNatureId": "OO",
+                            "legalNature": "OUTRAS OPER",
+                            "contractId": "44688946",
+                            "creditorName": "RED S/A",
+                            "creditorBusinessId": "67915785000101",
+                            "amount": 14655084.59,
+                            "principal": false,
+                            "legalSquare": "",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "C517313231"
+                        },
+                        {
+                            "occurrenceDate": "2024-08-02",
+                            "inclusionDate": "2024-12-11",
+                            "legalNatureId": "OO",
+                            "legalNature": "OUTRAS OPER",
+                            "contractId": "2024070545015",
+                            "creditorName": "EQUATORIAL ENERGIA GOIAS",
+                            "creditorBusinessId": "01543032000104",
+                            "amount": 218.69,
+                            "principal": true,
+                            "legalSquare": "",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "C322282706"
+                        }
+                    ],
+                    "summary": {
+                        "count": 4,
+                        "balance": 14655941.92,
+                        "firstOccurrence": "2024-08-02",
+                        "lastOccurrence": "2026-07-02"
+                    }
+                },
+                "refin": {
+                    "refinResponse": [
+                        {
+                            "occurrenceDate": "2025-11-20",
+                            "inclusionDate": "2025-12-08",
+                            "legalNatureId": "FI",
+                            "legalNature": "FINANCIAMENT",
+                            "contractId": "EMP264234.0",
+                            "creditorName": "SICOOB ENGECRED GO",
+                            "creditorBusinessId": "04388688000180",
+                            "amount": 102666.27,
+                            "principal": true,
+                            "legalSquare": "",
+                            "cadus": "C696288803"
+                        },
+                        {
+                            "occurrenceDate": "2025-10-30",
+                            "inclusionDate": "2025-11-11",
+                            "legalNatureId": "OO",
+                            "legalNature": "OUTRAS OPER",
+                            "contractId": "GR175975923001507223",
+                            "creditorName": "SANTANDER",
+                            "creditorBusinessId": "90400888000142",
+                            "amount": 10817.45,
+                            "city": "GOIANIA",
+                            "federalUnit": "GO",
+                            "principal": true,
+                            "legalSquare": "GNA",
+                            "cadus": "C664310637"
+                        },
+                        {
+                            "occurrenceDate": "2023-03-01",
+                            "inclusionDate": "2023-03-17",
+                            "legalNatureId": "FI",
+                            "legalNature": "FINANCIAMENT",
+                            "contractId": "EMP256128.0",
+                            "creditorName": "SICOOB ENGECRED GO",
+                            "creditorBusinessId": "04388688000180",
+                            "amount": 48719.24,
+                            "principal": false,
+                            "legalSquare": "",
+                            "cadus": "B644952404"
+                        },
+                        {
+                            "occurrenceDate": "2023-02-09",
+                            "inclusionDate": "2023-02-24",
+                            "legalNatureId": "EC",
+                            "legalNature": "EMPRES CONTA",
+                            "contractId": "001420366 2030123081",
+                            "creditorName": "SAFRA",
+                            "creditorBusinessId": "58160789000128",
+                            "amount": 567407.25,
+                            "city": "SAO PAULO",
+                            "federalUnit": "SP",
+                            "principal": false,
+                            "legalSquare": "SPO",
+                            "cadus": "B621109433"
+                        },
+                        {
+                            "occurrenceDate": "2023-01-09",
+                            "inclusionDate": "2023-01-20",
+                            "legalNatureId": "EC",
+                            "legalNature": "EMPRES CONTA",
+                            "contractId": "001408781 2029119475",
+                            "creditorName": "SAFRA",
+                            "creditorBusinessId": "58160789000128",
+                            "amount": 426134.66,
+                            "city": "SAO PAULO",
+                            "federalUnit": "SP",
+                            "principal": false,
+                            "legalSquare": "SPO",
+                            "cadus": "B576771131"
+                        }
+                    ],
+                    "summary": {
+                        "count": 15,
+                        "balance": 2835195.22,
+                        "firstOccurrence": "2022-03-14",
+                        "lastOccurrence": "2025-11-20"
+                    }
+                },
+                "notary": {
+                    "notaryResponse": [
+                        {
+                            "occurrenceDate": "2025-06-16",
+                            "inclusionDate": "2025-08-29",
+                            "amount": 16341.73,
+                            "officeNumber": "04",
+                            "city": "RONDONOPOLIS",
+                            "federalUnit": "MT",
+                            "legalSquare": "ROI",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "A444321853"
+                        },
+                        {
+                            "occurrenceDate": "2025-04-11",
+                            "inclusionDate": "2025-05-12",
+                            "amount": 47627.4,
+                            "officeNumber": "04",
+                            "city": "RONDONOPOLIS",
+                            "federalUnit": "MT",
+                            "legalSquare": "ROI",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "A429882752"
+                        }
+                    ],
+                    "summary": {
+                        "count": 2,
+                        "balance": 63969.13,
+                        "firstOccurrence": "2025-04-11",
+                        "lastOccurrence": "2025-06-16"
+                    }
+                },
+                "check": {
+                    "checkResponse": [],
+                    "summary": {
+                        "count": 0,
+                        "balance": 0.0
+                    }
+                },
+                "collectionRecords": {
+                    "collectionRecordsResponse": [],
+                    "summary": {
+                        "count": 0,
+                        "balance": 0.0
+                    }
+                }
+            },
+            "negativeSummary": {},
+            "facts": {
+                "stolenDocuments": {
+                    "stolenDocumentsResponse": [],
+                    "summary": {
+                        "count": 0,
+                        "balance": 0.0
+                    }
+                },
+                "judgementFilings": {
+                    "judgementFilingsResponse": [
+                        {
+                            "occurrenceDate": "2025-10-21",
+                            "legalSquare": "GNA",
+                            "legalNatureId": "EX",
+                            "legalNature": "EXECUCAO",
+                            "civilCourt": "1",
+                            "principal": false,
+                            "inclusionDate": "2025-10-21",
+                            "amount": 106414.48,
+                            "distributor": "1",
+                            "city": "GOIANIA",
+                            "state": "GO",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "A043404289"
+                        },
+                        {
+                            "occurrenceDate": "2025-06-25",
+                            "legalSquare": "RJO",
+                            "legalNatureId": "EX",
+                            "legalNature": "EXECUCAO",
+                            "civilCourt": "1",
+                            "principal": true,
+                            "inclusionDate": "2025-07-09",
+                            "amount": 0.0,
+                            "distributor": "1",
+                            "city": "RIO DE JANEIRO",
+                            "state": "RJ",
+                            "dispute": {
+                                "disputeIndicativeFlag": false
+                            },
+                            "cadus": "A042559557"
+                        }
+                    ],
+                    "summary": {
+                        "count": 2,
+                        "balance": 106414.48,
+                        "firstOccurrence": "2025-06-25",
+                        "lastOccurrence": "2025-10-21"
+                    }
+                },
+                "bankrupts": {
+                    "bankruptsResponse": [],
+                    "summary": {
+                        "count": 0,
+                        "balance": 0.0
+                    }
+                }
+            }
+        }
+    ],
+    "optionalFeatures": {
+        "registration": {
+            "addresses": [
+                {
+                    "addressLine": "AV  LUCIO COSTA 3300 AP 1602 BL 2",
+                    "addressTypeCode": 1,
+                    "addressTypeDescription": "Residencial",
+                    "addressNumber": "3300",
+                    "district": "BARRA DA TIJUCA",
+                    "zipCode": "22630010",
+                    "country": "BRA",
+                    "city": "RIO DE JANEIRO",
+                    "state": "RJ",
+                    "addressComplement": "AP 1602 BL 2",
+                    "updateDate": "2025-10-28"
+                },
+                {
+                    "addressLine": "R  T 48 1 AP 501",
+                    "addressTypeCode": 1,
+                    "addressTypeDescription": "Residencial",
+                    "addressNumber": "1",
+                    "district": "ST BUENO",
+                    "zipCode": "74210190",
+                    "country": "BRA",
+                    "city": "GOIANIA",
+                    "state": "GO",
+                    "addressComplement": "AP 501",
+                    "updateDate": "2024-06-04"
+                },
+                {
+                    "addressLine": "AV  INDEPENDENCIA 488",
+                    "addressTypeCode": 1,
+                    "addressTypeDescription": "Residencial",
+                    "addressNumber": "488",
+                    "district": "ST LESTE VILA NOVA",
+                    "zipCode": "74645010",
+                    "country": "BRA",
+                    "city": "GOIANIA",
+                    "state": "GO",
+                    "addressComplement": "",
+                    "updateDate": "2024-06-04"
+                }
+            ],
+            "phones": [
+                {
+                    "regionCode": 55,
+                    "areaCode": 62,
+                    "phoneNumber": 998538324,
+                    "phoneType": "Commercial Phone",
+                    "phoneTypeCode": 2,
+                    "updateDate": "2026-01-16"
+                },
+                {
+                    "regionCode": 55,
+                    "areaCode": 62,
+                    "phoneNumber": 996189628,
+                    "phoneType": "Commercial Phone",
+                    "phoneTypeCode": 2,
+                    "updateDate": "2026-03-18"
+                },
+                {
+                    "regionCode": 55,
+                    "areaCode": 62,
+                    "phoneNumber": 999489952,
+                    "phoneType": "Commercial Phone",
+                    "phoneTypeCode": 2,
+                    "updateDate": "2026-07-14"
+                }
+            ]
+        },
+        "score": {
+            "score": 217,
+            "scoreModel": "HSPN",
+            "range": "H",
+            "defaultRate": "31,90",
+            "codeMessage": 99,
+            "message": "ESPACO RESERVADO PARA MENSAGEM DA INSTITUICAO"
+        },
+        "facts": {
+            "inquiry": {
+                "inquiryResponse": [
+                    {
+                        "occurrenceDate": "2026-08-07",
+                        "segmentDescription": "ATACADO DURAVEL",
+                        "daysQuantity": 2
+                    },
+                    {
+                        "occurrenceDate": "2026-07-28",
+                        "segmentDescription": "ATACADO DURAVEL",
+                        "daysQuantity": 4
+                    },
+                    {
+                        "occurrenceDate": "2026-07-12",
+                        "segmentDescription": "SERVICOS DIVERSOS",
+                        "daysQuantity": 1
+                    },
+                    {
+                        "occurrenceDate": "2026-05-30",
+                        "segmentDescription": "SERVICOS DIVERSOS",
+                        "daysQuantity": 1
+                    },
+                    {
+                        "occurrenceDate": "2026-05-25",
+                        "segmentDescription": "SERVICOS DIVERSOS",
+                        "daysQuantity": 1
+                    }
+                ],
+                "summary": {
+                    "count": 5
+                }
+            },
+            "inquirySummary": {
+                "inquiryQuantity": {
+                    "actual": 1,
+                    "creditInquiriesQuantity": [
+                        {
+                            "inquiryDate": "2026-07",
+                            "occurrences": 2
+                        },
+                        {
+                            "inquiryDate": "2026-06",
+                            "occurrences": 0
+                        },
+                        {
+                            "inquiryDate": "2026-05",
+                            "occurrences": 2
+                        },
+                        {
+                            "inquiryDate": "2026-04",
+                            "occurrences": 1
+                        }
+                    ]
+                },
+                "summary": {
+                    "count": 5
+                }
+            }
+        },
+        "partner": {
+            "partnershipResponse": [
+                {
+                    "businessDocument": "28347710000101",
+                    "companyName": "JBF INVESTIMENTOS E PARTICIPACOES LTDA EM RECUPERACAO JUDICIAL",
+                    "participationPercentage": 100.0,
+                    "companyStatus": "ATIVA",
+                    "companyStatusCode": "2",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2024-09-08",
+                    "participationInitialDate": "2017-07-01",
+                    "hasNegative": true
+                },
+                {
+                    "businessDocument": "45378267000155",
+                    "companyName": "45 378 267 SERGIO CARLOS FERREIRA EM RECUPERACAO JUDICIAL",
+                    "participationPercentage": 100.0,
+                    "companyStatus": "ATIVA",
+                    "companyStatusCode": "2",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2025-05-15",
+                    "participationInitialDate": "2022-02-21",
+                    "hasNegative": true
+                },
+                {
+                    "businessDocument": "33104942000179",
+                    "companyName": "SRK RECAPAGENS LTDA",
+                    "participationPercentage": 100.0,
+                    "companyStatus": "ATIVA",
+                    "companyStatusCode": "2",
+                    "companyState": "MT",
+                    "companyStatusDate": "2025-12-15",
+                    "updateDate": "2025-12-13",
+                    "participationInitialDate": "2019-02-28",
+                    "hasNegative": true
+                },
+                {
+                    "businessDocument": "20450969000171",
+                    "companyName": "KALENA INVESTIMENTOS E PARTICIPACOES LTDA EM RECUPERACAO JUDICIAL",
+                    "participationPercentage": 99.0,
+                    "companyStatus": "ATIVA",
+                    "companyStatusCode": "2",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2024-09-08",
+                    "participationInitialDate": "2014-05-14",
+                    "hasNegative": true
+                },
+                {
+                    "businessDocument": "31860993000103",
+                    "companyName": "VS INVESTIMENTOS E PARTICIPACOES LTDA",
+                    "participationPercentage": 99.0,
+                    "companyStatus": "CANCELADA (NAO EXISTE MAIS P/A RF)",
+                    "companyStatusCode": "9",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-12-15",
+                    "updateDate": "2022-04-23",
+                    "participationInitialDate": "2018-10-01",
+                    "hasNegative": false
+                },
+                {
+                    "businessDocument": "02912668000130",
+                    "companyName": "SGO INVESTIMENTO E PARTICIPACOES LTDA EM RECUPERACAO JUDICIAL",
+                    "participationPercentage": 99.0,
+                    "companyStatus": "ATIVA",
+                    "companyStatusCode": "2",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2022-01-22",
+                    "participationInitialDate": "2011-02-18",
+                    "hasNegative": true
+                },
+                {
+                    "businessDocument": "13593869000139",
+                    "companyName": "SRS AGROPECUARIA LTDA EM RECUPERACAO JUDICIAL",
+                    "participationPercentage": 97.9,
+                    "companyStatus": "ATIVA",
+                    "companyStatusCode": "2",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2024-07-06",
+                    "participationInitialDate": "2011-04-14",
+                    "hasNegative": true
+                },
+                {
+                    "businessDocument": "37831591000159",
+                    "companyName": "A P PNEUS E PECAS LTDA",
+                    "participationPercentage": 95.0,
+                    "companyStatus": "CANCELADA (NAO EXISTE MAIS P/A RF)",
+                    "companyStatusCode": "9",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "1996-08-15",
+                    "participationInitialDate": "1995-03-21",
+                    "hasNegative": false
+                },
+                {
+                    "businessDocument": "43227280000188",
+                    "companyName": "TROPICAL ON ENERGIA LTDA",
+                    "participationPercentage": 60.0,
+                    "companyStatus": "INAPTA",
+                    "companyStatusCode": "0",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2022-12-13",
+                    "participationInitialDate": "2021-07-26",
+                    "hasNegative": false
+                },
+                {
+                    "businessDocument": "01714124000100",
+                    "companyName": "AUTO CENTRO PNEUS E SERVICOS LTDA",
+                    "participationPercentage": 50.0,
+                    "companyStatus": "CANCELADA (NAO EXISTE MAIS P/A RF)",
+                    "companyStatusCode": "9",
+                    "companyState": "GO",
+                    "companyStatusDate": "2025-05-10",
+                    "updateDate": "2022-01-29",
+                    "participationInitialDate": "1999-04-16",
+                    "hasNegative": false
+                }
+            ],
+            "summary": {
+                "count": 13,
+                "balance": 0.0
+            }
+        },
+        "attributes": {
+            "attributesResponse": [
+                {
+                    "scoring": 107650,
+                    "attributeModel": "HRP2",
+                    "codeMessage": 99,
+                    "message": "ESPACO RESERVADO PARA MENSAGEM DA INSTITUICAO"
+                }
+            ],
+            "estimatedIncome": {
+                "scoring": 107650,
+                "attributeModel": "HRP2",
+                "codeMessage": 99,
+                "message": "ESPACO RESERVADO PARA MENSAGEM DA INSTITUICAO"
+            }
+        }
+    }
+}

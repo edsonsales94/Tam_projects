@@ -42,7 +42,7 @@ User Function M460FIM()
 		// contar itens do pedido
 		nCntItens++
 
-		if SC6->C6_QTDVEN >= SD2->D2_QUANT
+		if SD2->D2_QUANT >= SC6->C6_QTDVEN 
 			// itens encerrado.
 			nEncer++
 

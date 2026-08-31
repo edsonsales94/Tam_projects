@@ -27,17 +27,19 @@ User Function MCCART1()
 
 	DbSelectArea('SZX')
 	SZX->(dbSetOrder(1))
-	cCondicao := "ZX_SEQ == '00001'"
+	cCondicao := "ZX_SEQ == '00001'" //
 
 	//Cria um browse para a SZX
 	oBrowse := FWMBrowse():New()
 	oBrowse:SetAlias('SZX')
+	oBrowse:SetUseFilter(.T.)
+	oBrowse:SetUseCaseFilter(.T.)
 	oBrowse:SetDescription(cTitulo)
 	oBrowse:SetFilterDefault(cCondicao)
 	oBrowse:Activate()
 
 	RestArea(aArea)
-	
+
 Return Nil
 
 
@@ -49,7 +51,7 @@ Static Function MenuDef()
 	ADD OPTION aRot TITLE 'Importar'		ACTION 'U_fnImpCart'	OPERATION 	6	ACCESS 0 //OPERATION 3
 	ADD OPTION aRot TITLE 'Tranfere Saldo'	ACTION 'U_TrfParam'		OPERATION 	6	ACCESS 0 //OPERATION 3
 	ADD OPTION aRot TITLE 'Visualizar' ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_VIEW  	ACCESS 0 //OPERATION 1
-	ADD OPTION aRot TITLE 'Incluir'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_UPDATE	ACCESS 0 //OPERATION 4
+	ADD OPTION aRot TITLE 'Incluir'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_INSERT	ACCESS 0 //OPERATION 4
 	ADD OPTION aRot TITLE 'Alterar'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_UPDATE	ACCESS 0 //OPERATION 4
 	ADD OPTION aRot TITLE 'Excluir'    ACTION 'VIEWDEF.MCCART1' OPERATION 	MODEL_OPERATION_DELETE	ACCESS 0 //OPERATION 5
 
@@ -60,6 +62,75 @@ Static Function ModelDef()
 	Local oModel      := NIL
 	Local oStruCab     := FWFormStruct(1, 'SZX', {|cCampo| AllTRim(cCampo) $ "ZX_CLIENTE;ZX_LOJA;ZX_NOMCLI;ZX_PERIODO;"})
 	Local oStruGrid := fModStruct()
+	Local aGat1 := {}
+	Local aGat2 := {}
+	Local nAtual
+
+	//Adicionando um gatilho, do codigo para data
+	aAdd(aGat1, FWStruTriggger( ;
+		"ZX_CLIENTE",;                              //Campo Origem
+	"ZX_LOJA",;                                 //Campo Destino
+	"U_GatSZX('ZX_CLIENTE', 'ZX_LOJA')",;					//Regra de Preenchimento
+	.F.,;                                       //Irá Posicionar?
+	"",;                                     	//Alias de Posicionamento
+	0,;                                         //Índice de Posicionamento
+	'',;										//Chave de Posicionamento
+	NIL,;                                       //Condição para execução do gatilho
+	"01");                                      //Sequência do gatilho
+	)
+	aAdd(aGat1, FWStruTriggger( ;
+		"ZX_CLIENTE",;                              //Campo Origem
+	"ZX_NOMCLI",;                                 //Campo Destino
+	"U_GatSZX('ZX_CLIENTE', 'ZX_NOMCLI')",;					//Regra de Preenchimento
+	.F.,;                                       //Irá Posicionar?
+	"",;                                     	//Alias de Posicionamento
+	0,;                                         //Índice de Posicionamento
+	'',;										//Chave de Posicionamento
+	NIL,;                                       //Condição para execução do gatilho
+	"01");                                      //Sequência do gatilho
+	)
+
+	aAdd(aGat2, FWStruTriggger( ;
+		"ZX_CODMASA",;                              //Campo Origem
+	"ZX_DESC",;                                 	//Campo Destino
+	"U_GatSZX('ZX_CODMASA', 'ZX_DESC')",;			//Regra de Preenchimento
+	.F.,;                                       	//Irá Posicionar?
+	"",;                                     		//Alias de Posicionamento
+	0,;                                         	//Índice de Posicionamento
+	'',;											//Chave de Posicionamento
+	NIL,;                                       	//Condição para execução do gatilho
+	"01");                                      	//Sequência do gatilho
+	)
+	aAdd(aGat2, FWStruTriggger( ;
+		"ZX_CODMASA",;                              //Campo Origem
+	"ZX_PEDCLI",;                                 	//Campo Destino
+	"U_GatSZX('ZX_CODMASA','ZX_PEDCLI')",;			//Regra de Preenchimento
+	.F.,;                                       	//Irá Posicionar?
+	"",;                                     		//Alias de Posicionamento
+	0,;                                         	//Índice de Posicionamento
+	'',;											//Chave de Posicionamento
+	NIL,;                                       	//Condição para execução do gatilho
+	"01");                                      	//Sequência do gatilho
+	)
+
+	//Percorrendo os gatilhos e adicionando na Struct
+	For nAtual := 1 To Len(aGat1)
+		oStruCab:AddTrigger( ;
+			aGat1[nAtual][01],; //Campo Origem
+		aGat1[nAtual][02],; //Campo Destino
+		aGat1[nAtual][03],; //Bloco de código na validação da execução do gatilho
+		aGat1[nAtual][04];  //Bloco de código de execução do gatilho
+		)
+	Next
+	nAtual:=0
+	For nAtual := 1 To Len(aGat2)
+		oStruGrid:AddTrigger( ;
+			aGat2[nAtual][01],; //Campo Origem
+		aGat2[nAtual][02],; //Campo Destino
+		aGat2[nAtual][03],; //Bloco de código na validação da execução do gatilho
+		aGat2[nAtual][04];  //Bloco de código de execução do gatilho
+		)
+	Next
 
 	// LIBERAR CAMPOS
 	oStruGrid:SetProperty('ZX_PERIODO',	MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.T.')) //Modo de Edição
@@ -71,7 +142,7 @@ Static Function ModelDef()
 	oStruGrid:SetProperty('ZX_USUARIO',	MODEL_FIELD_WHEN,    FwBuildFeature(STRUCT_FEATURE_WHEN,    '.T.')) //Modo de Edição
 
 	//Monta o modelo de dados, e na PÃ³s ValidaÃ§Ã£o, informa a funÃ§Ã£o fValidGrid
-	oModel := MPFormModel():New('MCCART1M', /*bPreValidacao*/, /*{|oModel| fValidGrid(oModel)}*/, /*bCommit*/, /*bCancel*/ )
+	oModel := MPFormModel():New('MCCART1M',{|oModel| fValidGrid(oModel)}, /*{|oModel| fValidGrid(oModel)}*/, /*{|oModel| fValidGrid(oModel)}*/, /*bCancel*/ )
 
 	//Agora, define no modelo de dados, que terÃ¡ um CabeÃ§alho e uma Grid apontando para estruturas acima
 	oModel:AddFields('MdFieldSZX', NIL, oStruCab)
@@ -84,7 +155,7 @@ Static Function ModelDef()
 		{"ZX_LOJA",  "ZX_LOJA"},;
 		{"ZX_NOMCLI", "ZX_NOMCLI"},;
 		{"ZX_PERIODO",  "ZX_PERIODO"};
-		}, SZX->(IndexKey(3)))
+		}, SZX->(IndexKey(1)))
 
 	//Definindo outras informaÃ§Ãµes do Modelo e da Grid
 	oModel:GetModel("MdGridSZX"):SetMaxLine(9999)
@@ -139,44 +210,95 @@ Static Function fViewStruct()
 	oStruct := FWFormStruct(2, "SZX", {|cCampo| !(Alltrim(cCampo) $ cCampoCom)})
 Return oStruct
 
+User Function GatSZX(cCmpOri,cCmpDest)
+	Local oGatilho  := FWModelActive()
+	Local cCli		:= oGatilho:GetValue('MdFieldSZX', 'ZX_CLIENTE')
+	Local cLoja 	:= oGatilho:GetValue('MdFieldSZX', 'ZX_LOJA')
+	// Local cNomCli	:= oGatilho:GetValue('MdFieldSZX', 'ZX_NOMCLI')
+	Local cCODMASA	:= oGatilho:GetValue('MdGridSZX', 'ZX_CODMASA')
+
+	if cCmpOri == 'ZX_CLIENTE'
+		if cCli != SA1->A1_COD
+			DbSelectArea('SA1')
+			SA1->(dbSetOrder(1))
+			SA1->(MsSeek(xfilial('SA1')+cCli))
+		endif
+		// oGatilho:SetValue('MdGridSZX', 'ZX_LOJA',SA1->A1_LOJA)
+		if cCmpDest == 'ZX_LOJA'
+			CRET := ALLTRIM(SA1->A1_LOJA)
+			// oGatilho:SetValue('MdFieldSZX', 'ZX_LOJA',SA1->A1_LOJA)
+		else
+			CRET := ALLTRIM(SA1->A1_NOME)
+			// oGatilho:loadValue('MdGridSZX', 'ZX_NOMCLI',ALLTRIM(SA1->A1_NOME))
+		endif
+	else
+		DbSelectArea('SB1')
+		SB1->(dbSetOrder(1))
+		SB1->(MsSeek(xfilial('SB1')+cCODMASA))
+
+		DbSelectArea('SA7')
+		SA7->(dbSetOrder(2))
+		SA7->(MsSeek(xfilial('SA7')+cCODMASA+cCli))
+
+		if cCmpDest == 'ZX_DESC'
+			CRET := ALLTRIM(SB1->B1_DESC)
+		else
+			CRET := ALLTRIM(SA7->A7_CODCLI)
+		endif
+		// oGatilho:SetValue('MdGridSZX', 'ZX_DESC',SB1->B1_DESC)
+		// oGatilho:SetValue('MdGridSZX', 'ZX_PEDCLI',SA7->A7_CODCLI)
+	endif
+Return CRET
+
 //FunÃ§Ã£o que faz a validaÃ§Ã£o da grid
 Static Function fValidGrid(oModel)
 	Local lRet     := .T.
-	Local nDeletados := 0
+	Local cAlias := GetNextAlias()
 	Local nLinAtual :=0
-	Local oModelGRID := oModel:GetModel('MdGridSZX')
-	Local oModelMain := oModel:GetModel('MdFieldSZX')
-	Local nValorMain := oModelMain:GetValue("ZX_PERIODO")
-	Local nValorGrid := 0
-	Local cPictVlr   := PesqPict('SZX', 'ZX_PERIODO')
+	Local oModelGRID 	:= oModel:GetModel('MdGridSZX')
+	Local oModelMain 	:= oModel:GetModel('MdFieldSZX')
+	Local cCliente   	:= oModelMain:GetValue("ZX_CLIENTE")
+	Local cLoja   		:= oModelMain:GetValue("ZX_LOJA")
+	Local cNomCli   	:= oModelMain:GetValue("ZX_NOMCLI")
+	Local cPerido   	:= oModelMain:GetValue('ZX_PERIODO')
+
+	if inclui
+		BeginSQL alias cAlias
+			SELECT count(*) nQtd FROM %TABLE:SZX% SZX
+			WHERE SZX.%NOTDEL% 
+			AND ZX_CLIENTE = %EXP:cCliente%
+			AND ZX_LOJA = %EXP:cLoja%
+			AND ZX_PERIODO = %EXP:cPerido%
+		endSQL
+
+		if nQtd > 0
+			FwAlertWarning("Já existe um cadastro de carteira para este cliente, loja e período. Verifique a carteira ja existente para alterações.",'Atenção')
+			Return .F.
+		endif
+	endif
 
 	//Percorrendo todos os itens da grid
 	For nLinAtual := 1 To oModelGRID:Length()
 		//Posiciona na linha
 		oModelGRID:GoLine(nLinAtual)
 
+		oModelGRID:setValue("ZX_SEQ", strZero(nLinAtual,5)) //Seta o campo sequencial, caso seja uma inclusão, para alteração ou exclusão, o campo já estará preenchido, e não pode ser alterado.
+		oModelGRID:setValue("ZX_CLIENTE", cCliente)
+		oModelGRID:setValue("ZX_LOJA", cLoja)
+		oModelGRID:setValue("ZX_NOMCLI", cNomCli)
+		oModelGRID:setValue("ZX_PERIODO", cPerido)
+
 		//Se a linha for excluida, incrementa a variÃ¡vel de deletados, senÃ£o irÃ¡ incrementar o valor digitado em um campo na grid
-		If oModelGRID:IsDeleted()
-			nDeletados++
-		Else
-			nValorGrid += NoRound(oModelGRID:GetValue("SZX_TCOMB"), 4)
-		EndIf
+		// If oModelGRID:IsDeleted()
+		// 	nDeletados++
+		// Else
+		// 	nValorGrid += NoRound(oModelGRID:GetValue("SZX_TCOMB"), 4)
+		// EndIf
 	Next nLinAtual
 
-	//Se o tamanho da Grid for igual ao nÃºmero de itens deletados, acusa uma falha
-	If oModelGRID:Length()==nDeletados
-		lRet :=.F.
-		Help( , , 'Dados InvÃ¡lidos' , , 'A grid precisa ter pelo menos 1 linha sem ser excluida!', 1, 0, , , , , , {"Inclua uma linha vÃ¡lida!"})
-	EndIf
-
-	If lRet
-		If nValorMain != nValorGrid
-			//lRet := .F.
-			MsgAlert("O valor do cabeÃ§alho (" + Alltrim(Transform(nValorMain, cPictVlr)) + ") tem que ser igual o valor dos itens (" + Alltrim(Transform(nValorGrid, cPictVlr)) + ")!", "AtenÃ§Ã£o")
-		EndIf
-	EndIf
-
 Return lRet
+
+
 /*/{Protheus.doc} fnImpCart
 Função para importar informações do fornecedor via csv
 @author Atilio
@@ -547,6 +669,7 @@ Static Function IncRegs(_aDados,_nOper,cCliente,cLoja,cNomCli,cPeriodo)
 			oGrid:SetValue("ZX_DESC"	, _aDados[NY,4])
 			oGrid:SetValue("ZX_PEDCLI"	, _aDados[NY,5])
 			oGrid:SetValue("ZX_QUANT"	, _aDados[NY,6])
+			oGrid:SetValue("ZX_SALDO"	, _aDados[NY,6])
 			oGrid:SetValue("ZX_USUARIO"	, Alltrim( UsrRetName(__cUserId)))
 
 		Else // ALTERAÇÃO

@@ -182,7 +182,7 @@ Static Function HLAFAT1A(cDoc, cSerie, cCliente, cLoja)
 					&& 8 - Qtde que falta para atender a necessidade?
 
 					nJ := Len(aPoder3)
-					If nJ > 0 .And. aPoder3[nJ, 8] == 0 
+					If nJ > 0 //.And. aPoder3[nJ, 8] == 0 
 						aAdd(aLinha, {"C6_ITEM",	cItem,							Nil})
 						aAdd(aLinha, {"C6_PRODUTO",	aProds[nI, 01],					Nil})
 						aAdd(aLinha, {"C6_QTDVEN",	0,								Nil})
@@ -336,8 +336,8 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 	Local	nSaldoDoc	:=	0
 	Local	nResto		:=	0
 	Local	cTabelaSQL	:=	"TSB601"
-
-	Default	cP3Serie	:=	FormatIn(	GetMv("ZZ_P3SERIE",,	"7  ;4  ;2  ;0  ;"), ";")
+	//Default	cP3Serie	:=	FormatIn(	GetMv("ZZ_P3SERIE",,	"7  ;4  ;2  ;0  ;"), ";")
+	Default	cP3Serie	:=	FormatIn(	GetMv("ZZ_P3SERIE",,	"7;4;2;0;000;002;004;007;"), ";")
 	Default	cP3Tes		:=	FormatIn(	GetMv("ZZ_P3TES",,		"585;558;620"), ";")
 	Default	cP3Local	:=	FormatIn(	GetMv("ZZ_P3LOCAL",,	"85;86"), ";")
 	Default	dP3DtCor	:=				GetMv("ZZ_P3DTCOR",,	DtoS(CtoD("25/09/15")))

@@ -318,7 +318,7 @@ Return
 // Exemplo de impressão RAW usando FWMSPrinterStatic Function impriRaw(cZPL,cPrinter)
 Static Function impriRaw(cZPL,cPrinter)
 	Local oPrinter   := Nil
-	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+	Local cFileRel   := "MCETIQ02" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
 	Local aPrint          := GetImpWindows(.F.)

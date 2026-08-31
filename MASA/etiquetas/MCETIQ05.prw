@@ -729,16 +729,14 @@ Return
 Static Function impriRaw(cZPL,cPrinter)
 
 	Local oPrinter   := Nil
-	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+	Local cFileRel   := "MCETIQ05" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
-	// Local aPrint          := GetImpWindows(.F.)
+	Local aPrint          := GetImpWindows(.F.)
 	Local nPrtType          := 2 // IMP_PDF > 6 || IMP_SPOOL > 2
-	// Local oPrintSetupParam := Nil
-	// Local aDevice           := {}
-	// Local cSession          := GetPrinterSession()
-	// Local oPrinter
-	// Local cLocal            := "c:\temp"
+	Local oPrintSetupParam := Nil
+	Local aDevice           := {}
+	Local cSession          := GetPrinterSession()
 
 	// Criar objeto FWMSPrinter em modo RAW
 	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)

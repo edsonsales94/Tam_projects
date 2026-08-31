@@ -1,0 +1,150 @@
+#include "rwmake.ch"        // incluido pelo assistente de conversao do AP5 IDE em 09/08/00
+
+User Function Etqmen()        // incluido pelo assistente de conversao do AP5 IDE em 09/08/00
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+	//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+	//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+	//³ Incluido pelo assistente de conversao do AP5 IDE                    ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	SetPrvt("TITULO,CABEC1,CABEC2,CDESC1,CDESC2,CDESC3")
+	SetPrvt("CSTRING,ARETURN,NLASTKEY,CPERG,LI,M_PAG")
+	SetPrvt("WNREL,VCL,VIMP,NTAM,NCT1,NCT2")
+	SetPrvt("NCONT,L,C,CIMP,")
+
+	/*/
+	ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+	±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+	±±ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄ¿±±
+	±±³Programa ³ ETQMEN  ³ Autor ³ Ronilton O. Barros    ³ Data ³ 03.01.2000 ³±±
+	±±ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+	±±³Descri‡…o³ Emissao da Relacao de Colchoes e Estofados                  ³±±
+	±±ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+	±±³ Uso     ³ Interpretador xBase for Windows / DOS                       ³±±
+	±±ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+	±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+	ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+	/*/
+	Titulo := "Emissao de Etiquetas"
+	cAbec1 := ""
+	cAbec2 := ""
+	cDesc1 := OemToAnsi("Este programa ir  imprimir as mensagem  nas  etiquetas  de")
+	cDesc2 := OemToAnsi("acordo com a  quantidade  e  as  mensagens  digitadas  nos")
+	cDesc3 := OemToAnsi("parametros.")
+
+	// DETERMINA FILTRAGEM
+	cString  := "SA1"
+	aReturn  := { "Zebrado", 1,"Administracao", 2, 2, 1, "",1 }
+	nLastKey := 0
+	cPerg    := PADR("ETQMEN",len(SX1->X1_GRUPO))
+	li       := 55
+	m_pag    := 1
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Verifica as perguntas selecionadas                           ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	ValidPerg(cPerg)
+	Pergunte(cPerg,.F.)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Variaveis utilizadas para parametros                         ³
+	//³ mv_par01            // 1. Linha da Mensagem                  ³
+	//³ mv_par02            // 2. Linha da Mensagem                  ³
+	//³ mv_par03            // 3. Linha da Mensagem                  ³
+	//³ mv_par04            // 4. Linha da Mensagem                  ³
+	//³ mv_par05            // 5. Linha da Mensagem                  ³
+	//³ mv_par06            // Quantidade de Etiquetas               ³
+	//³ mv_par07            // Letras :  Grandes Pequenas            ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Envia controle para a funcao SETPRINT                        ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	Wnrel := SetPrint(cString,"ETQMEN  ",cPerg,titulo,cDesc1,cDesc2,cDesc3,.F.,{})
+
+	If nLastKey == 27
+		Return
+	Endif
+
+	SetDefault(aReturn,cString)
+
+	If nLastKey == 27
+		Return
+	Endif
+
+	// RptStatus({||Execute(GR540Imp)})// Substituido pelo assistente de conversao do AP5 IDE em 09/08/00 ==> 	RptStatus({||Execute(GR540Imp)})
+	// Return Nil
+	// Substituido pelo assistente de conversao do AP5 IDE em 09/08/00 ==> 	function GR540Imp
+	// Static function GR540Imp()
+	/*
+	ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+	±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+	±±ÚÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄ¿±±
+	±±³Funcao   ³ Corpo   ³ Autor ³ Ronilton O. Barros    ³ Data ³ 03.01.2000 ³±±
+	±±ÃÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+	±±³Descricao³ Cabecalho do Relatorio                                      ³±±
+	±±ÀÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+	±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+	ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+	*/
+	li   := 0
+	vCl  := If( mv_par07 == 1 , { 003, 018, 035, 052}, { 000, 055, 112, 168})
+	vImp := { mv_par01, mv_par02, mv_par03, mv_par04, mv_par05}
+	nTam := Len(vImp) - If( mv_par07 == 1 , 1, 0)
+	nCt1 := 0
+	nCt2 := 0
+	If mv_par07 == 2
+		@ 00,000 PSAY CHR(15)
+	Endif
+	For nCont:=4 To mv_par06 Step 4
+		For l:=1 To nTam
+			For c:=1 To 4
+				If mv_par07 == 1
+					cImp := SubStr(vImp[l],1,30)
+					@ li,vCl[c] PSAY CHR(27)+"2"+CHR(14)+cImp+CHR(18)+CHR(27)+"0"
+				Else
+					@ li,vCl[c] PSAY vImp[l]
+				Endif
+			Next
+			If mv_par07 == 2
+				li:=li+1
+			Endif
+		Next
+		If mv_par07 == 1
+			nCt1 := nCt1 + 1
+			If nCt1 > 1
+				nCt1 := 0
+				li:=li+1
+			Endif
+			nCt2 := nCt2 + 1
+			If nCt2 > 5
+				nCt1 := 0
+				nCt2 := 0
+				li:=li+1
+			Endif
+			li:=li+2
+		Else
+			li:=li+1
+		Endif
+	Next
+	//@ 00,000 PSAY CHR(15)
+
+	If aReturn[5] == 1
+		Set Printer TO
+		dbCommitAll()
+		ourspool(wnrel)
+	Endif
+	FT_PFLUSH()
+Return
+
+static function VALIDPERG(cperg)
+	u_InPutSX1(cPerg,"01",PADR("1a Linha de Mensag.",29)+"?","","","mv_ch1","C",50,0,0,"G","","","","","mv_par01")
+	u_InPutSX1(cPerg,"02",PADR("2a Linha de Mensag.",29)+"?","","","mv_ch2","C",50,0,0,"G","","","","","mv_par02")
+	u_InPutSX1(cPerg,"03",PADR("3a Linha de Mensag.",29)+"?","","","mv_ch3","C",50,0,0,"G","","","","","mv_par03")
+	u_InPutSX1(cPerg,"04",PADR("4a Linha de Mensag.",29)+"?","","","mv_ch4","C",50,0,0,"G","","","","","mv_par04")
+	u_InPutSX1(cPerg,"05",PADR("5a Linha de Mensag.",29)+"?","","","mv_ch5","C",50,0,0,"G","","","","","mv_par05")
+	u_InPutSX1(cPerg,"06",PADR("Quantidade Etiquet.",29)+"?","","","mv_ch6","N",06,0,0,"G","","","","","mv_par06")
+	u_InPutSX1(cPerg,"07",PADR("Letras             ",29)+"?","","","mv_ch7","N",01,0,0,"C","","","","","mv_par07","Grandes","","","","Pequenas")
+
+Return

@@ -209,7 +209,7 @@ Return
 Static Function impriRaw(cZPL,cPrinter)
 
 	Local oPrinter   := Nil
-	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+	Local cFileRel   := "MCETIQ03" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
 	Local aPrint          := GetImpWindows(.F.)

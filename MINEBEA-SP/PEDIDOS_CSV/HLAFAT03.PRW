@@ -375,7 +375,7 @@ Static Function CargaArray(cArqOri)
 										nJ := Len(aPoder3)
 										If empty(aPoder3)
 											(cAliasDoc)->(DbSkip())
-											LOOP
+											exit
 										else
 											NQUANT :=  aPoder3[nJ, 8]
 										EndIf
@@ -390,6 +390,7 @@ Static Function CargaArray(cArqOri)
 										If nJ > 0
 											For nJ := 1 To Len(aPoder3)
 												cItem	:=	Soma1(cItem	)
+												aDados := {}
 												aAdd(aDados, {"C6_ITEM",	cItem,							Nil})
 												aAdd(aDados, {"C6_PRODUTO",	aLinha[nPosCodigo],				Nil})
 												aAdd(aDados, {"C6_QTDVEN",	0,								Nil})
@@ -427,6 +428,10 @@ Static Function CargaArray(cArqOri)
 
 											AADD(aItens, aDados)  // todos os itens venda e devolção
 											// aPoder3	:= {}
+											// PEGAR O PROXIMO DOCUMENTO
+											if NQUANT > 0 
+												(cAliasDoc)->(DbSkip())
+											endif
 										endif
 									EndDo
 									(cAliasDoc)->(DbSkip())
@@ -521,8 +526,6 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 	Default	cP3Local	:=	FormatIn(	GetMv("ZZ_P3LOCAL",,	"85;86"), ";")
 	Default	dP3DtCor	:=				GetMv("ZZ_P3DTCOR",,	DtoS(CtoD("25/09/15")))
 
-
-
 	cQuery	:=	"SELECT "																+ CRLF
 	cQuery	+=	"	B6_TPCF, B6_TIPO, B6_PODER3, B6_EMISSAO, B6_PRODUTO, B6_LOCAL, "	+ CRLF
 	cQuery	+=	"	B6_SALDO, B6_QULIB, B6_DOC, B6_SERIE, B6_PRUNIT, B6_IDENT, "		+ CRLF
@@ -581,7 +584,8 @@ Static Function DocsPoder3(cDoc, cSerie, cCliFor, cLoja, cProduto, cItem, nQuant
 	(cTabelaSQL)->(DbGoTop())
 	Do While !(cTabelaSQL)->(Eof())		
 		&& Verifica a qtde disponível para devolução
-		nSaldoDoc	:=	(cTabelaSQL)->B6_SALDO - (cTabelaSQL)->B6_QULIB - DescUsado((cTabelaSQL)->B6_DOC, (cTabelaSQL)->B6_SERIE, (cTabelaSQL)->D1_ITEM, (cTabelaSQL)->B6_IDENT, aItens)
+		nSaldoDoc	:=	(cTabelaSQL)->B6_SALDO - (cTabelaSQL)->B6_QULIB //- 
+		nUsada  := DescUsado((cTabelaSQL)->B6_DOC, (cTabelaSQL)->B6_SERIE, (cTabelaSQL)->D1_ITEM, (cTabelaSQL)->B6_IDENT, aItens)
 		nSaldoDoc -= nReserva									&&	Abate qtde reservada em outro pedido EM Aberto e não faturado.?
 		If nSaldoDoc > 0										&&	HA Saldo no Doc.?
 			nDif	:=	 nQuantidad - nSaldoDoc					&& Carrega a diferenca caso a qtde a devolver seja maior que a disponível ou a própria qtde se for suficiente

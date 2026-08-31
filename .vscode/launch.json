@@ -4,7 +4,7 @@
 		{
 			"type": "totvs_language_web_debug",
 			"request": "launch",
-			"name": "MINEBEA-SP",
+			"name": "Smart Client Web Debug",
 			"program": "${command:AskForProgramName}",
 			"cwb": "${workspaceFolder}",
 			"isMultiSession": true,
@@ -116,8 +116,47 @@
 		},
 		{
 			"label": "U_PMZCOMR1"
+		},
+		{
+			"args": [],
+			"label": "U_MaxAuth"
+		},
+		{
+			"args": [
+				".T."
+			],
+			"label": "U_MaxAuth"
+		},
+		{
+			"args": [
+				"T"
+			],
+			"label": "U_MaxAuth"
+		},
+		{
+			"args": [],
+			"label": "U_PMZRSE01"
+		},
+		{
+			"args": [
+				"01",
+				"01AM009"
+			],
+			"label": "U_UPDEND"
+		},
+		{
+			"args": [],
+			"label": "U_UPDEND"
+		},
+		{
+			"args": [],
+			"label": "u_GetAdminData"
+		},
+		{
+			"args": [],
+			"label": "U_ZImpPes"
 		}
 	],
-	"lastProgramExecuted": "U_PMZCOMR1",
+	"lastProgramExecuted": "SIGAMDI",
 	"lastProgramArguments": []
 }

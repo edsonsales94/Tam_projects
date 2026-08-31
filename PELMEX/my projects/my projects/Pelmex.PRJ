@@ -1,0 +1,865 @@
+Group Pelmex
+   Version=7.0
+   VSSDB=
+   HasProperties=1
+   Properties
+      BeforeApply=
+      AfterApply=
+      Icon=
+      ID=
+      Version=
+      PalmName=
+      OutPut=
+   End
+   ProjectsCount=15
+   Project Faturamento
+      FoldersCount=8
+      Folder Relatorios
+         VSSPath=Definições
+         FilesCount=27
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR07.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR05.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR06.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR08.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR09.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR10.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\uMATR590.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR11.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR12.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR13.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR03.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR014.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR15.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR16.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR17.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR18.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR19.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR20.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR21.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR22.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR23.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR24.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR25.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Relatorios\PLFATR26.PRW
+             Type=T
+         End
+      End
+      Folder Cadastros
+         VSSPath=Nova Pasta2
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Faturamento\Cadastros\PLFATC01.prw
+             Type=T
+         End
+      End
+      Folder Execblocks
+         VSSPath=Nova Pasta3
+         FilesCount=5
+         File \TOTVS\Protheus\my projects\Faturamento\Execblocks\PCliFor.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Execblocks\PLFATE01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Execblocks\PLFATE02.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Execblocks\PLFATE03.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Execblocks\PLFATE04.PRW
+             Type=T
+         End
+      End
+      Folder Pontos de Entrada
+         VSSPath=Nova Pasta4
+         FilesCount=11
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\SF2460I.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\SF2520E.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\MS520VLD.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\FTVD7001.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\FTVD7002.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\FTVD7030.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\M410FSQL.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\Mta455p.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\Mta456p.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\M410PVNF.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Pontos de Entrada\FISVALNFE.prw
+             Type=T
+         End
+      End
+      Folder NF Eletronica
+         VSSPath=Nova Pasta5
+         FilesCount=4
+         File \TOTVS\Protheus\my projects\Faturamento\NF Eletronica\danfeIII.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\NF Eletronica\nfesefaz.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\NF Eletronica\pe01nfesefaz.prw
+             Type=T
+         End
+         File \totvs\protheus\my projects\faturamento\nf eletronica\danfeii.prw
+             Type=T
+         End
+      End
+      Folder Processamento
+         VSSPath=Nova Pasta6
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Faturamento\Processamento\PLFATP01.PRW
+             Type=T
+         End
+      End
+      Folder CC-e
+         VSSPath=Nova Pasta7
+         FilesCount=0
+      End
+      Folder Nfe 4.0
+         VSSPath=Nova Pasta8
+         FilesCount=3
+         File \TOTVS\Protheus\my projects\Faturamento\Nfe 4.0\danfeii.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Nfe 4.0\danfeiii.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Faturamento\Nfe 4.0\nfesefaz.prw
+             Type=T
+         End
+      End
+   End
+   Project Estoque
+      FoldersCount=6
+      Folder Processo
+         VSSPath=Nova Pasta1
+         FilesCount=6
+         File \TOTVS\Protheus\my projects\Estoque\Processos\EstM01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Processos\PLESTP01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Processos\PLESTP02.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Processos\uMATXFUNB.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\JEAN_DCR-E\GERADCRE.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Processos\PLESTP05.PRW
+             Type=T
+         End
+      End
+      Folder Pontos de Entrada
+         VSSPath=Nova Pasta2
+         FilesCount=4
+         File \TOTVS\Protheus\my projects\Estoque\Pontos de Entrada\Gqreentr.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Pontos de Entrada\MC010EST.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Pontos de Entrada\M261BCHOI.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Pontos de Entrada\MT250EST.prw
+             Type=T
+         End
+      End
+      Folder Relatorios
+         VSSPath=Nova Pasta3
+         FilesCount=14
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR03.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\uMATR410.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\uMATR430.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\uMATR460.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\custopa.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR05.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\IMPSZ2.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\etqmen.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\STEstR01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR06.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR07.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Relatorios\PLESTR08.PRW
+             Type=T
+         End
+      End
+      Folder Execblock
+         VSSPath=Nova Pasta4
+         FilesCount=4
+         File \TOTVS\Protheus\my projects\Estoque\Execblock\PGerCod.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Execblock\PLESTE01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Execblock\VALEMP1.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Estoque\Execblock\PLESTE03.prw
+             Type=T
+         End
+      End
+      Folder Cadastros
+         VSSPath=Nova Pasta5
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Estoque\Cadastros\CadSZ2.prw
+             Type=T
+         End
+      End
+      Folder Lote
+         VSSPath=Nova Pasta6
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Estoque\Lote\PLESTET5.prw
+             Type=T
+         End
+      End
+   End
+   Project Financeiro
+      FoldersCount=4
+      Folder Relatórios
+         VSSPath=Nova Pasta1
+         FilesCount=21
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR05.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR03.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR06.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR07.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR08.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\bordup.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\PLFINR09.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR10.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR11.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR12.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR13.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR14.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR15.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR16.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR17.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR18.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR19.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\RELATORIO\PLFINR20.PRW
+             Type=T
+         End
+      End
+      Folder Pontos de Entrada
+         VSSPath=Nova Pasta2
+         FilesCount=3
+         File \TOTVS\Protheus\my projects\Financeiro\Pontos de Entrada\F050ALT.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Pontos de Entrada\FA050GRV.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Pontos de Entrada\F040CPO.prw
+             Type=T
+         End
+      End
+      Folder Processamentos
+         VSSPath=Nova Pasta3
+         FilesCount=6
+         File \TOTVS\Protheus\my projects\Financeiro\Processamentos\cnab2.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Processamentos\FINA44Z.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Processamentos\FSFINBOL.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Processamentos\CNAB.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Processamentos\xFINA150.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Processamentos\xFINA200.PRW
+             Type=T
+         End
+      End
+      Folder Conciliador
+         VSSPath=Nova Pasta4
+         FilesCount=8
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\AXZAE01R.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\PEFI001E.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\PEFI001R.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\PEFI002E.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\PEFI002R.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\RFINR006.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\RFINR011.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Financeiro\Conciliador\PEFI004R.prw
+             Type=T
+         End
+      End
+   End
+   Project Etiquetas
+      FoldersCount=1
+      Folder Fontes
+         VSSPath=Nova Pasta1
+         FilesCount=13
+         File \TOTVS\Protheus\my projects\Etiquetas\etqpel2.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\etqcol2.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\etqest1.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLESTETQ.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLESTET1.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLESTET2.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLESTET4.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLESTET3.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLESTET6.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLETQR01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLETQR02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLETQR03.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Etiquetas\PLETQR04.PRW
+             Type=T
+         End
+      End
+   End
+   Project Genericos
+      FoldersCount=1
+      Folder Biblioteca
+         VSSPath=Nova Pasta1
+         FilesCount=6
+         File \TOTVS\Protheus\my projects\Biblioteca\rotinas.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Biblioteca\PMApoEst.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Biblioteca\PMEtiRec.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Biblioteca\CRIASXE.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Biblioteca\ChgUsrInf.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Biblioteca\InPutSx1.Prw
+             Type=T
+         End
+      End
+   End
+   Project Folha
+      FoldersCount=2
+      Folder Relatorios
+         VSSPath=Nova Pasta1
+         FilesCount=2
+         File \TOTVS\Protheus\my projects\Folha\Relatorios\SEGDES.PRX
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Folha\Relatorios\PLRHR01.PRW
+             Type=T
+         End
+      End
+      Folder Variaveis
+         VSSPath=Nova Pasta2
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Folha\GPEWORD.PRW
+             Type=T
+         End
+      End
+   End
+   Project Compras
+      FoldersCount=2
+      Folder Relatorios
+         VSSPath=Nova Pasta1
+         FilesCount=5
+         File \TOTVS\Protheus\my projects\Compras\Relatorios\PLCOMR01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Compras\Relatorios\PLCOMR02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Compras\Relatorios\PELCOMR03.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Compras\Relatorios\PLCOMR04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Compras\Relatorios\PLCOMR05.PRW
+             Type=T
+         End
+      End
+      Folder Ponto de entrada
+         VSSPath=Nova Pasta2
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Compras\Ponto de entrada\MT103IPC.PRW
+             Type=T
+         End
+      End
+   End
+   Project PCP
+      FoldersCount=2
+      Folder Relatórios
+         VSSPath=Nova Pasta1
+         FilesCount=15
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PLR820.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR03.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR05.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR06.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR07.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR08.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR09.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR10.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR11.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR12.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR13.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Relatórios\PMPCPR14.PRW
+             Type=T
+         End
+      End
+      Folder Pontos de Entrada
+         VSSPath=Nova Pasta2
+         FilesCount=4
+         File \TOTVS\Protheus\my projects\PCP\Pontos de Entrada\MTSELEOPC.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Pontos de Entrada\M651DPC.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Pontos de Entrada\EMP650.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\PCP\Pontos de Entrada\MA650TOK.PRW
+             Type=T
+         End
+      End
+   End
+   Project Fiscalizacao
+      FoldersCount=1
+      Folder Fontes
+         VSSPath=Nova Pasta1
+         FilesCount=2
+         File \TOTVS\Protheus\my projects\Fiscalizacao\PLIMPATV.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Fiscalizacao\PLFISP01.PRW
+             Type=T
+         End
+      End
+   End
+   Project Loja
+      FoldersCount=4
+      Folder Processamentos
+         VSSPath=Nova Pasta1
+         FilesCount=3
+         File \TOTVS\Protheus\my projects\Loja\Processamentos\PMLOJP01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Processamentos\PMLOJP02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\SFI\RSLOJP09.prw
+             Type=T
+         End
+      End
+      Folder Ponto de Entrada
+         VSSPath=Nova Pasta2
+         FilesCount=7
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\LJ140EXC.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\LJ7001.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\LJ7002.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\M410PVNF.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\LJ7053.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\LJ7030.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Pontos de Entrada\lojrnfce.prw
+             Type=T
+         End
+      End
+      Folder Execblocks
+         VSSPath=Nova Pasta3
+         FilesCount=7
+         File \TOTVS\Protheus\my projects\Loja\Execblocks\PMloje01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Execblocks\PMLOJE02.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Execblocks\SomaDiaUtil.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Execblocks\PMLOJE03.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Execblocks\PMLOJE04.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Execblocks\PMLOJE05.prw
+             Type=T
+         End
+         File \Loja\Execblocks\PMLOJE02.prw
+             Type=T
+         End
+      End
+      Folder Relatorios
+         VSSPath=Nova Pasta4
+         FilesCount=10
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\ScrPed.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR02.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR03.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR04.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR05.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR06.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR07.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR08.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\Loja\Relatorios\PMLOJR09.PRW
+             Type=T
+         End
+      End
+   End
+   Project Contabilidade
+      FoldersCount=1
+      Folder Execblock
+         VSSPath=Nova Pasta1
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Contabilidade\Execblock\PLCONE01.prw
+             Type=T
+         End
+      End
+   End
+   Project ACD
+      FoldersCount=2
+      Folder Etiquetas
+         VSSPath=Nova Pasta1
+         FilesCount=12
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg00.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg02.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg03.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg04.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg05.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg06.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg07.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg08.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg09.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg10.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdmgTmp.prx
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Zebra\acdimg01.prx
+             Type=T
+         End
+      End
+      Folder Processamento
+         VSSPath=Nova Pasta2
+         FilesCount=5
+         File \TOTVS\Protheus\my projects\ACD\Processamento\PLACDP01.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Processamento\PLESTP03.prw
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\ANALISE.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\RELANALI.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\ACD\Processamento\PLACDP02.PRW
+             Type=T
+         End
+      End
+   End
+   Project WebServiceRest
+      FoldersCount=1
+      Folder Fonts
+         VSSPath=Nova Pasta1
+         FilesCount=3
+         File \TOTVS\Protheus\my projects\WebServiceRest\PLPCPW01.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\WebServiceRest\PLPCPW02.PRW
+             Type=T
+         End
+         File \TOTVS\Protheus\my projects\WebServiceRest\PLPCPW04.PRW
+             Type=T
+         End
+      End
+   End
+   Project SIGAMAT
+      FoldersCount=1
+      Folder Execblock
+         VSSPath=Nova Pasta1
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\SIGAMAT\PLMATE01.PRW
+             Type=T
+         End
+      End
+   End
+   Project Assistencia
+      FoldersCount=1
+      Folder Relatorios
+         VSSPath=Nova Pasta1
+         FilesCount=1
+         File \TOTVS\Protheus\my projects\Assistencia\PMASSR01.PRW
+             Type=T
+         End
+      End
+   End
+End

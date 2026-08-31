@@ -1,0 +1,299 @@
+#include "rwmake.ch"
+
+User Function Custopa()
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+	//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+	//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+	//³ Incluido pelo assistente de conversao do AP5 IDE                    ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+	SetPrvt("TITULO,CABEC1,CABEC2,CDESC1,CDESC2,CDESC3")
+	SetPrvt("CSTRING,ARETURN,NLASTKEY,CPERG,LI,M_PAG")
+	SetPrvt("WNREL,ADRIVER,CCARAC,LPEGA,X,CVAR")
+	SetPrvt("NVEZES,CSUBGRU,NORDEM,CPRODI,CPRODF,LACHOU")
+	SetPrvt("MCOD,MDESC,CRECB1,NTOTGER,NRECNO,MCUSTOT")
+	SetPrvt("MTMOD,MCMOD,NTOTAL,MCUSMOD,MTOTCIF,")
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ CUSTOPA.PRG: EMISSAO DO CUSTO GERENCIAL DA PRODUCAO          ³
+	//³ DATA       : 10.12.96                                        ³
+	//³ AUTOR      : MICROSIGA/EMILIA                                ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	Titulo := "Emissao do Custo Gerencial da Producao"
+	cAbec1 := ""
+	cAbec2 := ""
+	cDesc1 := OemToAnsi("Este programa ir  imprimir o Custo Gerencial da Producao")
+	cDesc2 := OemToAnsi("com os parametros solicitados pelo usuario.")
+	cDesc3 := OemToAnsi("")
+	cString  := "SB1"
+	aReturn  := { "Zebrado", 1,"Administracao", 2, 2, 1, "",1 }
+	nLastKey := 0
+	cPerg    := padr("EST001",Len(SX1->X1_GRUPO))
+	li       := 55
+	m_pag    := 1
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Verifica as perguntas selecionadas                           ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	ValidPerg()
+	Pergunte("EST001",.F.)
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Variaveis utilizadas para parametros                         ³
+	//³ mv_par01            // Do Produto                            ³
+	//³ mv_par02            // Ate o Produto                         ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Envia controle para a funcao SETPRINT                        ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	Wnrel:=SetPrint(cString,"CUSTOPA ",cPerg,titulo,cDesc1,cDesc2,cDesc3,.F.,{})
+
+	If nLastKey == 27
+		Set Filter To
+		Return
+	Endif
+
+	SetDefault(aReturn,cString)
+
+	If nLastKey == 27
+		Set Filter To
+		Return
+	Endif
+
+	RptStatus({|| Corpo1() })
+	Return
+
+	****************************
+Static Function Corpo1()
+	****************************
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Var.p/calcular acrescimos e descontos no valor do titulo     ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	aDriver := ReadDriver()
+	cCarac  := aDriver[aReturn[4]+2]
+	vPar    := {}
+	For x:=1 To 10
+		cVar := "mv_par"+StrZero(x+8,2)
+		If ! Empty( &cVar )
+			AAdd(vPar,cVar)
+		Endif
+	Next
+	lPega    := Empty(vPar)
+	nVezes   := If( lPega , 1, Len(vPar))
+	cSubGru  := If( lPega , "B1_GRUPO", "B1_COD")
+	nOrdem   := If( lPega , 4,  1)
+
+	For x:=1 To nVezes
+		cVar     := "mv_par"+StrZero(x,2)
+		cProdI   := If( lPega , mv_par01, &(vPar[x]))
+		cProdF   := If( lPega , mv_par02, &(vPar[x]))
+
+		dbSelectArea("SB1")
+		dbSetOrder(nOrdem)
+		dbSeek(xFilial("SB1")+cProdI,.T.)
+		SetRegua(RecCount())
+		While ! Eof() .And. &cSubGru <= cProdF .And. xFilial("SB1") == B1_FILIAL
+
+			IncRegua()
+
+			dbSelectArea("SG1")
+			dbSetOrder(1)
+			lAchou := dbSeek(xFilial("SG1")+SB1->B1_COD)
+			dbSelectArea("SB1")
+			If ! lAchou
+				dbSkip()
+				Loop
+			Endif
+
+			mTMOD   := 0
+			mCMOD   := 0
+			mCod    := B1_COD
+			mDesc   := B1_DESC
+			cRecB1  := Recno()
+			dbSelectArea("SG1")
+			nTotGer := 0
+			nRecno  := Recno()
+			mCustot := 0
+			While ! Eof() .And. G1_COD == mCod .And. xFilial("SG1") == G1_FILIAL
+				dbSelectarea("SB1")
+				dbSetOrder(1)
+				dbSeek(xFilial("SB1")+sg1->g1_comp)
+				dbSelectArea("SG1")
+				If SB1->B1_TIPO == "MO"
+					dbSkip()
+					Loop
+				Endif
+				mCustot := mCustot + (G1_QUANT * SB1->B1_CUSTD)//Era B1_CM1, alterado por Ulisses Jr em 04/12/08 para não precisar customizar campo
+				dbskip()
+			Enddo
+
+			dbGoTo(nRecno)
+			While ! Eof() .And. G1_COD == mCod .And. xFilial("SG1") == G1_FILIAL
+				dbSelectarea("SB1")
+				dbSetOrder(1)
+				dbSeek(xFilial("SB1")+SG1->G1_COMP)
+				dbSelectArea("SG1")
+				If SB1->B1_TIPO == "MO"
+					mTMOD := G1_QUANT
+					mCMOD := SB1->B1_CUSTD//Era B1_CM1, alterado por Ulisses Jr em 04/12/08 para não precisar customizar campo
+					dbSkip()
+					Loop
+				Endif
+				nTotal := SB1->B1_CUSTD * G1_QUANT//Era B1_CM1, alterado por Ulisses Jr em 04/12/08 para não precisar customizar campo
+
+				If li >= 55
+					IMPRTIT()
+				Endif
+				@ li,001 PSAY "| "+Left(G1_COMP,8)    
+				@ li,012 PSAY Left(SB1->B1_DESC,45)
+				@ li,062 PSAY SB1->B1_UM 
+				@ li,065 PSAY G1_QUANT     Picture '99999.9999'
+				@ li,076 PSAY SB1->B1_CUSTD  Picture "@E 9,999.9999"//Era B1_CM1, alterado por Ulisses Jr em 04/12/08 para não precisar customizar campo
+				@ li,089 PSAY nTotal       Picture "@E 9,999.9999" 
+				@ li,102 PSAY (nTotal / mCustot) * 100 Picture "@E 999.99"
+				@ li,110 PSAY "|"
+				li:=li+1
+				nTotger := ntotger + ntotal
+
+				dbSkip()
+			Enddo
+			If nTotger <> 0
+				@ li,001 PSAY "|"+Repli(" ",108)+"|"
+				li:=li+1
+				@ li,001 PSAY "| Total Materia-Prima............................: "
+				@ li,089 PSAY nTotger Picture '@e 9,999.9999'
+				@ li,110 PSAY "|"
+				li:=li+1
+				mCusMOD := mTMOD * mCMOD
+				@ li,001 PSAY "|"+Repli(" ",108)+"|"
+				li:=li+1
+				@ li,001 PSAY "| Mao-de-Obra.........: "
+				@ li,025 PSAY mTMOD    Picture "@E 9,99999" 
+				@ li,040 PSAY mCMOD    Picture "@E 9,999.9999" 
+				@ li,089 PSAY mCusMOD  Picture "@E 9,999.9999" 
+				@ li,110 PSAY "|"
+				li:=li+1
+				@ li,001 PSAY "|"+Repli(" ",108)+"|"
+				li:=li+1
+				mTotCIF := (mCusMOD * mv_par03) / 100
+				@ li,001 PSAY "| CIF...............:"
+				@ li,025 PSAY mv_par03 Picture '@e 999.99'
+				@ li,089 PSAY mTotCIF Picture '@e 9,999.9999'
+				@ li,110 PSAY "|"
+				li:=li+1
+				@ li,001 PSAY "|"+Repli(" ",108)+"|"
+				li:=li+1
+				@ li,001 PSAY "| Custo de Producao..............................: "
+				@ li,089 PSAY nTotger+mCusMOD+mTotCIf Picture  '@e 9,999.9999'
+				@ li,110 PSAY "|"
+				li:=li+1
+				@ li,001 PSAY "|"+Repli(" ",108)+"|"
+				li:=li+1
+				@ li,001 PSAY "| Preco Divisor 1 ..: "
+				@ li,025 PSAY mv_par04 Picture '@e 999.9999'
+				@ li,089 PSAY (nTotger+mCusMOD+mTotCIf)/mv_par04  Picture '@e 9,999.9999'
+				@ li,110 PSAY "|"
+				li:=li+1
+				@ li,001 PSAY "|"+Repli(" ",108)+"|"
+				li:=li+1
+				If mv_par05 <> 0
+					@ li,01 PSAY "| Preco Divisor 2 ..: "
+					@ li,25 PSAY mv_par05 Picture '@e 999.9999'
+					@ li,89 PSAY (nTotger+mCusMOD+mTotCIf)/mv_par05 Picture  '@e 9,999.9999'
+					@ LI,110 PSAY "|"
+					li:=li+1
+				Endif
+				If mv_par06 <> 0
+					@ li,001 PSAY "|"+Repli(" ",108)+"|"
+					li:=li+1
+					@ li,01 PSAY "| Preco Divisor 3 ..: "
+					@ li,25 PSAY mv_par06 Picture '@e 999.9999'
+					@ li,89 PSAY (nTotger+mCusMOD+mTotCIf)/mv_par06 Picture  '@e 9,999.9999'
+					@ LI,110 PSAY "|"
+					li:=li+1
+				Endif
+				If mv_par07 <> 0
+					nValor := ((nTotger + mCusMOD + mTotCIf) / mv_par07) / mv_par08
+					@ li,001 PSAY "|"+Repli(" ",108)+"|"
+					li:=li+1
+					@ li,01 PSAY "| Preco Divisor 4 ..: "
+					@ li,25 PSAY mv_par07 Picture '@e 999.9999'
+					@ li,37 PSAY "Tx. Dolar: "+Transform(mv_par08,"@E 99.9999")
+					@ li,89 PSAY nValor   Picture  '@e 9,999.9999'
+					@ LI,110 PSAY "|"
+					li:=li+1
+				Endif
+				@ li,01 PSAY "|"+repli("-",108)+"|"
+				li:=li+1
+				li:=56
+			Endif
+			dbSelectArea("SB1")
+			dbGoto(cRecB1)
+			dbSetOrder(nOrdem)
+			dbSkip()
+		Enddo
+	Next
+	//@ li,000 PSAY ""
+
+	If aReturn[5] == 1
+		Set Printer TO
+		dbCommitAll()
+		ourspool(wnrel)
+	Endif
+	MS_FLUSH()
+Return
+
+Static FUNCTION ImprTit()
+	LI:=01
+	@ 00,000 PSAY &cCarac
+	@ LI,001 PSAY '+' + REPLI("-",108) +'+'
+	LI:=LI+1
+	@ li,001 PSAY "|"
+	@ li,002 PSAY SM0->M0_NOMECOM
+	@ li,045 PSAY "C U S T O   D E   P R O D U C A O"
+	@ li,092 PSAY 'Emissao:'+ dtoc(ddatabase)
+	@ LI,110 PSAY "|"
+	LI:=LI+1
+	@ li,001 PSAY "|"+Space(108)+"|"
+	li:=li+1
+	@ li,001 PSAY "|"
+	@ li,002 PSAY "Produto: " + mCod +  " - " + mDesc
+	@ li,110 PSAY "|"
+	li:=li+1
+	@ li,001 PSAY "|"+REPLI("-",108)+"|"
+	LI:=LI+1
+	@ LI,001 PSAY "| Codigo   | Descricao                                     | Un |    Quant | Val Unit |  Val Total |    (%)  |"
+	//   xxxxxxxxx   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   xx   99999999   9,999.99   999,999.99    99.99      
+	//  12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+	li:=li+1
+	@ li,001 PSAY "|"+repli("-",108)+"|"
+	li:=li+1
+RETURN
+
+/*___________________________________________________________________________________
+¦ Função    ¦ ValidPerg  ¦ Autor ¦ Ulisses Junior           ¦ Data ¦ 04/12/2008     ¦
++-----------+------------+-------+--------------------------+------+----------------+
+¦ Descriçäo ¦ Criação do grupo de perguntas                               		    ¦
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯*/
+Static Function ValidPerg()
+	u_InPutSX1(cPerg,"01","Do Grupo           ?","","","mv_ch1","C",04,0,0,"G","","SBM","","","mv_par01")
+	u_InPutSX1(cPerg,"02","Ate o Grupo        ?","","","mv_ch2","C",04,0,0,"G","","SBM","","","mv_par02")
+	u_InPutSX1(cPerg,"03","Manutencao         ?","","","mv_ch3","N",06,3,0,"G","","","","","mv_par03")
+	u_InPutSX1(cPerg,"04","Divisor 1          ?","","","mv_ch4","N",06,3,0,"G","","","","","mv_par04")
+	u_InPutSX1(cPerg,"05","Divisor 2          ?","","","mv_ch5","N",06,3,0,"G","","","","","mv_par05")
+	u_InPutSX1(cPerg,"06","Divisor 3          ?","","","mv_ch6","N",06,3,0,"G","","","","","mv_par06")
+	u_InPutSx1(cPerg,"07","Divisor 4          ?","","","mv_ch7","N",06,3,0,"G","","","","","mv_par07")
+	u_InPutSX1(cPerg,"08","Taxa Dolar         ?","","","mv_ch8","N",06,4,0,"G","","","","","mv_par08")
+	u_InPutSx1(cPerg,"09","Produto 1          ?","","","mv_ch9","C",15,0,0,"G","","SB1","","","mv_par09")
+	u_InPutSx1(cPerg,"10","Produto 2          ?","","","mv_chA","C",15,0,0,"G","","SB1","","","mv_par10")
+	u_InPutSx1(cPerg,"11","Produto 3          ?","","","mv_chB","C",15,0,0,"G","","SB1","","","mv_par11")
+	u_InPutSx1(cPerg,"12","Produto 4          ?","","","mv_chC","C",15,0,0,"G","","SB1","","","mv_par12")
+	u_InPutSx1(cPerg,"13","Produto 5          ?","","","mv_chD","C",15,0,0,"G","","SB1","","","mv_par13")
+	u_InPutSx1(cPerg,"14","Produto 6          ?","","","mv_chE","C",15,0,0,"G","","SB1","","","mv_par14")
+	u_InPutSx1(cPerg,"15","Produto 7          ?","","","mv_chF","C",15,0,0,"G","","SB1","","","mv_par15")
+	u_InPutSx1(cPerg,"16","Produto 8          ?","","","mv_chG","C",15,0,0,"G","","SB1","","","mv_par16")
+	u_InPutSx1(cPerg,"17","Produto 9          ?","","","mv_chH","C",15,0,0,"G","","SB1","","","mv_par17")
+	u_InPutSx1(cPerg,"18","Produto 10         ?","","","mv_chI","C",15,0,0,"G","","SB1","","","mv_par18")
+Return

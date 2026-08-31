@@ -1,0 +1,145 @@
+
+#Include "TopConn.CH"
+#Include "Protheus.CH"
+#Include "TOTVS.CH"  
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัออออออออออออออออออออออออออปฑฑ
+ฑฑบPrograma  PMRHR05  บAutor  ณStan Lee     				บ Data ณ  09/11/23 บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯออออออออออออออออออออออออออนฑฑ
+ฑฑบDesc.     ณ   Faturamento por Natureza                    			 ฑ
+ฑฑบ          ณ                                                            			   บฑฑ
+ฑฑฬออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP                                                        			   บฑฑ
+ฑฑศออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+
+User Function PLFATR58()
+	Local oReport
+	Local cQuery
+	Local cAlias      := getNextAlias()      
+
+	Private cPerg     := "PLFATR58"
+
+	AjustaSX1(cPerg)
+	Pergunte(cPerg,.F.)
+
+	oReport := ReportDef(cAlias,cPerg)
+	oReport:PrintDialog()
+Return
+
+
+Static Function ReportDef(cAlias,cPerg)
+	Local oReport
+	Local oSection
+	Local oBreak
+	Local aOrdem      := {"FILIAL"}
+
+	oReport := TReport():New(cPerg,"Faturamento por Natureza",cPerg,{|oReport| PrintReport(oReport,cAlias)}, )
+	oReport:SetPortrait()      
+	oReport:SetEnvironment(2)      
+
+	//Primeira se็ใo
+	oSection := TRSection():New(oReport,"Faturamento por Natureza",{"SD2"},aOrdem) 
+
+    TRCell():New(oSection,"D2_FILIAL"   	    ,"SD2","Filial","@!",15)
+	TRCell():New(oSection,"M0_FILIAL"		    ,"SM","Descricao Filial","@!",20)
+    TRCell():New(oSection,"D2_PEDIDO"		    ,"SD2","Pedido","@!",20)
+    TRCell():New(oSection,"D2_EMISSAO"		    ,"SD2","Dt.Nota","@!",20)
+    TRCell():New(oSection,"D2_DOC"		    ,"SD2","Nota","@!",20)
+    TRCell():New(oSection,"D2_SERIE"		    ,"SD2","Serie","@!",20)
+    TRCell():New(oSection,"D2_ITEM"		    ,"SD2","Item","@!",20)
+    TRCell():New(oSection,"D2_COD"		    ,"SD2","Codigo","@!",20)
+    TRCell():New(oSection,"B1_DESC"		    ,"SB1","Descricao","@!",20)
+    TRCell():New(oSection,"D2_QUANT"		    ,"SD2","Quantidade","@E 999,999,999,999",)
+    TRCell():New(oSection,"D2_TOTAL"		    ,"SD2","Total","@E 999,999,999,999",)
+    TRCell():New(oSection,"D2_LOCAL"		    ,"SD2","Armazem","@!",20)
+    TRCell():New(oSection,"D2_CLIENTE"		    ,"SD2","Cliente",,10)
+	TRCell():New(oSection,"D2_TES"		    ,"SD2","TES","@!",20)
+    TRCell():New(oSection,"F4_TEXTO"		    ,"SF4","Descricao TES","@!",20)
+    //TRCell():New(oSection,"C6_NUM"		     ,"SC6","C6_NUM","@!",7)
+	//TRCell():New(oSection,"C6_ITEM"		  ,"SC6","C6_ITEM","@!",3)
+    //TRCell():New(oSection,"C6_PRODUTO"	      ,"SC6","PRODUTO","@!",20) 
+	//TRCell():New(oSection,"C6_DESCRI"  	     ,"SC6","C6_DESCRI","@!",40)
+	//TRCell():New(oSection,"C6_QTDVEN"		 ,"SC6","C6_QTDVEN","@E 999,999,999,999",10)
+	//TRCell():New(oSection,"C6_LOCAL"         ,"SC6","C6_LOCAL","@!",3)
+	//TRCell():New(oSection,"C6_CLI" 	         ,"SC6","C6_CLI","@!",7)
+	//TRCell():New(oSection,"A1_NOME"	    ,"SA1","A1_NOME","@!",20)
+	//TRCell():New(oSection,"A1_MUN"  			,"SA1","A1_MUN","@!",15)
+	//TRCell():New(oSection,"CLIENTE"     	,"SC2","CLIENTE","@!",30) 
+
+	
+    
+	
+	//Totalizador                                                                                  
+	//TRFunction():New(oSection:Cell("PED_QUANT"),"Total Etiqueta:","SUM",,,"@E 999,999,999.999",,.F.,.T.)
+
+Return oReport
+
+
+/*Inicia Logica Print Report */
+
+Static Function PrintReport(oReport,cAlias)
+	Local oSection  := oReport:Section(1)
+
+	//if oReport:Section(1):GetOrder() == 1
+	//	cOrdem := "A1_COD"
+	//endif      
+
+
+	oSection:BeginQuery()
+	BeginSQL Alias cAlias
+		%noparser%
+
+//SELECT SUBSTRING(DT_EMISSAO,4,7)PERIODO,D2_FILIAL,M0_FILIAL,SUM(D2_TOTAL)TOTAL,F4_TEXTO
+//FROM(
+SELECT D2_FILIAL,M0_FILIAL,D2_PEDIDO,D2_EMISSAO,D2_DOC,D2_SERIE,D2_ITEM,D2_COD,B1_DESC,D2_QUANT,D2_TOTAL,D2_LOCAL,D2_CLIENTE,D2_TES,F4_TEXTO
+FROM SD2100 SD2 (NOLOCK)
+INNER JOIN SB1100 SB1 (NOLOCK) ON D2_COD = B1_COD AND SB1.D_E_L_E_T_ = ''
+INNER JOIN SF4100 SF4 (NOLOCK) ON D2_TES = F4_CODIGO AND SF4.D_E_L_E_T_ = ''
+INNER JOIN SIGAMAT SM (NOLOCK) ON D2_FILIAL = M0_CODFIL AND M0_CODIGO = '10' AND SM.D_E_L_E_T_ = ''
+WHERE SD2.D_E_L_E_T_ = ''
+AND B1_TIPO IN ('PA','PC')
+AND D2_EMISSAO BETWEEN %Exp:MV_PAR01% AND %Exp:MV_PAR02%
+UNION
+SELECT D1_FILIAL,M0_FILIAL,D1_PEDIDO,D1_EMISSAO,D1_DOC,D1_SERIE,D1_ITEM,D1_COD,B1_DESC,D1_QUANT,D1_TOTAL,D1_LOCAL,D1_FORNECE,D1_TES,F4_TEXTO
+FROM SD1100 SD1 (NOLOCK)
+INNER JOIN SB1100 SB1 (NOLOCK) ON D1_COD = B1_COD AND SB1.D_E_L_E_T_ = ''
+INNER JOIN SF4100 SF4 (NOLOCK) ON D1_TES = F4_CODIGO AND SF4.D_E_L_E_T_ = ''
+INNER JOIN SIGAMAT SM (NOLOCK) ON D1_FILIAL = M0_CODFIL AND M0_CODIGO = '10' AND SM.D_E_L_E_T_ = ''
+WHERE SD1.D_E_L_E_T_ = ''
+AND B1_TIPO IN ('PA','PC')
+AND D1_TIPO = 'D'
+AND D1_EMISSAO BETWEEN %Exp:MV_PAR01% AND %Exp:MV_PAR02%
+
+ORDER BY 1,2,F4_TEXTO,D2_EMISSAO
+//)TB
+//GROUP BY SUBSTRING(DT_EMISSAO,4,7),D2_FILIAL,M0_FILIAL,F4_TEXTO
+//ORDER BY 1,2,3,F4_TEXTO
+
+		EndSQL 
+
+
+	oSection:EndQuery() 
+	oSection:SetParentQuery()
+	oSection:Print()	 
+Return
+
+
+Static Function AjustaSX1(cPerg)
+
+	
+	u_InPutSX1(cPerg,"01",PADR("De Data:",20)+"?","","","mv_ch1","D",10,0,0,"G","","","","","mv_par01") 
+	u_InPutSX1(cPerg,"02",PADR("Ate Data:",20)+"?","","","mv_ch2","D",10,0,0,"G","","","","","mv_par02")
+	//u_InPutSX1(cPerg,"03",PADR("De Componente:" ,20)+"?","","","mv_ch3","C",15,0,0,"G","","","","","mv_par03") 
+	//u_InPutSX1(cPerg,"04",PADR("Ate Componente:",20)+"?","","","mv_ch4","C",15,0,0,"G","","","","","mv_par04")
+	
+	
+	
+Return

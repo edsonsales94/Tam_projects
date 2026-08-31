@@ -232,7 +232,7 @@ return lret
 Static Function impriRaw(cZPL,cPrinter)
 
 	Local oPrinter   := Nil
-	Local cFileRel   := "RAW_ETIQUETA" // pode ser apenas identificador
+	Local cFileRel   := "MCETIQ01" // pode ser apenas identificador
 	Local lAdjustToLegacy   := .F.
 	Local lDisableSetup     := .T.
 	Local aPrint          := GetImpWindows(.F.)
@@ -240,17 +240,15 @@ Static Function impriRaw(cZPL,cPrinter)
 	Local oPrintSetupParam := Nil
 	Local aDevice           := {}
 	Local cSession          := GetPrinterSession()
-	// Local oPrinter
-	// Local cLocal            := "c:\temp"
 
-		// Criar objeto FWMSPrinter em modo RAW
-		oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
-		// oPrinter:setup()
 
-		// Aqui é só usar SAY, que em RAW escreve direto
-		oPrinter:Say(0, 0, cZPL)
+	// Criar objeto FWMSPrinter em modo RAW
+	oPrinter := FWMSPrinter():New(cFileRel, nPrtType, lAdjustToLegacy, '', lDisableSetup,.F.,NIL ,cPrinter ,.F. ,.T., .T. /*LRAW*/)
+	
+	// Aqui é só usar SAY, que em RAW escreve direto
+	oPrinter:Say(0, 0, cZPL)
 
-		oPrinter:Print()
+	oPrinter:Print()
 
 Return .T.
 

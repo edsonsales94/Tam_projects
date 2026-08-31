@@ -17,6 +17,7 @@ User Function PE01NFESEFAZ()
 	Local aAreaAtu	:= GetArea()
 	Local aAreaSD2	:= SD2->(GetArea())
 	Local aAreaSC6	:= SC6->(GetArea())
+	Local nY		:= 0
 	Local gh		:= 0
 
 	If aNota[4] == "1" // NF saida
@@ -132,7 +133,15 @@ User Function PE01NFESEFAZ()
 	cDoc := aNota[2]
 	_cCliente := SF2->F2_CLIENTE
 	_cLoja := SF2->F2_LOJA
+	
 	// colocar a NF de Origem junto a descrição para o cliente 000099
+	For nY := 1 to Len(aProd)
+		if _cCliente == '000002' .and. aNota[4] == "1"
+			_xCOD := iif(EMPTY(Posicione('SB1',1,XFILIAL('SB1')+ESTRUT->COMP,'B1_CODMATR')),aProd[nY,2],Posicione('SB1',1,XFILIAL('SB1')+aProd[nY,2],'B1_CODMATR'))
+			aProd[nY,2] := _xCOD // tratativa para alterar o código do produto para o cliente 000002, onde o código do produto é o código de controle de poder de terceiros, caso exista, senão mantém o código original do produto.
+		endif
+	next nY
+
 	if _cCliente == '000099' .and. aNota[4] == "1" // NF saida
 		xItem := '99'
 		cItem := ''
@@ -156,6 +165,7 @@ User Function PE01NFESEFAZ()
 			endif
 		next
 	endif
+
 
 	//aRet[2] := cMensCli + IIf(!Empty(cMensCli), " - ", "") + cMensCliAtu
 	aRet[1] := aProd

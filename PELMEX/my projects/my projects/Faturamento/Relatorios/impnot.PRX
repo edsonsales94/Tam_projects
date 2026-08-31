@@ -1,0 +1,165 @@
+#include "rwmake.ch"  // incluido pelo assistente de conversao do AP5 IDE em 09/08/00
+
+User Function Impnot()
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaracao de variaveis utilizadas no programa atraves da funcao    ³
+//³ SetPrvt, que criara somente as variaveis definidas pelo usuario,    ³
+//³ identificando as variaveis publicas do sistema utilizadas no codigo ³
+//³ Incluido pelo assistente de conversao do AP5 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("TITULO,CDESC1,CDESC2,CDESC3,CSTRING,ARETURN")
+SetPrvt("NLASTKEY,CPERG,M_PAG,LI,WNREL,MGERAL")
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ IMPNOT   ³ Autor ³  Ronilton O. Barros   ³ Data ³ 28.09.98 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Emissao das Notas Fiscais de um determinado periodo        ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Gen‚rico                                                   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Titulo   := "Lista de Notas Fiscais emitidas num determinado periodo"
+cDesc1   := OemToAnsi("Este programa emitira todas as notas fiscais resumidamente de")
+cDesc2   := OemToAnsi("um determinado periodo, utilizando recursos do SIGA Advanced.")
+cDesc3   := OemToAnsi("")
+cString  := "SF2"
+aReturn  := { "Especial", 1,"Administracao", 1, 2, 1, "",1 }
+nLastKey := 0
+cPerg    := "IMPNOT"
+m_pag    := 1
+li       := 60
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica as perguntas selecionadas, busca o padrao da NFPARV ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+pergunte("IMPNOT",.F.)
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Variaveis utilizadas para parametros                         ³
+//³ mv_par01             // Da Emissao                           ³
+//³ mv_par02             // Ate a Emissao                        ³ 
+//³ mv_par03             // Imprimir ? Faturamento Todos         ³ 
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Envia controle para a funcao SETPRINT                        ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+wnrel:=SetPrint(cString,"IMPNOT",cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"")
+
+If nLastKey == 27
+   Set Filter To
+   Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+   Set Filter To
+   Return
+Endif
+
+RptStatus({|| Corpo1() },"Notas Fiscais")
+Return
+Static Function Corpo1()
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Inicio do Programa                                           ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+mGeral  := 0
+cCabec1 := "EMISSAO    N.F.    CODIGO   NOME                           VALOR DA NOTA"
+   //       99/99/99   XXXXXX   XXXXXX   XXXXXXXXXXXXXXXXXXXXXXXXX   9,999,999.999,99
+   //       0123456789012345678901234567890123456789012345678901234567890123456789012
+   //                 1         2         3         4         5         6         7
+
+dbSelectArea("SF2")
+dbSetOrder(8)
+dbSeek(XFILIAL("SF2")+dtos(mv_par01),.T.)
+SetRegua(RecCount())
+While ! Eof() .And. F2_EMISSAO <= mv_par02 .And. XFILIAL("SF2") == F2_FILIAL
+
+   IncRegua()
+
+   dbSelectArea("SA1")
+   dbSetOrder(1)
+   dbSeek(XFILIAL("SA1")+SF2->F2_CLIENTE)
+   dbSelectArea("SD2")
+   dbSetOrder(3)
+   dbSeek(XFILIAL("SD2")+SF2->F2_DOC+SF2->F2_SERIE+SF2->F2_CLIENTE+SF2->F2_LOJA)
+   dbSelectArea("SF4")
+   dbSetOrder(1)
+   dbSeek(XFILIAL("SF4")+SD2->D2_TES)
+   dbSelectArea("SF2")
+
+   If ! (mv_par03 == 2 .Or. SF4->F4_DUPLIC == "S") .Or. !(F2_SERIE $ GetMv("MV_SERPEL"))
+      dbSkip()
+      Loop
+   Endif
+
+   If li >= 59
+      If m_pag > 1
+         @ li,000 PSAY repli("-",080)
+      Endif
+      Imprtit()
+   Endif
+   @ li,000 PSAY F2_EMISSAO
+   @ li,011 PSAY F2_DOC
+   @ li,020 PSAY F2_CLIENTE
+   @ li,029 PSAY SubStr(SA1->A1_NOME,1,25)
+   @ li,057 PSAY F2_VALMERC PICTURE "@E 9,999,999,999.99"
+   li:=li+1
+   mGeral := mGeral + F2_VALMERC
+
+   dbSkip()
+Enddo
+If mGeral <> 0
+   li:=li+2
+   @ li,000 PSAY "TOTAL GERAL -->>"
+   @ li,057 PSAY mGeral PICTURE "@E 9,999,999,999.99"
+   li:=li+1
+   @ li,000 PSAY repli("-",080)
+   @ 58,046 PSAY "-------------------------------"
+   @ 59,046 PSAY "   Departamento Setor Fiscal"
+   //@ 00,000 PSAY " "
+Endif
+
+If aReturn[5] == 1
+   Set Printer TO 
+   dbcommitAll()
+   ourspool(wnrel)
+Endif
+MS_FLUSH()
+Return
+
+Static Function ImprTit()
+   li:=1
+   @ 00,000 PSAY CHR(18)
+   @ li,000 PSAY repli("-",080)
+   li:=li+1
+   @ li,000 PSAY SM0->M0_NOMECOM      
+   li:=li+1
+   @ li,028 PSAY "RELACAO DE NOTAS FISCAIS"
+   @ li,063 PSAY "Emissao: "+dtoc(ddatabase)
+   li:=li+1
+   @ li,000 PSAY "Hora..:"+Time()
+   @ li,063 PSAY "Pagina.: " +StrZero(m_pag,2)
+   li:=li+1 
+   @ li,000 PSAY repli("-",80)
+   li:=li+1
+   @ li,000 PSAY "PERIODO DE "+dtoc(mv_par01)+" A "+dtoc(mv_par02)
+   li:=li+1 
+   @ li,000 PSAY repli("-",80)
+   li:=li+1                                                                                    
+   @ li,000 PSAY cCabec1
+   li:=li+1
+   @ li,000 PSAY repli("-",080)
+   li:=li+1
+   m_pag:=m_pag+1
+Return
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³    Fim do Programa IMPNOT.PRX, Obrigado pela Aten‡Æo !                   ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

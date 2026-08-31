@@ -1,0 +1,1200 @@
+#INCLUDE "PROTHEUS.Ch"
+#INCLUDE "TBICONN.CH"
+#INCLUDE "FWADAPTEREAI.CH" 
+
+#DEFINE TEF_NAO_USADO				"1"		//Nao Utiliza TEF
+#DEFINE TEF_SEMCLIENT_DEDICADO  	"2"     //Utiliza TEF Dedicado Troca de Arquivos
+#DEFINE TEF_COMCLIENT_DEDICADO  	"3"		//Utiliza TEF Dedicado com o Client
+#DEFINE TEF_DISCADO             	"4"		//Utiliza TEF Discado 
+#DEFINE TEF_LOTE                	"5"		//Utiliza TEF em Lote
+#DEFINE TEF_CLISITEF				"6"		//Utiliza a DLL CLISITEF
+#DEFINE CANCEL_SAT					"CF-e-SAT Cancelado"
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Release 11.5 - Cartao Fidelidade³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+#DEFINE MOVFID_ESTPGTO				"3"		//Codigo do tipo de movimento para cancelamento de venda paga com cartão fidelidade
+#DEFINE MOVFID_ESTREC 				"4"		//Codigo do tipo de movimento para cancelamento de venda de produto do tipo recarga de cartão fidelidade
+
+STATIC oIntCVenda 	:= Nil									// Objeto da integracao
+STATIC oProcOff 	:= Nil									// Objeto de OffLine
+Static lMvLjPdvPa   := LjxBGetPaf()[2] //Indica se é pdv  
+Static lIsVendaVP 	:= .F.
+Static lIsVdRecCP 	:= .F.
+Static lExcAuto		:= IsBlind()
+Static cNFisCanc	:= "" //nota de cancelamento sat
+Static lIntDefPro	:= .F. //processamento Por Eai
+Static lCancTef     := .F. // Informa se o Cancelamento TEF foi efetuado ou não
+Static lLxIteracao	:= .F.
+Static cPedSFat		:= "" //Numero do pedido de simples faturamento
+Static aNfSFat		:= {} //Numero da nota e serie de outra filial para realizar o cancelamento da SF2/SD2 - SFT/SF3
+
+User Function xlj140Exc(	cAlias  , nReg      , nOpcx     , aReserv   ,;
+ 					lAuto   , cFilOrc   , cNumOrc   , cNotaCanc ,;
+ 					lFinCanc, cProtoNfce, lForceExc , lVendaInt ,;
+					lRecpVenda)
+Local nCnt       	:= 0											// Contador
+Local nTamL1Cup  	:= TamSX3("L1_NUMCFIS")[1]    					// Tamanho do campo L1_NUMCFIS
+Local lVendido   	:= .F.											// Valida o L2_VENDIDO
+Local nOpca			:= 0							   				// Variavel com a opcao da tela
+Local cNumPdv    	:= Space(10)									// Numero do PDV
+Local cNumPdvAtu 	:= Space(4)						   				// Numero do PDV atual
+Local oDlg															// Objeto Dialog
+Local oCheckNFMan									   				// Objeto CheckBox se gera NF Manual
+Local lLj140CanT 	:= (ExistTemplate("LJ140CAN"))					// Valida a existencia do Template
+Local lLj140Can  	:= (ExistBlock("LJ140CAN"))		   				// Valida a existencia do Ponto de Entrada
+Local lLj140DelT	:= (HasTemplate("DRO") .AND. ExistTemplate("LJ140DEL")) // Valida a existencia da função de delecao do template de drogarias
+Local cNumCupFis 	:= Space(nTamL1Cup)				   				// Numero do cupom fiscal
+Local nDecs      	:= 0	   										// Casas decimais
+Local nPosVlrTot 	:= 0											// Posicao do Valor Total
+Local nPosDescPro	:= 0									   		// Posicao do Desconto do produto
+Local nPosVlrUni 	:= 0											// Posicao do valor unitario
+Local nPosQuant  	:= 0											// Posicao da quantidade
+Local nPosQtd  	    := 0											// Posicao da quantidade
+Local nPosTesPro	:= 0											// Posicao do Tes
+Local nY           	:= 0											// Contador utilizado no For
+Local nImpostos  	:= 0											// Impostos
+Local nImpsInc   	:= 0											// Valor dos impostos
+Local aPropImp   	:= {}											// Array com impostos proporcionais
+Local cSerie     	:= AllTrim(ljGetStation("LG_SERIE"))				// Serie da estacao
+Local cDescMot      := ""											// Descricao do motivo
+Local xRet															// Retorno da funcao
+Local nAbatimentos  := 0											// Abatimentos
+Local lUsafd    	:= SuperGetMV("MV_LJUSAFD",,.F.) 				// Utiliza Fidelizacao de cliente ??
+Local cTpOper		:= "3"											// Indica que e uma operacao de exclusao de pontos
+Local nPosProd   	:= 0                           					// Posicao do codigo do produto 
+Local nPosVlItem 	:= 0                          					// Posicao do valor do item            
+Local cGrupoProd 	:= ""											// Indica o grupo do produto
+Local aProdCri		:= {}											// Array com os produtos a serem excluidos
+Local cNumAnt		:= ""											// Numero anterior
+Local lGeraNCC   	:= 0											// Numero da Ncc gerada
+Local cNumNFDev  	:= ""											// Numero da nota fiscal de devolucao
+Local cSerieDev  	:= ""											// Serie de devolucao
+Local cMotivo    	:= "" 											// Motivo da devolucao
+Local nX			:= 0											// Contador de For
+Local lRetorno		:= .F.											// Retorno do ValType(xRet)   
+Local aVales		:= {}											// Vetor com os vales            
+Local cPdv     		:= AllTrim(LjGetStation("LG_PDV"))				// PDV da estacao
+Local cOper		    := ""											// codigo da operacao
+Local cNum			:= ""                              				// numero do orçamento
+Local cFilSL1		:= ""											// Filial da Reserva
+Local aAreMt		:= {}											// Bk do area
+Local aChaveCHRe 	:= {}											// Chave de busca para deletar os cheques na venda com reserva
+Local nVlrOrc		:= 0											// Soma dos valores dos itens (L2_VLRITEM)
+Local aOrcamento	:= {}											// armazena os orcamentos que deverao ser excluidos
+Local lSubClosed	:= .F.											// verifica se existe algum suborcamento finalizado
+Local aArea			:= {}											// armazena a area do orcamento principal(orcamento pai) em caso de reservas
+Local lLastOrc		:= .F.											// verifica se e o ultimo orcamento a ser excluido
+Local lIntGC		:= .F.  										// Integracao com Gestao de Concessionarias
+Local lAmbPAF		:= LjNfPafEcf(SM0->M0_CGC)						// verifica se o ambiente está em modo PAF
+Local lNota			:= .F. 											// Controla se existe nota fiscal
+Local cAuxDoc		:= ""
+Local cAuxSerie		:= ""
+Local lNFCe			:= ExistFunc("LjEmitNFCe") .AND.  LjEmitNFCe() .AND. ColumnPos("L1_KEYNFCE") > 0
+Local lCliRecIss	:= .F.											// Cliente Recolhe ISS ?
+Local lLstPre	 	:= .F.											// indica contem um item de Lista de Presente
+Local aAuxRet		:= {.F.,.F.,"",{},"","",0,"",.F.,.F.,.F.,{},{},.T.}
+Local lTEFCanc		:= .f.
+Local nPosNumcFi	:= 0									// Posicao do Numero do cartao fidelidade
+//³Tratamento para e-Commerce
+Local lECommerce	:= SuperGetMV("MV_LJECOMM",,.F.) .And. ( ((ExistFunc("LJ861ECAuto") .And. LJ861ECAuto() .Or. ExistFunc("LJ862ECAuto") .And. LJ862ECAuto()) ) .OR.;
+  						( SuperGetMv("MV_LJECOMO", .T., .F.) .AND. ( IsInCallStack("Lj907OrEx") .OR. ( SL1->(ColumnPos("L1_ECFLAG")) > 0 .AND. SL1->L1_ECFLAG == "1") ) )  )
+Local lECCia 		:= !Empty(SL1->L1_ECPEDEC)  
+Local aAreaMF5		:= {} 
+Local lLjcFid	 	:= SuperGetMv("MV_LJCFID",,.F.) .AND. CrdxInt()				//Indica se a recarga de cartao fidelidade esta ativa
+Local lAmbOffLn 	:= SuperGetMv("MV_LJOFFLN", Nil, .F.)						//Identifica se o ambiente esta operando em offline
+Local cMvLjPref		:= SuperGetMV("MV_LJPREF")									//Regra para gravacao do SF2->F2_PREFIXO
+Local cPrefE1		:= ""														//elemento que sera utilizado como SE1->E1_PREFIXO, na busca do titulo
+Local cModDoc		:= ""
+Local cDocNFCe 		:= ""
+Local cSerieNFCe 	:= ""
+Local cPrefixo		:= "" //Prefixo do título
+Local aChaveSL1		:= {} //Chave do SL1
+Local aAreaSL1		:= {} //WorkAreaSL1
+Local lVendaSAT		:= !IsBlind() .AND. IIF(SL1->(ColumnPos("L1_SERSAT")) > 0,!Empty(SL1->L1_SERSAT),.T.) .And. !Empty(SL1->L1_KEYNFCE)
+Local lIntegDef 	:= .F. 
+Local nTamSx3E1P 	:= TamSX3("E1_PREFIXO")[1] //Tamanho do campo E!_PREFIXO definido no dicionário de ados SX3
+Local lIsMDI 		:= Iif(ExistFunc("LjIsMDI"),LjIsMDI(),SetMDIChild(0)) //Verifica se acessou via SIGAMDI
+Local lTemNFCup 	:= .F.						// Informa se existem Nota Sobre Cupom para esta venda
+Local aDadosNFCp	:= {}						// Dados para a exclusão da Nota Sobre Cupom
+Local cNFCupom   	:= ""						// Numero da Nota Sobre Cupom
+Local lCancNFCup	:= .T.						// Informar se cancelou NF sobre Cupom
+Local lIsNFeDen		:= .F.						// Informa se é nota Denegada
+Local aPagDigPix 	:= {} 											//Informações de Pagamentos Digitais da venda
+Local lPafNfce		:= IIf(ExistFunc("LjPafNFCe"),LjPafNFCe(),.F.)	//Usa PAF-NFC-e c/ Impressora Não Fiscal
+
+Private aHeader[0]
+Private aCols[0]
+Private aCampos		:=	{}
+Private N			:= 1 //Variavel relacionada a linha da GetDados
+
+Default cFilOrc		:= ""	   								   		// Filial do orcamento
+Default cNumOrc 	:= ""	  										// Numero do orcamento
+Default lAuto		:= .F.
+Default cNotaCanc	:= ""
+Default lFinCanc	:= .F.
+Default cProtoNfce  := ""
+Default lForceExc	:= .F.
+Default lVendaInt	:= .F.
+Default lRecpVenda	:= .F. 											// Indica se foi chamado pela recuperação de venda
+
+//Seta a variável que indica que é um cancelamento via Integração
+If lVendaInt
+	Lj140StInD(.T.)
+
+    SL1->(DbSetOrder(1))//L1_FILIAL+L1_NUM
+    If SL1->(DbSeeK(xFilial("SL1")+Alltrim(cNumOrc)))
+
+        SF2->(dbSetOrder(1))//F2_FILIAL+F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA+F2_FORMUL+F2_TIPO			
+        If !( SF2->(dbSeek(xFilial("SF2") + SL1->L1_DOC + SL1->L1_SERIE + SL1->L1_CLIENTE + SL1->L1_LOJA)) )
+            Help(" ","1","Nota de sa��da não encontrada na SF2" + "SF2")//
+            Return(.F.)
+        EndIf
+    Else
+        Help(" ","1","Nota de sa�da n�o encontrada na SL1"  + "SL1")//
+        Return(.F.)
+    EndIf    
+
+EndIf
+
+lIntegDef := Lj140GtInD() //Integracao via Mensagem Unica
+
+If !lVendaInt .And. !lIntegDef
+	If lPafNfce .And. nModulo == 12 .And. !Empty(SL1->L1_NUMORC) .And. Empty(SL1->L1_DOC) .And. Empty(SL1->L1_DOCPED)
+		Help(" ","1", "PAF-NFC-e", ,"Conforme previsto em legislação (REQUISITO IV - Inciso IV do PAF-NFC-e), não é permitido o cancelamento/exclusão de DAV.", 1, 0)
+		Return Nil	
+	EndIf
+EndIf
+
+If !Empty(cNotaCanc)
+	cNfisCanc := cNotaCanc
+EndIf
+
+If !Type("aTefDados") == "A"
+	Private aTefDados := {}
+Endif
+
+lCancTef := IIf((SL1->L1_ORIGEM == 'N' .AND. !Empty(SL1->L1_UMOV)),.T.,.F.) //Se for venda integração aponto a variável como .T. pois o pagamento foi efetuado em outra plataforma
+
+//Atualiza Static
+lExcAuto	:= lAuto // Rotina automatica
+
+LjGrvLog( SL1->L1_NUM, "Vai iniciar a exclusao do orcamento")
+
+//Instancia o objeto oProcOff para Loja Offline.(Variavel Static)
+If lAmbOffLn
+	oProcOff := LJCProcessoOffLine():New("006") 
+EndIf
+
+If ExistFunc("LjSatVldSX") .And. LjUseSat() .And. !LjSatVldSX()
+	LjGrvLog(Nil,"Cancelamento de venda SAT não efetuado")
+	Return Nil
+EndIf
+
+If SuperGetMv("MV_LJVALEP",,.F.) .And. AliasIndic("MDD")
+
+	aArea := GetArea()
+	
+	DbSelectArea("SL2")
+	DbSetOrder(1)
+	
+	DbSelectArea("MDD")
+	DbSetOrder(1)
+	
+	DbSelectArea("SE1")
+	DbSetOrder(1)// E1_FILIAL + E1_PREFIXO + E1_NUM + E1_PARCELA + E1_TIPO 
+
+	/* Validação para não execluir a venda caso possua vale presente utilizado */			
+	If SL2->(DbSeek( xFilial("SL2") + SL1->L1_NUM ))
+		While SL2->(!EOF()) .And. xFilial("SL2") == SL2->L2_FILIAL .AND. SL2->L2_NUM == SL1->L1_NUM
+			If !Empty(SL2->L2_VALEPRE)
+				If MDD->(DbSeek( xFilial("MDD") + SL2->L2_VALEPRE )) 
+					
+                    //Vale Crédito
+                    If MDD->MDD_TIPO == 'C'
+						If SE1->(DbSeek(xFilial("SE1") + SL1->L1_SERPED + SL1->L1_DOCPED)) 
+							While SE1->(!EOF()) .And.  SL1->( L1_FILIAL + L1_SERPED + L1_DOCPED) == SE1->(E1_FILIAL +  E1_PREFIXO + E1_NUM)
+								If  SE1->E1_TIPO == "NCC" .AND. (SE1->E1_SALDO <> SE1->E1_VALOR)
+									MsgAlert("Não é possível fazer o cancelamento da venda de vale crédito, pois o mesmo já foi utilizado.	")//
+									LjGrvLog( SL1->L1_NUM, "Não é possível fazer o cancelamento da venda de vale crédito, pois o mesmo já foi utilizado.	")
+									Return( Nil )
+								EndIf
+								SE1->(dbSkip())	 
+							EndDo
+						EndIf
+                    
+                    //TIPO=P Vale Presente                        
+					Else
+						If MDD->( ColumnPos("MDD_SALDO") ) > 0 .And. ( !Empty(SL1->L1_DOCPED) .Or. !Empty(SL1->L1_DOC) )
+							If MDD->MDD_SALDO <> MDD->MDD_VALOR
+								MsgAlert("Não é possível fazer o cancelamento da venda pois existe um vale presente já utilizado.")
+								LjGrvLog( SL1->L1_NUM, "Não é possível fazer o cancelamento da venda pois existe um vale presente já utilizado.")
+								Return( Nil )
+							EndIf
+						EndIf
+					EndIf
+				EndIf
+
+			EndIf
+			SL2->(DbSkip())	
+		EndDo
+	EndIf
+	
+	RestArea(aArea)
+EndIf
+
+//Caso seja Orçamento e-Commerce nao pode excluir via browser.
+If ( lECommerce ) .AND.  SL1->(ColumnPos("L1_ECFLAG") > 0) .AND. (SL1->L1_ECFLAG == "1")  
+	If !lECCia 
+	
+		aAreaMF5 := MF5->(GetArea())    
+		MF5->( DbSetOrder(1) ) 
+		//Pedidos e-commerce, verifica se foi processado o pagamento
+		If  MF5->(DbSeek(xFilial("MF5") + "SL1" + SL1->L1_FILIAL+ SL1->L1_NUM)) .AND. (MF5->MF5_ECPAGO = "1" .AND. MF5->MF5_ECFLAG = "1")
+			Help(" ",1,"NO140CANC",,"E-Commerce - Esse pedido possui documento fiscal emitido pelo modulo de Faturamento realize o cancelamento pelo Faturamento em seguida realize a exclusão do orçamento por essa rotina." ,3,1)  //
+			LjGrvLog( SL1->L1_NUM, "E-Commerce - Esse pedido possui documento fiscal emitido pelo modulo de Faturamento realize o cancelamento pelo Faturamento em seguida realize a exclusão do orçamento por essa rotina." ) //
+			Return( Nil )
+		EndIf
+		RestArea(aAreaMF5)          
+	Else    
+		If !Empty(SL1->L1_DOC) .AND. !Empty(SL1->L1_SERIE)     .AND. !Empty(SL1->L1_EMISNF)
+			//Pedidos e-commerce, verifica se foi realizada a venda             
+			Help(" ",1,"NO140CANC", ,"E-Commerce - Esse pedido possui documento fiscal emitido pelo modulo de Faturamento realize o cancelamento pelo Faturamento em seguida realize a exclusão do orçamento por essa rotina." ,3,1, )  //
+			LjGrvLog( SL1->L1_NUM, "E-Commerce - Esse pedido possui documento fiscal emitido pelo modulo de Faturamento realize o cancelamento pelo Faturamento em seguida realize a exclusão do orçamento por essa rotina." ) //
+			Return( Nil )
+		EndIf
+	EndIf
+EndIf
+
+//Carrega a variável Inclui, utilizada no inicializador padrão do campo L2_REVLPRE
+If Type("INCLUI") <> "L"
+	Private INCLUI := (nOpcx <> 3)
+EndIf
+
+If lExcAuto .AND. !lForceExc
+
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Carrega as variaveis e perfil de caixa no primeiro acesso³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If Type("lFTStartSilenc") == "U" .AND. nModulo == 5 .And. !lIntegDef
+		If !lIsMDI
+			OpenLoja(lExcAuto)
+		EndIf 
+	EndIf
+
+	If !Empty(cNumOrc)
+		
+		DbSelectArea("SL1")
+		SL1->( DbSetOrder(1) )
+		
+		If !SL1->( DbSeek(cFilOrc + cNumOrc) )
+			LjGrvLog("", "FILIAL|ORCAMENTO NAO localizado para ser excluido: ", cFilOrc + "|" + cNumOrc)	//
+			Return .F.
+		EndIf
+	Else
+		LjGrvLog("", "Nenhum ORCAMENTO foi informado para exclusao")	//
+		Return .F.
+	EndIf
+EndIf
+
+/*
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+|aOrcamento:                                                                                                 	|
+|	Atraves dos itens do orcamento principal, identificamos quais sao os sub-orcamentos(quando tiver reservas)	|
+|	 e adicioanamos a esse array. Quando o orcamento nao possuir reservas, ele mesmo sera adicionado.		  	|
+|	Estrutura do array aOrcamento																				|
+|	[01] Filial do sub-orcamento L2_FILRES																	  	|
+|	[02] Numero do sub-orcamento L2_ORCRES																	  	|
+|	[03] indica se o orcamento em questao foi finalizado													  	|
+|	[04] indica se o orcamento em questao foi possui algum pedido de venda amarrado								|
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+*/
+If cPaisLoc <> "BRA"
+	Private lAnulaSF3  := AtIsRotina("LJ140ANUL")
+	If cPaisLoc == "GUA"
+		cNumNFDev  := CriaVar("L1_DOC") //Numero da Nota de Credito a ser gerada
+		cSerieDev  := AllTrim(SuperGetMV("MV_LJNFTRO"))
+		cMotivo    := Space(6)
+		lGeraNCC   := !lAnulaSF3
+		lAnulaSF3  := .T.
+	EndIf
+EndIf
+
+//Verifica se eh venda de Vale Presente
+lIsVendaVP := If( ExistFunc("Lj7VPNew") .And. Lj7VPNew(), Lj7VdaIsVP(SL1->L1_NUM), .F.)
+
+//-------------------------------------------------------------------------
+// Carrega as variaveis estaticas referente ao "Cartao Presente" (Gift Card).
+//-------------------------------------------------------------------------
+lIsVdRecCP := .F.
+If ExistFunc("Lj7CP_OK")
+	If Lj7CP_OK()
+		Lj7CP_Load()
+		lIsVdRecCP := Lj7VdIsRCP(SL1->L1_NUM) //Verifica se eh venda de Recarga de Cartao Presente (Gift Card)
+	Else
+		lIsVdRecCP := .F.
+	EndIf
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Carregamos aOrcamento com todos os orcamentos que serao excluidos.	|
+//| A variavel lSubClosed, indica se algum sub-orcamento foi finalizado	|
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aOrcamento := LJ140Fill(@lSubClosed)
+LjGrvLog( SL1->L1_NUM, "Carrega todos os orcamentos que serao excluidos",aOrcamento)
+
+//verifica se aOrcamento possui algum orcamento finalizado, seja ele pai ou filho
+lVendido := aScan( aOrcamento, {|x| x[3] == .T.} ) > 0
+
+//verifica se ha itens de Lista de Presente LOJA846
+If ExistFunc("Lj8EstCC")
+	lLstPre := aScan( aOrcamento, {|x| x[5] == .T.} ) > 0
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Verifica se a venda pode ser cancelada³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If !Lj140VlVend(@lFiscal	, @cNumCupFis	, @cNumPdvAtu	, @cSerie	, ;
+			    @cAlias		, @nOpcA		, @lGeraNCC		, @lLj140Can, ;
+			    nTamL1Cup	, aOrcamento	, lSubClosed	, lECommerce .AND. lECCia ,;
+			    lForceExc   , lRecpVenda )
+	LjGrvLog( , "venda nao pode ser cancelada")
+	Return .F.		
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//|  Ponto de Entrada para uso de Template          |
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If lLj140CanT	// Executa um ponto de entrada para outras verifica‡”es
+	lLj140CanT := ExecTemplate("LJ140CAN",.F.,.F.)
+	If ValType(lLj140CanT) <> "L" .OR. !lLj140CanT
+		Return Nil
+	EndIf
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//|  Ponto de Entrada      							|
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If lLj140Can	// Executa um ponto de entrada para outras verifica‡”es
+	LjGrvLog( NIL, " Antes da execução do P.E. LJ140CAN ")
+	lLj140Can := ExecBlock("LJ140CAN",.F.,.F.)
+	LjGrvLog( NIL, " Depois da execução do P.E. LJ140CAN ",lLj140Can)
+	If ValType(lLj140Can) <> "L" .OR. !lLj140Can
+		Return Nil
+	EndIf
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Pontos de Entrada LJ140 utilizado pelo Template de Drogarias ³
+//³ para delecao dos registros da tabela LK9-Logs Anvisa  		³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If lLj140DelT
+	ExecTemplate("LJ140DEL",.F.,.F., {lExcAuto})
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Verifica se a venda ja foi devolvida³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If !Lj140VlDev(@lVendido, @nCnt, aOrcamento, lSubClosed)
+	LjGrvLog( , "Verifica se a venda ja foi devolvida")
+	Return .F.
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Avisa o usuario sobre a geracao ou nao da Nota de Credito - Loc. Guatemala  ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If cPaisLoc == "GUA" .AND. lVendido
+	If lGeraNCC
+		If !lExcAuto
+			If !MsgYesNo( "Esta operacao de cancelamento vai gerar uma Nota de Credito ao Cliente. Confirma?" )
+				Return NIL
+			EndIf
+		EndIf	
+	Else
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//|     "Esta operacao de cancelamento nao gera Nota de Credito."                                           |
+		//|     "Deve ser utilizada quando o pagamento da Nota Fiscal nao foi efetuado ou "                         |
+		//|     "na ocorrencia de erro na impressao do documento. Confirma?"                                        |
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If !lExcAuto
+			If !MsgYesNo( "STR0067" + chr(13) + "STR0068" + chr(13) + "STR0069" )
+				Return NIL
+			EndIf
+		EndIf	
+	EndIf
+EndIf
+
+If !lExcAuto
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Verifica se o cupom foi impresso na impressora atual³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If !Lj140VlImp(	lVendido	, cNumPdv	, lFiscal	, cNumPdvAtu, ;
+					cNumAnt		, nTamL1Cup	, aOrcamento, lSubClosed, ;
+					lLstPre)
+		Return .F.
+	EndIf
+EndIf
+
+If lVendido	//verifica se trata de um orcamento finalizado
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³Se tiver algum sub-orcamento finalizado, deve-se posicionar nele para que seja feitas as validacoes|
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	If lSubClosed
+		aArea := SL1->( GetArea() )
+		If !Lj140Pos(aOrcamento)
+			LjGrvLog( , "Retorno da funcao Lj140Pos", .F.)
+			Return .F.
+		EndIf
+	Endif
+
+	If !Empty(SL1->L1_DOC)
+		// Verifica a existência de NF sobre Cupom
+		If !Empty( SF2->F2_NFCUPOM )
+				lTemNFCup	:= .T.
+				cNFCupom	:= SF2->F2_NFCUPOM
+				aDadosNFCp	:= {SF2->F2_DOC, SF2->F2_SERIE, SF2->F2_CLIENTE, SF2->F2_LOJA}
+		EndIf
+	EndIf
+
+	//retorno a area do orcamento principal
+	If lSubClosed
+		SL1->( RestArea(aArea) )
+	EndIf
+
+EndIf
+
+LJ140FillGet( 5 )
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Salva a integridade dos campos de Bancos de Dados 			 ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+For nX := 1 To Len(aHeader)
+	Do Case
+		Case AllTrim(aHeader[nX][2])	==	"L2_VRUNIT"
+			nPosVlrUni := nX
+		Case AllTrim(aHeader[nX][2])	==	"L2_VLRITEM"
+			nPosVlrTot := nX
+		Case AllTrim(aHeader[nX][2])	==	"L2_QUANT"
+			nPosQuant  := nX
+		Case AllTrim(aHeader[nX][2])	==	"L2_DESCPRO"
+			nPosDescPro:= nX
+		Case AllTrim(aHeader[nX][2])	==	"L2_TES"
+			nPosTesPro := nX			
+	EndCase
+Next nX 
+
+While .T.
+	nImpostos := 0
+	nImpsInc  := 0
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Verifica nivel do desconto.							 ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	DbSelectArea( "SX3" )
+	DbSetOrder( 2 )
+	DbSeek( "L1_DESCONT" )
+	DbSetOrder( 1 )
+	
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Aceita o cabeçalho do Orcamento 					³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	M->L1_NUM		:= SPACE( TamSX3( "L1_NUM" )[1] )
+	M->L1_DOC		:= SL1->L1_DOC
+	M->L1_NROPCLI	:= SPACE( TamSX3( "L1_NROPCLI" )[1] )
+	M->L1_VLRTOT	:= 0
+	M->L1_CLIENTE	:= SuperGetMv( "MV_CLIPAD" )
+	M->L1_DESCONT	:= 0
+	M->L1_VEND		:= SuperGetMv( "MV_VENDPAD" )
+	M->L1_DTLIM		:= dDataBase
+	M->L1_VLRLIQ	:= 0
+	M->L2_VALDESC	:= 0
+	M->L2_DESC		:= 0
+	
+	DbSelectArea( "SL1" )
+	cNum 			:= SL1->L1_NUM
+	cFilSL1			:= SL1->L1_FILIAL
+	M->L1_NUM		:= SL1->L1_NUM
+	M->L1_NUMORC	:= SL1->L1_NUMORC
+	M->L1_NROPCLI	:= SL1->L1_NROPCLI
+	M->L1_VLRTOT	:= SL1->L1_VLRTOT
+	M->L1_CLIENTE	:= SL1->L1_CLIENTE
+	M->L1_DESCONT	:= SL1->L1_DESCONT
+	M->L1_VEND		:= SL1->L1_VEND
+	M->L1_DTLIM		:= SL1->L1_DTLIM
+	M->L1_VLRLIQ	:= SL1->L1_VLRLIQ
+	M->L1_LOJA		:= SL1->L1_LOJA
+	M->L1_VALISS	:= SL1->L1_VALISS
+
+	If SL1->( ColumnPos( "L1_ABTOPCC" ) ) > 0
+		M->L1_ABTOPCC := SL1->L1_ABTOPCC
+	EndIf
+	
+	nDecs	:= MsDecimais(SL1->L1_MOEDA)
+	
+	For nX := 1 To (Len(aCols) - 3)
+		If cPaisLoc <> "BRA"
+			If nPosDescPro > 0
+				aCols[nX][nPosVlrTot] += aCols[nX][nPosDescPro]
+			EndIf
+			aCols[nX][nPosVlrUni] := Round( aCols[nX][nPosVlrTot] / aCols[nX][nPosQuant], nDecs )
+			aPropImp :=	TesImpInf( aCols[nX][nPosTesPro])
+
+			For nY := 1	To Len( aPropImp )
+				If ( aPropImp[nY][3]=="1" )
+					nImpostos += SL2->( FieldGet( ColumnPos( "L2_" + Substr( aPropImp[nY][2],4,7 ) ) ) )
+				ElseIf ( aPropImp[nY][3]=="3" )
+					nImpsInc  += SL2->( FieldGet( ColumnPos( "L2_" + Substr( aPropImp[nY][2],4,7 ) ) ) )
+				EndIf
+			Next nY
+		EndIf
+	Next nX
+	
+	If Len(aCols) == 0 
+		If !lExcAuto 
+			Help(" ","1","TROCADO")
+			SetCursor(0)
+			Return( Nil )
+		Else
+		  	//
+			Conout("Este orcamento contem um ou mais produtos trocados, por isso nao podera ser utilizado.")
+			LjGrvLog( , "Este orcamento contem um ou mais produtos trocados, por isso nao podera ser utilizado.")
+			SetCursor(0)
+			Return( Nil ) 		
+		EndIf	
+	EndIf
+	
+	nOpca := 0
+	If cPaisloc <> "BRA"
+		M->L1_VLRLIQ := M->L1_VLRTOT - nImpostos + M->L1_DESCONT
+	EndIf	
+
+    
+	If !lExcAuto .AND. !lForceExc
+		
+				
+		DEFINE MSDIALOG oDlg TITLE cCadastro From 3,0 TO 25,80 OF oMainWnd
+
+			@1,01 Say "Or�amento:"
+			@1,05 MSGet M->L1_NUM When .F.
+
+			@1,10 Say 'Documento    :'
+			@1,15 MSGet M->L1_DOC When .F.
+
+			If cPaisLoc == "GUA" .AND. lGeraNCC
+				@5,220 CHECKBOX oCheckNFMan VAR lNFManual PROMPT "NCC Manual?" OF oDlg SIZE 60,08
+			EndIf
+
+			//Conferencia de caixa
+			oGet := MSGetDados():New(30,5,100,315,nOpcx,,,"")
+
+			@ 105, 005 TO 147, 110 OF oDlg PIXEL
+			@ 105, 112 TO 147, 225 OF oDlg PIXEL
+			@ 105, 227 TO 147, 315 OF oDlg PIXEL
+		
+			@ 110, 008 SAY xPadL( "Seu Pedido:", 36 )		 SIZE 30, 07	OF oDlg PIXEL
+			@ 110, 038 MSGET M->L1_NROPCLI When .F.	 SIZE 30, 08	OF oDlg PIXEL
+
+			@ 122, 008 SAY xPadL( "Cliente:", 24 )		 SIZE 30, 07	OF oDlg PIXEL
+			@ 122, 038 MSGET M->L1_CLIENTE When .F.	 SIZE 30, 08	OF oDlg PIXEL
+
+			@ 134, 008 SAY xPadL( "Vendedor:", 31 )		 SIZE 30, 07	OF oDlg PIXEL
+			@ 134, 038 MSGET M->L1_VEND When .F.	 SIZE 30, 08	OF oDlg PIXEL
+
+			@ 110, 115 SAY xPadL( "Total de Mercadorias:", 66 ) SIZE 66, 7 OF oDlg PIXEL
+
+			@ 122, 115 SAY xPadL( "Desconto:", 36 ) SIZE 36, 7 OF oDlg PIXEL
+			If cPaisLoc == "BRA"
+				@ 122, 170 MSGET M->L1_DESCONT When .F. Picture "@E 999,999.99" SIZE 46, 08 OF oDlg PIXEL
+			Else
+				@ 122, 170 MSGET M->L1_DESCONT When .F. Picture PesqPict("SL1","L1_DESCONT") SIZE 46, 08 OF oDlg PIXEL
+			EndIf
+
+			If cPaisLoc == "BRA"
+			
+				@ 110, 230 SAY xPadL( "L�quido:", 25 ) SIZE 25, 7 OF oDlg PIXEL
+				@ 110, 260 MSGET M->L1_VLRLIQ When .F. Picture "@E 999,999.99"	SIZE 46, 08 OF oDlg PIXEL
+				
+				@ 122, 230 SAY xPadL( "Validade:", 28 ) SIZE 25, 7 OF oDlg PIXEL
+				@ 122, 260 MSGET M->L1_DTLIM  When .F.							SIZE 46, 08 OF oDlg PIXEL
+
+				@ 110, 170 MSGET M->L1_VLRTOT When .F. Picture "@E 999,999.99"	SIZE 46, 08 OF oDlg PIXEL
+
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³bloco responsavel pelo Abatimento³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				@ 134, 115 SAY xPadL( "Abatimentos:", 66 ) SIZE 66, 07 OF oDlg PIXEL
+				nAbatimentos := 0			
+				If SL1->( ColumnPos( "L1_ABTOPCC" ) ) > 0
+					M->L1_VLRLIQ -= M->L1_ABTOPCC
+					nAbatimentos += M->L1_ABTOPCC
+				EndIf				
+				// Verifica se esta usando a nova configuracao para confirmar se o cliente recolhera o iss.
+				If SuperGetMV("MV_LJRECIS",,.F.) .AND. SL1->(ColumnPos("L1_RECISS")) > 0   
+					lCliRecIss := SL1->L1_RECISS == "1" .AND. GetNewPar("MV_DESCISS", .F.)  					
+				Else
+					lCliRecIss := (Posicione("SA1",1,xFilial("SA1")+M->L1_CLIENTE+M->L1_LOJA,"SA1->A1_RECISS") == "1" .AND.;
+									GetNewPar("MV_DESCISS", .F.) )
+				EndIf					
+					
+				If lCliRecIss
+					M->L1_VLRLIQ -= M->L1_VALISS
+					nAbatimentos += M->L1_VALISS
+				EndIf
+				@ 134, 170 MSGET nAbatimentos When .F. Picture "@E 999,999.99"	SIZE 46, 08 OF oDlg PIXEL
+			
+			Else
+			
+				@ 110, 230 SAY xPadL( "Validade:", 28) 			SIZE 28, 7 	OF oDlg PIXEL
+				@ 110, 260 MSGET M->L1_DTLIM	When .F.	SIZE 46, 08	OF oDlg PIXEL
+
+				//o valor liquido e valor de mercadoria sao invertidos ?
+				@ 110, 170 MSGET M->L1_VLRLIQ	When .F. Picture PesqPict("SL1","L1_VLRLIQ") 	SIZE 46, 08 OF oDlg PIXEL
+								
+				@ 134, 115 SAY xPadL( "L�quido:", 25) SIZE 25, 7 OF oDlg PIXEL
+				@ 134, 170 MSGET M->L1_VLRTOT	When .F. Picture PesqPict("SL1","L1_VLRTOT") 	SIZE 46, 08 OF oDlg PIXEL
+				
+				@ 122, 230 SAY xPadL( "Imp. Inc.:", 28 ) SIZE 28, 7 OF oDlg PIXEL
+				@ 122, 260 MSGET nImpsInc When .F. /*Picture PesqPict("SL1","L1_VALIMP1")*/			SIZE 46, 08 OF oDlg PIXEL
+					
+				@ 134, 230 SAY xPadL( "Imp. Disc.:", 28 ) SIZE 28, 7 OF oDlg PIXEL
+				@ 134, 260 MSGET nImpostos When .F. /*Picture PesqPict("SL1","L1_VALIMP1")*/ 		SIZE 46, 08 OF oDlg PIXEL
+				
+			EndIf
+
+		ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg,{|| nOpca := 1,oDlg:End()},{|| nOpca := 2,oDlg:End()}) CENTERED
+		
+		//Quando é finalização de cancelamento não pode executar outra ação alem de cancelar efetivamente a venda
+		If lFinCanc .And. nOpca <> 1
+			nOpca := 1
+		EndIf
+	Else
+		//Rotina Automatica
+		nOpcA := 1			
+	EndIf
+	
+	If nOpcA == 1
+	
+		aArea := SL1->(GetArea())
+
+		//se for filho UNICO finalizado, add o orcamento pai ao aOrcamento, pois se somente existir um filho, o orcamento pai nao sera excluido
+		If lSubClosed .AND. Len(aOrcamento) == 1
+			AADD(aOrcamento, {SL1->L1_FILIAL, SL1->L1_NUM, .F.})
+		EndIf
+
+		// Verifica se eh venda com NFC-e		
+		cModDoc := LjGetMDoc(aOrcamento, @cDocNFCe, @cSerieNFCe, Nil, @lIsNFeDen)
+		
+		If cModDoc $ "55|65" .OR. Lj7VdNoFis(aOrcamento)
+
+			If AllTrim(Upper(cMvLjPref)) <> "SF2->F2_SERIE"
+				cPrefixo := &(cMvLjPref) //como o conteudo do parametro nao e padrao, ele e macro executado.
+				cPrefixo := Substr(PAdr(AllTrim(cPrefixo),nTamSx3E1P),1,nTamSx3E1P)
+			Else
+				cPrefixo:= LJPREFIXO()
+			EndIf
+
+			If ExistFunc("LJ7NumTit") 
+				aAuxRet[3] := { xFilial("SE1"), cPrefixo, LJ7NumTit() }
+			ElseIf lLstPre
+				aAuxRet[3] := { xFilial("SE1"), cPrefixo, Iif(!Empty(SL1->L1_DOC),SL1->L1_DOC,SL1->L1_DOCPED) }
+			Else
+				aAuxRet[3] := { xFilial("SE1"), cPrefixo, SL1->L1_DOC }
+			EndIf 
+			
+			aAreaSL1 := SL1->(GetArea())
+			//Busca o orçamento finalizado
+			If !Empty(aOrcamento[1][1]) .AND. !Empty(aOrcamento[1][2]) .AND. aOrcamento[1][3]				
+				Lj140Pos(aOrcamento)
+			EndIf
+			If lLstPre
+				aChaveSL1 := { xFilial("SE1"), Iif(!Empty(SL1->L1_SERIE), SL1->L1_SERIE, SL1->L1_SERPED), Iif(!Empty(SL1->L1_DOC), SL1->L1_DOC, SL1->L1_DOCPED), SL1->L1_CLIENTE, SL1->L1_LOJA }
+			Else
+				aChaveSL1 := { xFilial("SE1"), SL1->L1_SERIE, SL1->L1_DOC, SL1->L1_CLIENTE, SL1->L1_LOJA }
+			EndIf			
+			RestArea(aAreaSL1)
+			
+		   	/*Array criado para que seja usado ao inves de declarar cada variavel*/
+			aAuxRet[1]	:= .F.
+			aAuxRet[7]	:= TamSx3("F2_DOC")[1]
+			aAuxRet[8]	:= cDocNFCe
+			aAuxRet[11]	:= .F. // lTefOk
+			aAuxRet[12]	:= {}
+			aAuxRet[13]	:= {}
+				
+			aAuxRet[14] := Lj140Valida( aAuxRet[1]/*lJob*/, @aAuxRet[2]/*lVendTef*/,aAuxRet[3]/*aChave*/,@aAuxRet[4]/*aCheques*/,;
+										@aAuxRet[5]/*cSerNfCup*/,@aAuxRet[6]/*cNumNfCup*/,aAuxRet[7]/*nTamDoc*/,aAuxRet[8]/*cNumNota*/,;
+										@aAuxRet[9]/*lAchouSF2*/,aAuxRet[10]/*lLstPre*/, , aChaveSL1)
+
+			LjGrvLog( SL1->L1_NUM, "Retorno da funcao Lj140Valida", aAuxRet[14] )
+
+			If aAuxRet[14]
+				If !isBlind()                      
+					/*
+						Validação para exclusão da Venda NFC-e quando tiver TEF
+					*/
+					If  aAuxRet[2]
+						Lj140TlCTef(aAuxRet[1]		,	@aAuxRet[2]	, Iif( Type("oTef") == "U" , Nil, @oTef ), @aAuxRet[11],;
+									@aAuxRet[12]	,	@aAuxRet[13])
+						
+						//Se o cancelamento do TEF não teve sucesso , não permito prosseguir com o cancelamento da NFCE
+						lTEFCanc := aAuxRet[11]
+						If !lTEFCanc
+							If  cModDoc $ "55|65" 
+								Alert("Operação de cancelamento do TEF não realizada, portanto NFC-e não poderá ser cancelada")
+							Else
+								Alert("Operação de cancelamento do TEF não realizada, portanto a venda não poderá ser cancelada"						)
+							EndIf
+							Return .F.
+						EndIf
+					EndIf
+
+					//Cancela transações de Pagamento Digital.
+					If ExistFunc("LjPDGtPGrv") .And. ExistFunc("LjPDCanTrn")
+						//Busca informações de Pagamentos Digitais gravados na venda.
+						aPagDigPix	:= LjPDGtPGrv(SL1->L1_NUM, .T.)
+
+						If Len(aPagDigPix) > 0 .And. !LjPDCanTrn(@aPagDigPix)
+							//Se o cancelamento de Pagamento Digital não teve sucesso, não permito prosseguir com o cancelamento da venda
+							Help( 	" ", 1, "TOTVSTDP", ,"Operação de cancelamento de Pagamento Digital/PIX não realizada, portanto a venda não poderá ser cancelada.", 1, 0 ) // 
+							Return .F.
+						EndIf
+					EndIf
+
+				EndIf
+			Else
+				Return .F.
+			Endif
+
+			If !aAuxRet[14] .Or. (cModDoc $ "55|65" .And. !Lj140DOCe(aOrcamento)) .AND. !lIsNFeDen
+				Return .F.
+			EndIf
+
+		EndIf
+		
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ primeiro cancelaremos os filhos finalizados(aVendido[3]) e soh por ultimo o orcamento pai ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+		If lTemNFCup .AND. !Empty(aDadosNFCp)
+			//se houver NF sobre Cupom, executamos a sua exclusao
+			Help( 	" ", 1, "EXCNFCUP", ,;
+							"Esta venda possui Nota Fiscal atrelada, e será cancelada."  + CHR(13)+CHR(10) +;
+							" Nota:" + SubSTR(cNFCupom,4,Len(cNFCupom)) + CHR(13)+CHR(10) +;
+							" Serie: " + SubSTR(cNFCupom,1,3), 1, 0 ) 
+			// 
+
+			If !LojR130( {aDadosNFCp} )
+					Help( 	" ", 1, "NOEXCNFCUP", ,;
+							"N�o foi possível excluir a nota fiscal" + Subs(SF2->F2_NFCUPOM,1,3) + " " + Subs( SF2->F2_NFCUPOM,4 ) + " que foi relacionada ao cupom " + SL1->L1_SERIE + " " + SL1->L1_DOC,;
+							1, 0 )
+					//"Não foi possível excluir a nota fiscal XXX XXXXXX" #" que foi relacionada ao cupom XXX XXXXXX"
+				lCancNFCup := .F.
+			EndIf
+
+		EndIf
+
+		If lCancNFCup
+
+			// Inicio de Transacao em Banco
+			// Para quando for transaco TEF e ecorrer algum erro, nao cancela os orcamentos filhos
+			BeginTran()
+			
+			aAreaSL1 := SL1->(GetArea())
+			SL1->( RestArea(aArea) )	//posiciona no orcamento pai ou no orcamento unico, caso nao tenha sub-orcamentos 
+			Lj140DelNCC()				//estorna NCC somente na exclusao do orcamento pai ou orcamento unico finalizado
+			RestArea(aAreaSL1)
+
+			For nCnt := 1 To Len(aOrcamento)	
+			
+				//verifica se eh um orcamento filho finalizado
+				If !Empty(aOrcamento[nCnt][1]) .AND. !Empty(aOrcamento[nCnt][2]) .AND. aOrcamento[nCnt][3]
+					lVendido := aOrcamento[nCnt][3]
+					If !Lj140Pos(aOrcamento)
+						Return .F.
+					Endif
+				Else
+					lLastOrc := .T.				//utilizado no final do FOR para que saia do Loop
+					lVendido := aOrcamento[nCnt][3]
+					SL1->( RestArea(aArea) )	//posiciona no orcamento pai ou no orcamento unico, caso nao tenha sub-orcamentos 
+					Lj140DelNCC()				//estorna NCC somente na exclusao do orcamento pai ou orcamento unico finalizado
+					If lLstPre
+						Lj140LstP(SL1->L1_FILIAL, SL1->L1_NUM)	//estorna os lancamentos na conta corrente e quantidade da Lista de Presente
+					EndIf
+				EndIf
+
+				cNum	:= SL1->L1_NUM
+				cFilSL1	:= SL1->L1_FILIAL
+				
+				If (ExistTemplate("LJ140EXC"))
+					ExecTemplate("LJ140EXC",.F.,.F.,{lVendido})
+				EndIf
+				
+				 If (ExistBlock("LJ140EXC"))
+					LjGrvLog(Nil, "Antes da Execução do P.E. LJ140EXC")
+					ExecBlock("LJ140EXC",.F.,.F.)
+					LjGrvLog(Nil, "Depois da Execução do P.E. LJ140EXC")
+				EndIf
+				
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Funcao para zerar os pontos obtidos na venda                              ³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				If CRDXInt() .AND. lUsaFD
+					
+					If !Empty( SL1->L1_DOC )
+						
+						nPosProd   	:= aScan(aHeader,{|x| Alltrim(Upper(x[2]))=="L2_PRODUTO"})	// Posicao do codigo do item
+						nPosVlItem 	:= aScan(aHeader,{|x| Alltrim(Upper(x[2]))=="L2_VLRITEM"})	// Posicao do Valor Total do Item
+						nPosQtd 	:= aScan(aHeader,{|x| Alltrim(Upper(x[2]))=="L2_QUANT"})	// Posicao do Valor Total do Item				
+										
+						For nY := 1 to Len( aCols )
+							cGrupoProd :=  Posicione("SB1",1,xFilial("SB1") + aCols[nY][nPosProd],"SB1->B1_GRUPO")
+								AADD ( aProdCri, { aCols[nY][nPosProd], cGrupoProd , aCols[nY][nPosVlItem] , aCols[nY][nPosQtd] } )
+						
+						Next nY
+						
+						//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+						//³Funcao para debitar os pontos                 ³
+						//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+						If !Crd240_002(cTpOper			,;	//01 Exclusao
+										M->L1_CLIENTE	,;	//02 Codigo do cliente
+										M->L1_LOJA		,;	//03 Loja do clinte
+										aProdCri		,;	//04 Array com os produtos para analise dos pontos
+										M->L1_VLRLIQ	,;	//05 Total da Venda
+										SL1->L1_DOC		,;	//06 Numero do documento
+										SL1->L1_SERIE	,;	//07 Serie
+										SL1->L1_DOC		,;	//08 Numero da venda original
+										SL1->L1_SERIE	,;	//09 Serie da venda original
+										Nil				,;	//10 Identifica se e do Loja ou do Televendas
+										Nil				,;	//11 Indica se grava MAX ou somente calcula pontos
+										Nil				,;	//12 Total de pontos
+										Nil				 )	//13 Pagamento com Vale-Compra calcular sobre a dif.
+							If !lExcAuto
+								Aviso( "STR0006","STR0077",{"Ok"} )
+								Return NIL
+							Else 
+								//
+								Conout("Falha no cancelamento dos pontos referente a campanha de fidelizacao." )
+								LjGrvLog( SL1->L1_NUM, "Falha no cancelamento dos pontos referente a campanha de fidelizacao."  )
+								Return NIL
+							EndIf	
+						Else
+						
+							//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+							//³ Retorna status do vale compra                ³
+							//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+							If AliasIndic( "MB1" )
+								dbSelectArea("MB1")
+								dbSetOrder(2) // MB1_FILIAL+MB1_SERIE+MB1_NF+MB1_CODIGO
+								dbSeek(xFilial("MB1") + SL1->L1_SERIE + SL1->L1_DOC)
+								
+								While !EOF() .AND. MB1_FILIAL + MB1_SERIE + MB1_NF == xFilial("MB1") + SL1->L1_SERIE + SL1->L1_DOC
+									aVales := {{MB1->MB1_CODIGO,Nil,Nil,MB1->MB1_CODIGO,.F.}}
+									
+									If MB1->MB1_OPER == 2
+										cOper := "4"
+									ElseIf MB1->MB1_OPER == 3 	  
+										cOper := "2"
+									EndIf	
+									
+									If !Crd240UpdMAV( aVales, cOper )
+										If !lExcAuto		
+											Aviso( "STR0006","STR0077",{"Ok"} )
+										Else 
+											Conout("Falha no cancelamento dos pontos referente a campanha de fidelizacao." )
+										EndIf	
+									Else
+										aVales := {MB1->MB1_CODIGO,Nil,Nil,MB1->MB1_CODIGO,.F.}
+										CRDA270Log( aVales, cOper, SL1->L1_DOC, cPdv, SL1->L1_SERIE )			 	
+									EndIf	
+									
+									dbSelectArea("MB1")
+									dbSkip()
+								EndDo
+							EndIf			
+						EndIf
+					EndIf
+				EndIf
+				
+				If AliasIndic('MDU')
+				
+					aAreMt := GetArea()
+					
+					DbSelectArea('MDU')
+					MDU->( DbSetOrder(2) )		
+					MDU->( DbSeek(xFilial( "SL2" )+SL1->L1_DOC+SL1->L1_SERIE) )
+					
+					While !EOF() .AND. (MDU->MDU_DOC == SL1->L1_DOC) .AND. (MDU_SERIE == SL1->L1_SERIE)
+						
+						RecLock('MDU',.F.)  
+							MDU->( DbDelete() )
+						MDU->( MsUnLock() )
+
+						MDU->( DbSkip() )
+					End	
+					
+					RestArea(aAreMt)		
+				
+				EndIf	
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Determinar a numeracao e o motivo da NCC - Loc. Guatemala                 ³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				If cPaisLoc == "GUA" .AND. lVendido
+					If lGeraNCC .AND. !Lj140Manual()
+						Return NIL
+					EndIf
+					If !Lj021MotDev(@cDescMot)
+						Return NIL
+					EndIf
+					If lGeraNCC
+						If !LJ021Nota(.T.)
+							Return NIL
+						EndIf
+					EndIf
+				EndIf
+				
+				If !lVendido
+					
+					If AllTrim(Upper(cMvLjPref)) <> "SF2->F2_SERIE"
+						cPrefE1 := &(cMvLjPref) //como o conteudo do parametro nao e padrao, ele e macro executado.
+						cPrefE1 := Substr(PAdr(AllTrim(cPrefE1),nTamSx3E1P),1,nTamSx3E1P)
+					Else
+						cPrefE1 := LJPREFIXO()
+					EndIf
+					
+					If ExistFunc("LJ7NumTit")
+						aChaveCHRe := { xFilial("SE1"), cPrefE1, LJ7NumTit() }
+					Else
+						aChaveCHRe := { xFilial("SE1"), cPrefE1, SL1->L1_DOCPED }
+					EndIf
+				EndIf
+
+				If !Lj140ChkRes(lVendido, aChaveCHRe)
+					Return Nil
+				EndIf
+
+				lNota := nModulo == 5 .And. !Empty(SL1->L1_DOC) .And. !Empty(SL1->L1_SERIE)
+				cAuxDoc := SL1->L1_DOC
+				cAuxSerie := SL1->L1_SERIE
+
+				LjGrvLog( SL1->L1_NUM, "lj140Exc | Antes de enviar para Lj140Grava",)
+				xRet  := Lj140Grava(Nil, cDescMot, lGeraNCC, cNumNFDev, cSerieDev, cMotivo, cNum, lNFCe, lLstPre, cProtoNfce)
+				LjGrvLog( SL1->L1_NUM, "lj140Exc | Apos de enviar para Lj140Grava | xRet: " + cValToChar( xRet ) , )
+
+				cNfisCanc := ""
+				
+				lRetorno := xRet
+				
+				//Se deu erro na gravação, sai do loop
+				If !lRetorno
+					Exit
+				EndIf
+
+				If lRetorno .And. FwHasEai("LOJI701A",.T.,,.T.)
+					aAreaSL1 := SL1->(GetArea()) 
+					//Efetua o envio da mensagem do registro do pedido cancelado
+					LjGrvLog("LOJA140", "Gera mensagem de Rastreio se venda contiver itens do tipo Retira. Pedido Cancelado (LOJI701A)")
+					FwIntegDef("LOJI701A",,,, "LOJI701A")	
+					RestArea(aAreaSL1)
+				EndIf
+
+				If (SL1->L1_ORIGEM = 'N' .AND. !Empty(SL1->L1_UMOV)) .AND. ExistFunc("RmiExeGat") .AND. ExistFunc("SHPStatus")					
+					SHPStatus("canceled")
+				EndIf
+
+				//------------------------------------------------------------------------------------------------
+				//|Avalia se o orcamento contem reservas, nesse caso sera necessario limpar as tabelas SL1 e SL2 |
+				//------------------------------------------------------------------------------------------------
+				If	lRetorno .AND.  ( IIf(!lAmbPAF, Empty(L1_DOC), .T.) .AND. SL1->L1_TIPO == "P" .AND. !Empty(SL1->L1_DOCPED) .AND. ;
+					SL1->L1_STATUS<>"D" .AND. ( SL1->(ColumnPos("L1_STATUES")) = 0 .OR. Empty(SL1->L1_STATUES) )	) //Pedidos encerrados
+					
+					Lj140LpSL2(cNum, @nVlrOrc)
+					Lj140LpSL1(CrdxInt(), cNum, nVlrOrc)
+				EndIf		
+				
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//|    Verifica se o orcamento foi gerado pela integracao com Gestao de Concessionarias  |
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				If (SuperGetMV("MV_VEICULO",,"N")) == "S" .AND. SL1->(ColumnPos("L1_ORIGEM")) > 0 .AND. ;
+					SL1->L1_ORIGEM == "V" .and. !SL1->L1_VEICTIP $ "1/2"
+					lIntGC  := .T.
+				EndIf
+						
+				If lRetorno .And. !lVendido .Or. AllTrim( FunName() ) == "LOJA220" .Or. lIntGC .Or. nModulo == 5 .Or. lECommerce .Or. lForceExc
+
+					If ( (lAmbPAF .AND. nModulo <> 5) .OR. (IIf((LjAnalisaLeg(6)[1] .AND. !lNFCe), LjEmiteNF(SM0->M0_CGC), .T.) .AND. nModulo <> 5) );
+						.OR. FunName() = "LOJA220" .OR. cPaisLoc <> "BRA" ;
+						.OR. ( !LjMPreVend(SM0->M0_CGC) .AND. LjNVCC(SM0->M0_CGC) .AND. nModulo <> 5 );
+						.OR. ( nModulo == 5 .And. !(lNota) );
+						.OR. SL1->L1_TPORC == "E"
+
+						lj140ExcOrc()
+
+					ElseIf (!lFiscal .And. lIntGC .And. nModulo == 5) .Or. lECommerce .Or. lForceExc
+						lj140ExcOrc()
+
+					ElseIf nModulo <> 5 
+						If lFiscal
+							If !lExcAuto
+								MsgStop("Esse cupom sera cancelado de forma " + Chr(10)+ Chr(13) + ; 				//
+								"automatica. Conforme lei estadual  " + Chr(10)+ Chr(13) + ; 						//
+								"vigente que regulamenta pre-venda. " )												//
+							Else 
+								Conout("Esse cupom sera cancelado de forma "+"automatica. Conforme lei estadual  "+" "+"vigente que regulamenta pre-venda. " )
+							EndIf	
+
+							If Lj140ICOrc()
+								lj140ExcOrc()
+							Else
+								If !lExcAuto
+									MsgStop( 	"Existem problemas com a impressora fiscal" + Chr(10)+ Chr(13) + ; 	//
+												"N�o foi poss��vel imprimir e cancelar o or�amento!", "Aten��o" )
+								Else 
+									Conout("Existem problemas com a impressora fiscal")
+									Conout("N�o foi poss��vel imprimir e cancelar o or�amento!")
+								EndIf				
+							EndIf
+
+						Else 
+							If !lExcAuto
+								MsgStop("Para cancelar o orcamento o usuario deve ser fiscal" + Chr(10)+ Chr(13) + ;				//
+										"Por exigencia da Legislação Vigente no Estado, para todo orçamento cancelado, " + Chr(10)+ Chr(13) + ;				//
+										"deve ser impresso um cupom fiscal e seu cancelamento", "Aten��o")							//
+							Else 
+								Conout("Para cancelar o orcamento o usuario deve ser fiscal")
+								Conout("Por exigencia da Legislação Vigente no Estado, para todo orçamento cancelado, "+"deve ser impresso um cupom fiscal e seu cancelamento")	
+							EndIf			
+						EndIf
+					EndIf
+				EndIf
+				
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//|     Verifica se o Siga Loja esta integrado com o Gestão Hospitalar                                      |
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				If lRetorno .AND. GetNewPar("MV_LOJAHSP",.F.)
+					HS_ExclRAt(M->L1_NUM, aOrcamento[nCnt][3])
+				EndIf		
+				
+				//trecho retirado dédito técnico funções não compiladas
+			
+				If cPaisLoc == "GUA" .AND. lGeraNCC .AND. lRetorno
+					Lj021Imprime()
+					
+					//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+					//| "Aten‡„o"###"Foi gerada a Nota de Credito "###"Ok"  |
+					//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+					If !lExcAuto
+						Aviso( "STR0006","STR0070" + AllTrim( cSerieDev ) + "-" + cNumNFDev,{"STR0048"} )
+					Else 
+						Conout("STR0070" + AllTrim( cSerieDev ) + "-" + cNumNFDev)
+					EndIf		
+				EndIf
+
+				// Atualiza os campos F3_DTCANC e FT_DTCANC
+				If lRetorno .AND. lIsNFeDen .AND. Len(aChaveSL1) > 0
+					Lj140CancSF3(aChaveSL1[02], aChaveSL1[03], aChaveSL1[04], aChaveSL1[05], , , .T., lIsNFeDen) 
+				EndIf
+						
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Caso seja o orcamento pai ou orcamento unico, exclui o cartão fidelidade e sai do Loop³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				If lLastOrc
+					//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+					//³Release 11.5 - Cartao Fidelidade³
+					//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ		
+					If lRetorno .AND. lLjcFid .AND. xRet
+						nPosProd   	:= aScan(aHeader,{|x| Alltrim(Upper(x[2]))=="L2_PRODUTO"})		// Posicao do codigo do item
+						nPosNumcFi 	:= aScan(aHeader,{|x| AllTrim(Upper(x[2])) == "L2_NUMCFID"})	// Posicao do Numero do cartao fidelidade
+						For nY := 1 to Len( aCols )
+							//Cancelamento de venda de recarga de cartao fidelidade
+							If LaFunhProd(aCols[nY][nPosProd])
+								Ca280Exec("CA280ESLD",aCols[nY][nPosNumcFi],,,M->L1_DOC,cSerie,M->L1_LOJA,MOVFID_ESTREC)
+							Else
+								//Cancelamento de venda paga com cartao fidelidade
+								DbSelectArea("SL4")
+								DbSetOrder (1)
+								If DbSeek (xFilial("SL4")+M->L1_NUM)
+									While SL4->(!Eof()) .AND. SL4->L4_NUM == M->L1_NUM
+										If Alltrim(SL4->L4_FORMA) == "FID"
+											//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+											//³Se a venda foi paga com cartao fidelidade, entao o ³
+											//³movimento de saida sera estornado da tabela MBN    ³
+											//³e o valor devolvido ao respectivo saldo.           ³
+											//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+											Ca280Exec("CA280ESLD",SL4->L4_NUMCFID,,,M->L1_DOC,cSerie,M->L1_LOJA,MOVFID_ESTPGTO)
+											Exit
+										EndIf
+										SL4->(DbSkip())
+									End
+								EndIf
+			
+							Endif
+						Next nY		
+					EndIf
+					
+					Exit //saida do For nCnt
+				EndIf
+			Next nCnt
+
+		EndIf
+		
+	Else
+		DbSelectArea("SL1")
+	End
+	Exit
+End
+ 
+EndTran()
+              
+// Destravar todos os registros que estejam eventualmente locados
+MsUnLockAll() 
+
+aNfSFat := {}
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Verifica se existe SC gerada pelo orcamente. se tiver cancela		       ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ    
+If lRetorno .And. nOpcA == 1 .AND. ( (AllTrim(Str(SuperGetMv("MV_LJGERSC",,1))) $ "2|3")  .OR. lECommerce )
+	If  ExistFunc("LA590CncSC")
+    	LA590CncSC(cNum,cFilSL1)
+    Endif	
+Endif
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Se for orçamento e-commerce realiza a sinalização do cancelanmento para ser enviado para o site³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If lRetorno .And. !( lECommerce ) .AND.  SL1->(ColumnPos("L1_ECFLAG") > 0) .AND. (SL1->L1_ECFLAG == "1")
+   	aAreaMF5 := MF5->(GetArea())    
+	MF5->( DbSetOrder(1) ) 
+	//Pedidos e-commerce, verifica se foi processado o pagamento
+	If  MF5->(DbSeek(xFilial("MF5") + "SL1" + SL1->L1_FILIAL+ SL1->L1_NUM))
+
+		    If  MF5->( RecLock("MF5") )
+		        MF5->MF5_ECFLAG := "2"  //Inativo
+		        MF5->MF5_ECDTEX := " "
+		    	MF5->MF5_ECSTAT := "5"  // 5-Status e-commerce para cancelado
+		    	MF5->( MsUnLock() )
+		    EndIf   
+	EndIf
+	RestArea(aAreaMF5)
+EndIf
+
+If lRetorno .AND. lVendaSAT .AND. ExistFunc("LjSaCtrCnc")
+	LjSaCtrCnc(.F.,.T.,.F.,.F.,"") //Apaga o arquivo sinal de recuperação de cancelamento
+EndIf
+
+//Para o Venda Direta, fecha a comunicação com o periférico neste ponto apenas se tiver chamando o Cancelamento de Venda de outro ponto que não seja pelas rotinas LOJA701 ou LOJA140
+If nModulo == 5 .And. !(FunName() $ "LOJA701|LOJA140")
+	FinishLoja()
+EndIf
+
+If !lRetorno
+	nOpca := 0
+EndIf
+
+//Se é um cancelamento de integração e a variável estática (lIntDefPro) da integração está como .T., é necessário voltar para .F.
+If lVendaInt .And. Lj140GtInD()
+	Lj140StInD(.F.)
+EndIf
+
+LjGrvLog( SL1->L1_NUM, "Retorno da funcao lj140Exc", nOpca)
+
+Return nOpca

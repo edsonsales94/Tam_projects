@@ -37,6 +37,7 @@ User Function M410AGRV()
 			DBSelectArea('SZX')
 				RecLock("SZX",.F.)
 				SZX->ZX_QTDENT := Max(0, SZX->ZX_QTDENT - SC6->C6_QTDVEN)
+				SZX->ZX_SALDO  := SZX->ZX_SALDO + SC6->C6_QTDVEN
 				MsUnLock()
 			EndIf
 

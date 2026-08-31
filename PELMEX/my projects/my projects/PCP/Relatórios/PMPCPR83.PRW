@@ -1,0 +1,195 @@
+#Include "TopConn.CH"
+#Include "Protheus.CH"
+#Include "TOTVS.CH"
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  PMPCPR83    ºAutor  ³STAN LEE LOPES    				º Data ³  10/10/22 º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³  Plano de Laminação				   						     			 ±
+±±º          ³                                                            			   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                        			   º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function PMPCPR83()
+	Local oReport := nil
+	Local cPerg:= Padr("PMPCPR83",10)
+
+	//Incluo/Altero as perguntas na tabela SX1
+	AjustaSX1(cPerg)	
+	//gero a pergunta de modo oculto, ficando disponível no botão ações relacionadas
+	Pergunte(cPerg,.F.)	          
+
+	oReport := RptDef(cPerg)
+	oReport:PrintDialog()
+Return
+
+Static Function RptDef(cNOME)
+	Local oReport := Nil
+	Local oSection1:= Nil
+	Local oSection2:= Nil
+	Local oBreak
+	Local oFunction
+
+	oReport := TReport():New(cNOME,"Plano de Laminação",cNOME,{|oReport| ReportPrint(oReport)},"producao")
+	oReport:SetPortrait()
+	oReport:SetTotalInLine(.F.)
+	oReport:cFontBody := 'Courier New' 
+	oReport:nFontBody := 8
+
+	//Primeira seção
+	
+
+
+	oSection1:= TRSection():New(oReport, "Densidade", {"cAlias"}, , .F., .T.)
+	
+	TRCell():New(oSection1,"PED_DTPROPEL"	,"cAlias","Dt.Produçao",,20)
+	TRCell():New(oSection1,"DENSIDADE"	    ,"cAlias","Densidade",,20)
+	//TRCell():New(oSection1,"SETOR"		   ,"cAlias","Setor","@!",50)
+	//A segunda seção, será apresentado os produtos, neste exemplo, estarei disponibilizando apenas a tabela
+	//SB1,poderia ter deixado também a tabela de NCM, com isso, você poderia incluir os campos da tabela
+	//SYD.Semelhante a seção 1, defino o titulo e tamanho das colunas
+
+	oSection2:= TRSection():New(oReport, "Produto", {"cAlias"}, NIL, .F., .T.)
+
+	//TRCell():New(oSection2,"DENSIDADE"      ,"cAlias","Densidade",,20)
+	TRCell():New(oSection2,"G1_XDIMENS"		,"cAlias","Dimensão",/*Mascara*/,50)
+	TRCell():New(oSection2,"TOTAL"	        ,"cAlias","Qtd.Solicitada","@E 9,999,999,999.99",)
+	//TRCell():New(oSection2,"QTD_PRODUZIDA"	,"cAlias","Qtd.Produzida","@E 9,999,999,999.99",)
+	//TRCell():New(oSection2,"STATUS"			,"cAlias","Status",,20)
+	//Quebra por Seção
+	oBreak := TRBreak():New(oSection2,oSection1:Cell("DENSIDADE"),"Densidade")
+	TRFunction():New(oSection2:Cell("TOTAL"),"Total","SUM",oBreak,,,,.F.,.F.)
+	//TRFunction():New(oSection2:Cell("QTD_PRODUZIDA"),"Total","SUM",oBreak,,,,.F.,.F.)
+	//Fim Quebra por Seção
+
+	//Totalizador final
+	//TRFunction():New(oSection2:Cell("TOTAL"),"CUSTO TOTAL DO PEDIDO","SUM",,,"@E 9,999,999,999.99",,.F.,.T.)
+	//Totalizador
+
+	/*
+
+	TRFunction():New(oSection:Cell("L1_VLRTOT"),"TOTAL GERAL","SUM",,,"@E 999,999,999.99",,.F.,.T.)                            MIC
+	TRFunction():New(oSection:Cell("IR"),"TOTAL IR","SUM",,,"@E 999,999,999.99",,.F.,.T.)
+	TRFunction():New(oSection:Cell("VALLIQ"),"TOTAL LIQUIDO","SUM",,,"@E 999,999,999.99",,.F.,.T.)
+	*/
+	oReport:SetTotalInLine(.F.)
+
+	//quebra  por seção (.T.) uma seção por pagina
+	oSection1:SetPageBreak(.F.)
+	oSection1:SetTotalText(" ")
+Return(oReport)
+
+/*Inicia Logica Print Report */
+
+Static Function ReportPrint(oReport)
+	Local oSection1 := oReport:Section(1)
+	Local oSection2 := oReport:Section(2)
+	Local cQuery    := ""
+	Local lPrim 	:= .T.
+	
+	cQuery := " SELECT PED_DTPROPEL,DENSIDADE, "
+    cQuery += "        G1_XDIMENS,SUM(TOTAL)TOTAL "
+	cQuery += " FROM( "
+	cQuery += "        SELECT PED_DTPROPEL,G1_TRT,G1_COMP,B1_DESC,REPLACE(REPLACE(G1_XDIMENS,CHAR(10),''),CHAR(13),'')G1_XDIMENS,SUM(TOTAL)TOTAL,B1_XSETOR DENSIDADE "
+	cQuery += "        FROM( "
+	cQuery += "        		SELECT PED_DTPROPEL,PED_PRODUTO,PED_DESCRI,CAST(SUM(PED_QUANT) AS INT)TOTAL "
+	cQuery += "        		FROM( "
+	cQuery += "        		SELECT PED_NUM,PED_NOTA,PED_ITEM,PED_PRODUTO,PED_DESCRI,PED_QUANT,PED_DTPROPEL,PED_NOME,PED_SETOR "
+	cQuery += "        		FROM PED (NOLOCK) "
+	cQuery += "        		WHERE CONVERT(VARCHAR,CAST(PED_DTPREVIA AS DATE),112) BETWEEN '"+DTOS(mv_par01)+"' AND '"+DTOS(mv_par02)+"'  "
+	cQuery += "        AND PED_STATUS != 'C' "
+	cQuery += "        GROUP BY PED_NUM,PED_NOTA,PED_ITEM,PED_PRODUTO,PED_DESCRI,PED_QUANT,PED_DTPROPEL,PED_NOME,PED_SETOR "
+	cQuery += "        )TB "
+	cQuery += "        GROUP BY PED_DTPROPEL,PED_PRODUTO,PED_DESCRI "
+	cQuery += "        )TB1 "
+	cQuery += "        INNER JOIN SG1100 SG1 (NOLOCK) ON PED_PRODUTO = G1_COD AND G1_FIM >= CONVERT(VARCHAR,GETDATE(),112) AND SG1.D_E_L_E_T_ = '' "
+	cQuery += "        INNER JOIN SB1100 SB1 (NOLOCK) ON G1_COMP = B1_COD AND SB1.D_E_L_E_T_ = '' "
+	cQuery += "        WHERE (B1_DESC LIKE 'ART%BLO%' OR B1_DESC LIKE 'ART%AGLO%' OR B1_DESC LIKE 'ART%LATEX%')  "
+	cQuery += "        GROUP BY PED_DTPROPEL,G1_TRT,G1_COMP,B1_DESC,REPLACE(REPLACE(G1_XDIMENS,CHAR(10),''),CHAR(13),''),B1_XSETOR"
+	cQuery += "        )TB2 "
+	cQuery += "        WHERE DENSIDADE NOT LIKE '%CIL%' "
+	cQuery += "        AND DENSIDADE != '' "
+    cQuery += "        GROUP BY PED_DTPROPEL, "
+    cQuery += "        G1_XDIMENS,DENSIDADE "
+    cQuery += "        ORDER BY CONVERT(VARCHAR,CAST(PED_DTPROPEL AS DATE),112),DENSIDADE,G1_XDIMENS "
+	
+	
+	IF Select("cAlias") <> 0
+		DbSelectArea("cAlias")
+		DbCloseArea()
+	ENDIF
+
+	//crio o novo alias
+	TCQUERY cQuery NEW ALIAS "cAlias"
+
+	dbSelectArea("cAlias")
+	cAlias->(dbGoTop())
+
+	oReport:SetMeter(cAlias->(LastRec()))
+
+	//Irei percorrer todos os meus registros
+	While !Eof()
+
+		If oReport:Cancel()
+			Exit
+		EndIf
+
+		//inicializo a primeira seção
+		oSection1:Init()
+
+		oReport:IncMeter()
+
+
+
+		cSetor 	:= cAlias->DENSIDADE
+
+		//IncProc("Imprimindo Estrutura "+alltrim(cAlias->CODIGO))
+
+		//imprimo a primeira seção
+
+		oSection1:Cell("PED_DTPROPEL"):SetValue(cAlias->PED_DTPROPEL)
+		oSection1:Cell("DENSIDADE"):SetValue(cAlias->DENSIDADE)
+		//oSection1:Cell("DTAMAZON"):SetValue(cAlias->DTAMAZON)
+		oSection1:Printline()
+
+		//inicializo a segunda seção
+		oSection2:init()
+		//TRFunction():EndSection(2)
+
+		//verifico se o Setor é mesmo, se sim, imprimo Estrutura
+		While cAlias->DENSIDADE == cSetor
+			oReport:IncMeter()
+
+			IncProc("Imprimindo Plano de Laminação "+alltrim(cAlias->G1_XDIMENS))
+			oSection2:Cell("G1_XDIMENS"):SetValue(cAlias->G1_XDIMENS)
+			oSection2:Cell("TOTAL"):SetValue(cAlias->TOTAL)
+			//oSection2:Cell("QTD_PLANEJADA"):SetValue(cAlias->QTD_PLANEJADA)
+			//oSection2:Cell("QTD_PRODUZIDA"):SetValue(cAlias->QTD_PRODUZIDA)
+			//oSection2:Cell("STATUS"):SetValue(cAlias->STATUS)
+			oSection2:Printline()
+
+			cAlias->(dbSkip())
+		EndDo
+		//Aqui, farei uma quebra  por seção
+
+		//finalizo a segunda seção para que seja reiniciada para o proximo registro
+		oSection2:Finish()
+		//imprimo uma linha para separar os Títulos de outro
+		oReport:ThinLine()
+		//finalizo a primeira seção
+		oSection1:Finish()
+	Enddo
+
+Return
+
+Static Function AjustaSX1(cPerg)
+    u_InPutSX1(cPerg,"01",PADR("De Produção?    ",20)+"","","","mv_ch1","D",8,0,0,"G","","","","","mv_par01") 
+	u_InPutSX1(cPerg,"02",PADR("Ate Produção?    ",20)+"","","","mv_ch2","D",8,0,0,"G","","","","","mv_par02") 
+Return

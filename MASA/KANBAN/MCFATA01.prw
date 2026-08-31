@@ -206,6 +206,7 @@ Static Function Gravacao()
 		IF SZX->(dbSeek(XFILIAL("SZX")+M->Z1_CLIENTE+M->Z1_LOJA+left(DtoS(aMark[nX,2]),6)+aMark[nX,1]+DtoS(aMark[nX,2])))
 			RecLock("SZX",.F.)
 			SZX->ZX_QTDENT += aMark[nX,8]
+			SZX->ZX_SALDO  := Max(0, SZX->ZX_SALDO - SC6->C6_QTDVEN)
 			MsUnLock()
 		EndIf
 		
