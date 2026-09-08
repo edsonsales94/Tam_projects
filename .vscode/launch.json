@@ -155,8 +155,20 @@
 		{
 			"args": [],
 			"label": "U_ZImpPes"
+		},
+		{
+			"args": [],
+			"label": "U_ITVSXMLx"
+		},
+		{
+			"args": [],
+			"label": "u_OpenTela"
+		},
+		{
+			"args": [],
+			"label": "U_ETNTESTE"
 		}
 	],
-	"lastProgramExecuted": "SIGAMDI",
+	"lastProgramExecuted": "u_OpenTela",
 	"lastProgramArguments": []
 }

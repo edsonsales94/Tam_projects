@@ -1,0 +1,19 @@
+A1_CGC
+Sequencia: 051
+Cnt.Dom: A1_COD
+Regra: U_CodCli()
+
+A1_CGC
+Sequencia: 052
+Cnt.Dom: A1_LOJA
+Regra: U_codloj2()
+
+A2_CGC
+Sequencia: 051
+Cnt.Dom: A2_COD
+Regra: U_CodFor()
+
+A2_CGC
+Sequencia: 052
+Cnt.Dom: A2_LOJA   
+Regra: U_codloj()

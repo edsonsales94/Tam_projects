@@ -1,0 +1,12 @@
+<po-upload
+  name="upload"
+  p-label="PO Upload"
+  p-label="Selecione o arquivo"
+  p-help="Formatos permitidos: CSV, XLS e XLSX. Tamanho máximo: 10 MB."
+  [p-auto-upload]="false"
+  [p-drag-drop]="true"
+  [p-multiple]="false"
+  [p-restrictions]="restrictions"
+  p-url="https://po-sample-api.onrender.com/v1/uploads/addFile"
+></po-upload>
+
