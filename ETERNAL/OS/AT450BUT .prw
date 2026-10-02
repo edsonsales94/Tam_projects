@@ -3,6 +3,7 @@
 /*/{Protheus.doc} TC450ROT
 Adiciona opção ao menu externo da rotina TECA450.
 @type User Function
+Edson Sales
 /*/
 User Function TC450ROT()
 

@@ -1,5 +1,6 @@
 {
     "totvsLanguageServer.welcomePage": false,
     "totvsLanguageServer.editor.linter.includes": "C:\\smartclient_Dev\\includes",
-    "totvsLanguageServer.askCompileResult": false
+    "totvsLanguageServer.askCompileResult": false,
+    "totvsLanguageServer.web.open.external": true
 }

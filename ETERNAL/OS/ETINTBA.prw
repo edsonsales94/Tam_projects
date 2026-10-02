@@ -307,8 +307,8 @@ User Function fPesarDT(oModel,oView)
     cTipoMov := oFormSZ3:GetValue("Z3_MOVIMEN")
     if Empty(cTipoMov)
         msgbox("Informe o movimento ENTRADA/SAIDA",,"STOP")
+        Return
     EndIf
-
 	lPort := MSOpenPort(@nHdll,"COM3:9600,n,8,1")
 
 	cPeso   := space(30)
@@ -318,6 +318,7 @@ User Function fPesarDT(oModel,oView)
 	
     if !lPort
 		msgbox("Nao foi possivel pegar informações da porta",,"STOP")
+        return
 	Else
 		nVezes := 0
 		nEstab := 0
@@ -478,6 +479,17 @@ Local nAtual := 0
         NIL,;                                       //Condição para execução do gatilho
         "01");                                      //Sequência do gatilho
     )
+    aAdd(aGatilhos, FWStruTriggger( ;
+        "Z3_PESO",;                               //Campo Origem
+        "Z3_DIFPES",;                              //Campo Destino
+        "U_DIFENTSAI()",;//Regra de Preenchimento
+        .F.,;                                       //Irá Posicionar?
+        "",;                                        //Alias de Posicionamento
+        0,;                                         //Índice de Posicionamento
+        '',;                                        //Chave de Posicionamento
+        NIL,;                                       //Condição para execução do gatilho
+        "01");                                      //Sequência do gatilho
+    )
 
 
     //Percorrendo os gatilhos e adicionando na Struct
@@ -491,3 +503,32 @@ Local nAtual := 0
     Next
 
 Return
+
+User Function DIFENTSAI()
+    Local aArea    := FWGetArea()
+    Local oModel      := FWModelActive()
+    local oFormSZ3 := oModel:GetModel("FORMSZ3")
+    Local cTipoMov := oFormSZ3:GetValue("Z3_MOVIMEN")
+    Local cPesag   := oFormSZ3:GetValue("Z3_NPESAG")
+    Local cMovOrig := IIf(cTipoMov == "S", "E", "S")
+    Local nPesMvOr := 0
+    Local nDifEntSai := 0
+    dbSetOrder(3)
+    If SZ3->(MsSeek(xFilial("SZ3") + cPesag + cMovOrig)) .and. oFormSZ3:GetValue("Z3_TIPLEIT") == 'M'
+        nPesMvOr := SZ3->Z3_PESO
+        if oFormSZ3:GetValue("Z3_OPERAC")=='C'
+            // COLETA SAI VAZIO E VOLTA CHEIO
+            // ENTRADA - SAIDA
+            nDifEntSai := oFormSZ3:GetValue("Z3_PESO") - nPesMvOr
+        else
+            // VENDA SAI CHEIO, E VOLTA COM MENO PESO.
+            // SAIDA - ENTRADA
+            nDifEntSai := nPesMvOr - oFormSZ3:GetValue("Z3_PESO")
+        endif
+    else
+        nDifEntSai :=  oFormSZ3:GetValue("Z3_DIFPES")
+    endIf
+
+    RestArea(aArea)
+
+Return nDifEntSai

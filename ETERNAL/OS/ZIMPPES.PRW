@@ -87,9 +87,9 @@ User Function ZImpPes()
 
 	cMov := SZ3->Z3_MOVIMEN
 	if cMov == 'E'
-		fTickEnt(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoNF,cDataHora)
+		fTickEnt(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoLiq,cPesoNF,cDataHora)
 	else
-		fTickSai(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoLiq,cPesoNF,cDataHora)
+		fTickSai(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoNF,cDataHora)
 	endif
 
 	oPrint:EndPage()
@@ -108,95 +108,9 @@ User Function ZImpPes()
 
 Return
 
-/*{Protheus.doc} fTickEnt*/
+/*{Protheus.doc} fTickSai*/
 /*Função que gerar o tiket de entrada*/
-Static Function fTickEnt(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoNF,cDataHora)
-	Local oFontIni    := TFont():New("Arial",, -12, .T.)
-	Local oFontEmp    := TFont():New("Arial",, -11, .T.)
-	Local oFontTitulo := TFont():New("Arial",, -14, .T.)
-	Local oFontLabel  := TFont():New("Arial",,  -9, .T.)
-	Local oFontDados  := TFont():New("Arial",,  -9, .F.)
-	Local oFontRod    := TFont():New("Arial",,  -6, .F.)
-	Local oFontRodB   := TFont():New("Arial",,  -6, .T.)
-	Local nLinAtu     := 10
-	Local nTamLin     := 10
-	Local nCol2       := 10
-	Local nBkpLin     := 10
-	cTipo := 'ENTRADA'
-
-	// 595 x 842 pontos em 72 DPI. O ticket termina antes da linha 421.
-	oPrint:SayAlign( nLinAtu,  20, "Modelo de Impressão realizada na Balança ("+cTipo+")", ;
-		oFontIni, 555, 15, RGB(64, 64, 64), PAD_CENTER, 0)
-
-	nLinAtu += nTamLin + 15
-
-	oPrint:SayAlign( nLinAtu,  20, "ETERNAL IND COM SERV E TRATAMENTO DE RESIDUOS DA AMAZONIA LTDA", ;
-		oFontEmp, 555, 15, CLR_BLACK, PAD_CENTER, 0)
-
-	nLinAtu += nTamLin
-
-	oPrint:SayAlign( nLinAtu,  20, "(92) 3616-4700", oFontDados, 135, 12, CLR_BLACK, PAD_LEFT, 0)
-	oPrint:SayAlign( nLinAtu, 120, "RUA GUIANA FRANCESA 01", oFontDados, 135, 12, CLR_BLACK, PAD_CENTER, 0)
-	oPrint:SayAlign( nLinAtu, 440, "MANAUS  -  AM", oFontDados, 135, 12, CLR_BLACK, PAD_RIGHT, 0)
-
-	nLinAtu += nTamLin
-	oPrint:Line(nLinAtu, 20, nLinAtu, 575)
-	nLinAtu += nTamLin
-	oPrint:SayAlign(nLinAtu, 20, "TICKET DE ENTRADA", oFontTitulo, 555, 15, CLR_BLACK, PAD_CENTER, 0)
-	nLinAtu += nTamLin +20
-	nCol2 := nLinAtu
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Pesagem Numero:",      AllTrim(SZ3->Z3_NPESAG)+SPACE(10)+"-"+SPACE(10)+cTipo,;
-		oFontLabel, oFontDados, .T.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Peso de Entrada:",     cPesoBruto,                oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Leitura de Peso:",     cLeitura,                oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Nota Fiscal:",         AllTrim(SZ3->Z3_NFISCAL) + ;
-		IIf(Empty(SZ3->Z3_SERIE), "", "/" + AllTrim(SZ3->Z3_SERIE)), oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Peso Nota Fiscal:",    cPesoNF,                 oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Ordem de Servico:",    AllTrim(SZ3->Z3_ORDSERV),oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Data/Hora Entrada:",   cDataHora,               oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Motorista:",           AllTrim(SZ3->Z3_MOTORIS),oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Transportadora:",     ''                       ,oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-
-	nBkpLin := nLinAtu
-	nLinAtu := nCol2
-
-	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Produto:",             cProduto,                oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Tipo Veiculo:",        AllTrim(SZ3->Z3_TPVEIC), oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Placa:",               AllTrim(SZ3->Z3_XPLACA), oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Placa carreta:",      ' '                     , oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Cliente:",             cCliente,                oFontLabel, oFontDados, .F.)
-	nLinAtu += nTamLin
-	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Observacoes:",         cObs,                    oFontLabel, oFontDados, .F.)
-
-	nLinAtu := nBkpLin
-	nLinAtu += nTamLin +10
-	nLinAtu := 215
-	oPrint:Line(nLinAtu, 300, nLinAtu, 555)
-	oPrint:SayAlign(nLinAtu, 300, "Assinatura", oFontDados, 255, 12, CLR_BLACK, PAD_CENTER, 0)
-
-	nLinAtu += nTamLin +30
-	oPrint:Line(nLinAtu, 20, nLinAtu, 575)
-	oPrint:SayAlign(nLinAtu, 20, DToC(Date()) + " " + Time(), oFontRod, 255, 12, RGB(64, 64, 64), PAD_LEFT, 0)
-	oPrint:SayAlign(nLinAtu, 175, "TOTVS Protheus integrado com a balança do Sistema de Pesagem de Veiculos", ;
-		oFontRodB, 400, 10, RGB(64, 64, 64), PAD_RIGHT, 0)
-Return
-
-/*{Protheus.doc} fTickEnt*/
-/*Função que gerar o tiket de entrada*/
-Static Function fTickSai(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoLiq,cPesoNF,cDataHora)
+Static Function fTickSai(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoNF,cDataHora)
 	Local oFontIni    := TFont():New("Arial",, -12, .T.)
 	Local oFontEmp    := TFont():New("Arial",, -11, .T.)
 	Local oFontTitulo := TFont():New("Arial",, -14, .T.)
@@ -233,6 +147,94 @@ Static Function fTickSai(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBru
 	nCol2 := nLinAtu
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Pesagem Numero:",      AllTrim(SZ3->Z3_NPESAG)+SPACE(10)+"-"+SPACE(10)+cTipo,;
 		oFontLabel, oFontDados, .T.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Peso de Saída:",     cPesoBruto,                oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Leitura de Peso:",     cLeitura,                oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Nota Fiscal:",         AllTrim(SZ3->Z3_NFISCAL) + ;
+		IIf(Empty(SZ3->Z3_SERIE), "", "/" + AllTrim(SZ3->Z3_SERIE)), oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Romaneio: ",AllTrim(SZ3->Z3_ROMAN), oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Peso Nota Fiscal:",    cPesoNF,                 oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Ordem de Servico:",    AllTrim(SZ3->Z3_ORDSERV),oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Data/Hora Saída:",   cDataHora,               oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Motorista:",           AllTrim(SZ3->Z3_MOTORIS),oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Transportadora:",     ''                       ,oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+
+	nBkpLin := nLinAtu
+	nLinAtu := nCol2
+
+	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Produto:",             cProduto,                oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Tipo Veiculo:",        AllTrim(SZ3->Z3_TPVEIC), oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Placa:",               AllTrim(SZ3->Z3_XPLACA), oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Placa carreta:",      ' '                     , oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Cliente:",             cCliente,                oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu, 250,310, "Observacoes:",         cObs,                    oFontLabel, oFontDados, .F.)
+
+	nLinAtu := nBkpLin
+	nLinAtu += nTamLin +10
+	nLinAtu := 215
+	oPrint:Line(nLinAtu, 300, nLinAtu, 555)
+	oPrint:SayAlign(nLinAtu, 300, "Assinatura", oFontDados, 255, 12, CLR_BLACK, PAD_CENTER, 0)
+
+	nLinAtu += nTamLin +30
+	oPrint:Line(nLinAtu, 20, nLinAtu, 575)
+	oPrint:SayAlign(nLinAtu, 20, DToC(Date()) + " " + Time(), oFontRod, 255, 12, RGB(64, 64, 64), PAD_LEFT, 0)
+	oPrint:SayAlign(nLinAtu, 175, "TOTVS Protheus integrado com a balança do Sistema de Pesagem de Veiculos", ;
+		oFontRodB, 400, 10, RGB(64, 64, 64), PAD_RIGHT, 0)
+Return
+
+/*{Protheus.doc} fTickSai*/
+/*Função que gerar o tiket de entrada*/
+Static Function fTickEnt(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBruto,cPesoLiq,cPesoNF,cDataHora)
+	Local oFontIni    := TFont():New("Arial",, -12, .T.)
+	Local oFontEmp    := TFont():New("Arial",, -11, .T.)
+	Local oFontTitulo := TFont():New("Arial",, -14, .T.)
+	Local oFontLabel  := TFont():New("Arial",,  -9, .T.)
+	Local oFontDados  := TFont():New("Arial",,  -9, .F.)
+	Local oFontRod    := TFont():New("Arial",,  -6, .F.)
+	Local oFontRodB   := TFont():New("Arial",,  -6, .T.)
+	Local nLinAtu     := 10
+	Local nTamLin     := 10
+	Local nCol2       := 10
+	Local nBkpLin     := 10
+	cTipo := 'ENTRADA'
+
+	// 595 x 842 pontos em 72 DPI. O ticket termina antes da linha 421.
+	oPrint:SayAlign( nLinAtu,  20, "Modelo de Impressão realizada na Balança ("+cTipo+")", ;
+		oFontIni, 555, 15, RGB(64, 64, 64), PAD_CENTER, 0)
+
+	nLinAtu += nTamLin + 15
+
+	oPrint:SayAlign( nLinAtu,  20, "ETERNAL IND COM SERV E TRATAMENTO DE RESIDUOS DA AMAZONIA LTDA", ;
+		oFontEmp, 555, 15, CLR_BLACK, PAD_CENTER, 0)
+
+	nLinAtu += nTamLin
+
+	oPrint:SayAlign( nLinAtu,  20, "(92) 3616-4700", oFontDados, 135, 12, CLR_BLACK, PAD_LEFT, 0)
+	oPrint:SayAlign( nLinAtu, 120, "RUA GUIANA FRANCESA 01", oFontDados, 135, 12, CLR_BLACK, PAD_CENTER, 0)
+	oPrint:SayAlign( nLinAtu, 440, "MANAUS  -  AM", oFontDados, 135, 12, CLR_BLACK, PAD_RIGHT, 0)
+
+	nLinAtu += nTamLin
+	oPrint:Line(nLinAtu, 20, nLinAtu, 575)
+	nLinAtu += nTamLin
+	oPrint:SayAlign(nLinAtu, 20, "TICKET DE ENTRADA", oFontTitulo, 555, 15, CLR_BLACK, PAD_CENTER, 0)
+	nLinAtu += nTamLin +20
+	nCol2 := nLinAtu
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Pesagem Numero:",      AllTrim(SZ3->Z3_NPESAG)+SPACE(10)+"-"+SPACE(10)+cTipo,;
+		oFontLabel, oFontDados, .T.)
 	cPesoEnt := Transform(Posicione('SZ3',3,xFilial('SZ3')+SZ3->Z3_NPESAG+'E','Z3_PESO'),   "@E 999,999,999.9999") + " kg"
 	nLinAtu += nTamLin
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Peso de Entrada:",     cPesoEnt,                oFontLabel, oFontDados, .F.)
@@ -246,17 +248,22 @@ Static Function fTickSai(oPrint,cProduto,cCliente,cLeitura,cObs,nPesoNF,cPesoBru
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Nota Fiscal:",         AllTrim(SZ3->Z3_NFISCAL) + ;
 		IIf(Empty(SZ3->Z3_SERIE), "", "/" + AllTrim(SZ3->Z3_SERIE)), oFontLabel, oFontDados, .F.)
 	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Romaneio: ",AllTrim(SZ3->Z3_ROMAN), oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Ordem de Servico:",    AllTrim(SZ3->Z3_ORDSERV),oFontLabel, oFontDados, .F.)
 	nLinAtu += nTamLin
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Peso Nota Fiscal:",    cPesoNF,                 oFontLabel, oFontDados, .F.)
 
 	cDifPesoNf := Transform(SZ3->Z3_DIFNF,     "@E 999,999,999.9999") + " kg"
 	cDifPesPer := Transform(SZ3->Z3_DIFPERC,   "@E 999,999,999.9999") + " %"
-
+	cDifEntSai := Transform(SZ3->Z3_DIFPES, "@E 999,999,999.9999") + " kg"
+	
 	nLinAtu += nTamLin
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Dif. Nota Fiscal:",    cDifPesoNf,                 oFontLabel, oFontDados, .F.)
 	nLinAtu += nTamLin
 	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Perc. diferença:",     cDifPesPer,                 oFontLabel, oFontDados, .F.)
+	nLinAtu += nTamLin
+	Z3ImpCampo(oPrint, nLinAtu,  20,100, "Dif. Entra/Said:",    cDifEntSai,                 oFontLabel, oFontDados, .F.)
 	nLinAtu += nTamLin
 
 	cDtHrEntr := DToC(Posicione('SZ3',3,xFilial('SZ3')+SZ3->Z3_NPESAG+'E','Z3_DATAPES'))+" "+AllTrim(Posicione('SZ3',3,xFilial('SZ3')+SZ3->Z3_NPESAG+'E','Z3_HRPESO'))
